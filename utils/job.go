@@ -97,7 +97,7 @@ func JobPush(topic string, body interface{}, delayTime int64) (string, bool) {
 		Body:  string(jobMsg),
 	}
 	msgJson, _ := json.Marshal(msg)
-	urls := ship.DelayServer + "/push"
+	urls := laya.DelayServer + "/push"
 	client := &http.Client{}
 	req, _ := http.NewRequest("POST", urls, bytes.NewBuffer(msgJson))
 	req.Header.Add("Content-Type", "application/json;charset=UTF-8")
@@ -117,7 +117,7 @@ func JobPush(topic string, body interface{}, delayTime int64) (string, bool) {
 // 任务pop
 func JobPop(topic string) (ResData, error) {
 	var data ResData
-	urls := ship.DelayServer + "/pop"
+	urls := laya.DelayServer + "/pop"
 	resp, err := http.Post(urls, "application/json;charset=UTF-8", strings.NewReader("{\"topic\":\""+topic+"\"}"))
 	if err != nil {
 		return data, err
@@ -135,7 +135,7 @@ func JobPop(topic string) (ResData, error) {
 func JobFinish(id string) (string, error) {
 	msg := QueueRemove{Id: id}
 	msgJson, err := json.Marshal(msg)
-	urls := ship.DelayServer + "/finish"
+	urls := laya.DelayServer + "/finish"
 	client := &http.Client{}
 	req, err := http.NewRequest("POST", urls, bytes.NewBuffer(msgJson))
 	req.Header.Add("Content-Type", "application/json;charset=UTF-8")
@@ -159,7 +159,7 @@ func JobRemove(id string) (string, error) {
 		Id: id,
 	}
 	msgJson, err := json.Marshal(msg)
-	urls := ship.DelayServer + "/delete"
+	urls := laya.DelayServer + "/delete"
 	client := &http.Client{}
 	req, err := http.NewRequest("POST", urls, bytes.NewBuffer(msgJson))
 	req.Header.Add("Content-Type", "application/json;charset=UTF-8")

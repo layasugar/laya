@@ -128,9 +128,9 @@ func GenValidateCode(width int) string {
 // RemoteIp 返回远程客户端的 IP，如 192.168.1.1
 func RemoteIp(req *http.Request) string {
 	remoteAddr := req.RemoteAddr
-	if ip := req.Header.Get(ship.XRealIP); ip != "" {
+	if ip := req.Header.Get(laya.XRealIP); ip != "" {
 		remoteAddr = ip
-	} else if ip = req.Header.Get(ship.XForwardedFor); ip != "" {
+	} else if ip = req.Header.Get(laya.XForwardedFor); ip != "" {
 		remoteAddr = ip
 	} else {
 		remoteAddr, _, _ = net.SplitHostPort(remoteAddr)

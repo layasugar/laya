@@ -1,4 +1,4 @@
-package ship
+package laya
 
 // ship下使用得常量
 const (

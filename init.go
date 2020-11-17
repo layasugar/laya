@@ -78,15 +78,18 @@ func InitEnv() {
 // 初始化redis
 func InitRedis() {
 	if RedisConf.Open {
-		Redis = redis.NewClient(&redis.Options{
+		options := redis.Options{
 			Addr:        RedisConf.Addr,                                     // Redis地址
-			Password:    RedisConf.Pwd,                                      // Redis账号
 			DB:          RedisConf.DB,                                       // Redis库
 			PoolSize:    RedisConf.PoolSize,                                 // Redis连接池大小
 			MaxRetries:  RedisConf.MaxRetries,                               // 最大重试次数
 			IdleTimeout: time.Second * time.Duration(RedisConf.IdleTimeout), // 空闲链接超时时间
-		})
+		}
+		if RedisConf.Pwd != "" {
+			options.Password = RedisConf.Pwd
+		}
 
+		Redis = redis.NewClient(&options)
 		pong, err := Redis.Ping().Result()
 		if err == redis.Nil {
 			log.Info("Nil reply returned by Redis when key does not exist.")

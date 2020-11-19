@@ -11,22 +11,38 @@ import (
 	"strings"
 )
 
-func (*Middleware) Response() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Next()
-		if c.Writer.Written() {
-			return
-		}
+//func (*Middleware) Response() gin.HandlerFunc {
+//	return func(c *gin.Context) {
+//		c.Next()
+//		if c.Writer.Written() {
+//			return
+//		}
+//
+//		params := c.Keys
+//		if len(params) == 0 {
+//			return
+//		}
+//
+//		lang := GetLang(c.GetHeader("Accept-Language"))
+//		resp := GetResponse(params, lang)
+//		c.JSON(http.StatusOK, resp)
+//	}
+//}
 
-		params := c.Keys
-		if len(params) == 0 {
-			return
-		}
-
-		lang := GetLang(c.GetHeader("Accept-Language"))
-		resp := GetResponse(params, lang)
-		c.JSON(http.StatusOK, resp)
+func (*Middleware) Response(c *gin.Context) {
+	c.Next()
+	if c.Writer.Written() {
+		return
 	}
+
+	params := c.Keys
+	if len(params) == 0 {
+		return
+	}
+
+	lang := GetLang(c.GetHeader("Accept-Language"))
+	resp := GetResponse(params, lang)
+	c.JSON(http.StatusOK, resp)
 }
 
 func GetLang(lang string) string {

@@ -91,9 +91,7 @@ func New(c *gin.Context) {
 	}
 }
 
-func (*Middleware) Sign() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		New(c)
-		c.Next()
-	}
+func (*Middleware) Sign(c *gin.Context) {
+	New(c)
+	c.Next()
 }

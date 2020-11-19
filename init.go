@@ -119,7 +119,7 @@ func InitLang() {
 	if I18nConf.Open {
 		I18nBundle = i18n.NewBundle(language.English)
 		I18nBundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-		err := LoadAllFile("./lang/")
+		err := LoadAllFile("./conf/lang/")
 		if err != nil {
 			panic(err)
 		}

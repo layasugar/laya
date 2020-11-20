@@ -2,22 +2,26 @@ package i18n
 
 import (
 	"github.com/BurntSushi/toml"
+	"github.com/micro/go-micro/v2/util/log"
 	i "github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 	"io/ioutil"
 )
 
-// I18n Internationalization support
-type I18n struct {
+// I18ner Internationalization support
+type I18ner struct {
 	Bundle *i.Bundle
-	Conf   struct {
-		Open        bool   `json:"open"`
-		DefaultLang string `json:"defaultLang"`
-	}
+	Conf   Options
+}
+
+// i18n config
+type Options struct {
+	Open        bool   `json:"open"`
+	DefaultLang string `json:"defaultLang"`
 }
 
 // getMessage Gets the restfulApi to return value translation information
-func (i18n *I18n) GetMessage(al string, msg string) string {
+func (i18n *I18ner) GetMessage(al string, msg string) string {
 	lang := i18n.getLang(al)
 	loc := i.NewLocalizer(i18n.Bundle, lang)
 
@@ -31,7 +35,7 @@ func (i18n *I18n) GetMessage(al string, msg string) string {
 }
 
 // translate Get general translation information
-func (i18n *I18n) Translate(lang string, msg string) string {
+func (i18n *I18ner) Translate(lang string, msg string) string {
 	loc := i.NewLocalizer(i18n.Bundle, lang)
 
 	return loc.MustLocalize(&i.LocalizeConfig{
@@ -44,7 +48,8 @@ func (i18n *I18n) Translate(lang string, msg string) string {
 }
 
 // initialize i18n
-func (i18n *I18n) InitLang() {
+func (i18n *I18ner) InitLang() {
+	log.Info("i18n init",i18n.Conf.Open)
 	if i18n.Conf.Open {
 		i18n.Bundle = i.NewBundle(language.English)
 		i18n.Bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
@@ -56,7 +61,7 @@ func (i18n *I18n) InitLang() {
 }
 
 // Load the file
-func (i18n *I18n) LoadAllFile(pathname string) error {
+func (i18n *I18ner) LoadAllFile(pathname string) error {
 	rd, err := ioutil.ReadDir(pathname)
 	for _, fi := range rd {
 		if fi.IsDir() {
@@ -72,7 +77,7 @@ func (i18n *I18n) LoadAllFile(pathname string) error {
 }
 
 // get language
-func (i18n *I18n) getLang(lang string) string {
+func (i18n *I18ner) getLang(lang string) string {
 	if lang == "" {
 		if i18n.Conf.Open {
 			lang = i18n.Conf.DefaultLang

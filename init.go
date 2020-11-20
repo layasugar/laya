@@ -2,6 +2,7 @@ package laya
 
 import (
 	"encoding/json"
+	"github.com/LaYa-op/laya/i18n"
 	"github.com/go-redis/redis/v7"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -12,27 +13,13 @@ import (
 	"time"
 )
 
-func Before() {
-	app := cmd.App()
-	app.Flags = append(app.Flags, &cli.StringFlag{
-		Name:  "env",
-		Usage: "environment to setting",
-	})
+// 定义redis链接池,mysql连接池,语言包bundle
+var Redis *redis.Client
+var DB *gorm.DB
+var I18n = &i18n.I18ner{}
 
-	before := app.Before
-	app.Before = func(ctx *cli.Context) error {
-		if path := ctx.String("env"); len(path) > 0 {
-			// got config
-			// do stuff
-			ENV = path
-		} else {
-			ENV = DefaultEnv
-		}
-		return before(ctx)
-	}
-}
-
-func Init() {
+func init() {
+	Before()
 	InitEnv()
 	InitMysql()
 	InitRedis()
@@ -49,8 +36,8 @@ func InitEnv() {
 		panic(err)
 	}
 
-	// get i18n config
 	err = json.Unmarshal(config.Get(ENV, "i18n").Bytes(), &I18n.Conf)
+	log.Info(I18n.Conf)
 	if err != nil {
 		panic(err)
 	}
@@ -108,5 +95,25 @@ func InitMysql() {
 		DB.DB().SetMaxIdleConns(MysqlConf.MaxIdleConn)
 		DB.DB().SetMaxOpenConns(MysqlConf.MaxOpenConn)
 		DB.DB().SetConnMaxLifetime(time.Hour * time.Duration(MysqlConf.ConnMaxLifetime))
+	}
+}
+
+func Before() {
+	app := cmd.App()
+	app.Flags = append(app.Flags, &cli.StringFlag{
+		Name:  "env",
+		Usage: "environment to setting",
+	})
+
+	before := app.Before
+	app.Before = func(ctx *cli.Context) error {
+		if path := ctx.String("env"); len(path) > 0 {
+			// got config
+			// do stuff
+			ENV = path
+		} else {
+			ENV = DefaultEnv
+		}
+		return before(ctx)
 	}
 }

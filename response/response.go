@@ -13,7 +13,7 @@ import (
 
 type Response struct {
 	DataBuf
-	i18n.I18n
+	i18n.I18ner
 }
 
 type DataBuf struct {
@@ -48,7 +48,7 @@ func (resp *Response) GetResponse(params map[string]interface{}, al string) inte
 		if gin.Mode() == gin.DebugMode {
 			resp.Location = name
 		}
-		resp.Msg = resp.I18n.GetMessage(al, strconv.Itoa(resp.Code))
+		resp.Msg = resp.I18ner.GetMessage(al, strconv.Itoa(resp.Code))
 	}
 	return resp
 }

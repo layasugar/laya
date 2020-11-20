@@ -17,7 +17,8 @@ type I18n struct {
 }
 
 // getMessage Gets the restfulApi to return value translation information
-func (i18n *I18n) getMessage(lang string, msg string) string {
+func (i18n *I18n) GetMessage(al string, msg string) string {
+	lang := i18n.getLang(al)
 	loc := i.NewLocalizer(i18n.Bundle, lang)
 
 	return loc.MustLocalize(&i.LocalizeConfig{
@@ -30,7 +31,7 @@ func (i18n *I18n) getMessage(lang string, msg string) string {
 }
 
 // translate Get general translation information
-func (i18n *I18n) translate(lang string, msg string) string {
+func (i18n *I18n) Translate(lang string, msg string) string {
 	loc := i.NewLocalizer(i18n.Bundle, lang)
 
 	return loc.MustLocalize(&i.LocalizeConfig{
@@ -47,7 +48,7 @@ func (i18n *I18n) InitLang() {
 	if i18n.Conf.Open {
 		i18n.Bundle = i.NewBundle(language.English)
 		i18n.Bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-		err := i18n.LoadAllFile("./lang/")
+		err := i18n.LoadAllFile("./conf/lang/")
 		if err != nil {
 			panic(err)
 		}
@@ -68,4 +69,17 @@ func (i18n *I18n) LoadAllFile(pathname string) error {
 		}
 	}
 	return err
+}
+
+// get language
+func (i18n *I18n) getLang(lang string) string {
+	if lang == "" {
+		if i18n.Conf.Open {
+			lang = i18n.Conf.DefaultLang
+		} else {
+			lang = language.English.String()
+		}
+	}
+
+	return string([]rune(lang)[0:2])
 }

@@ -2,7 +2,6 @@ package laya
 
 import (
 	"encoding/json"
-	"github.com/BurntSushi/toml"
 	"github.com/go-redis/redis/v7"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -10,9 +9,6 @@ import (
 	"github.com/micro/go-micro/v2/config"
 	"github.com/micro/go-micro/v2/config/cmd"
 	"github.com/micro/go-micro/v2/util/log"
-	"github.com/nicksnyder/go-i18n/v2/i18n"
-	"golang.org/x/text/language"
-	"io/ioutil"
 	"time"
 )
 
@@ -40,7 +36,7 @@ func Init() {
 	InitEnv()
 	InitMysql()
 	InitRedis()
-	InitLang()
+	I18n.InitLang()
 }
 
 func InitEnv() {
@@ -54,7 +50,7 @@ func InitEnv() {
 	}
 
 	// get i18n config
-	err = json.Unmarshal(config.Get(ENV, "i18n").Bytes(), &I18nConf)
+	err = json.Unmarshal(config.Get(ENV, "i18n").Bytes(), &I18n.Conf)
 	if err != nil {
 		panic(err)
 	}
@@ -113,30 +109,4 @@ func InitMysql() {
 		DB.DB().SetMaxOpenConns(MysqlConf.MaxOpenConn)
 		DB.DB().SetConnMaxLifetime(time.Hour * time.Duration(MysqlConf.ConnMaxLifetime))
 	}
-}
-
-func InitLang() {
-	if I18nConf.Open {
-		I18nBundle = i18n.NewBundle(language.English)
-		I18nBundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-		err := LoadAllFile("./conf/lang/")
-		if err != nil {
-			panic(err)
-		}
-	}
-}
-
-func LoadAllFile(pathname string) error {
-	rd, err := ioutil.ReadDir(pathname)
-	for _, fi := range rd {
-		if fi.IsDir() {
-			_ = LoadAllFile(pathname + fi.Name() + "\\")
-		} else {
-			_, err := I18nBundle.LoadMessageFile(pathname + fi.Name())
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return err
 }

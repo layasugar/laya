@@ -1,11 +1,5 @@
 package laya
 
-import (
-	"github.com/go-redis/redis/v7"
-	"github.com/jinzhu/gorm"
-	"github.com/nicksnyder/go-i18n/v2/i18n"
-)
-
 // environment
 var ENV string
 
@@ -28,13 +22,3 @@ var MysqlConf struct {
 	MaxOpenConn     int    `json:"maxOpenConn"`
 	ConnMaxLifetime int    `json:"connMaxLifetime"`
 }
-
-var I18nConf struct {
-	Open        bool   `json:"open"`
-	DefaultLang string `json:"defaultLang"`
-}
-
-// 定义redis链接池,mysql连接池,语言包bundle
-var Redis *redis.Client
-var DB *gorm.DB
-var I18nBundle *i18n.Bundle

@@ -9,8 +9,8 @@ type Response struct {
 	Msg      string
 	Data     interface{}
 	WithData interface{}
-	Page     PageRes
-	Location string
+	Page     *PageRes `json:"Page,omitempty"`
+	Location string   `json:"Location,omitempty"`
 }
 
 type PageRes struct {

@@ -41,7 +41,7 @@ func (*Middleware) Response(c *gin.Context) {
 	}
 
 	lang := GetLang(c.GetHeader("Accept-Language"))
-	resp := GetResponse(params, lang)
+	resp := GetResponse(c, params, lang)
 	c.JSON(http.StatusOK, resp)
 }
 
@@ -59,7 +59,7 @@ func GetLang(lang string) string {
 	return lang
 }
 
-func GetResponse(params map[string]interface{}, lang string) interface{} {
+func GetResponse(c *gin.Context, params map[string]interface{}, lang string) interface{} {
 	var resp response.Response
 	for name, value := range params {
 		if !strings.HasPrefix(name, "$.") {
@@ -73,7 +73,9 @@ func GetResponse(params map[string]interface{}, lang string) interface{} {
 			op, _ := value.(response.Response)
 			resp = op
 		}
-		resp.Location = name
+		if gin.Mode() == gin.DebugMode {
+			resp.Location = name
+		}
 		resp.Msg = GetMessage(lang, strconv.Itoa(resp.Code))
 	}
 	return resp

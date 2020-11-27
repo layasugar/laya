@@ -105,7 +105,7 @@ func JobPush(topic string, body interface{}, delayTime int64) (string, bool) {
 	resp, _ := client.Do(req)
 	defer resp.Body.Close()
 	res, _ := ioutil.ReadAll(resp.Body)
-	_ = json.Unmarshal(res, result)
+	_ = json.Unmarshal(res, &result)
 	if result.Code == 0 {
 		fmt.Println("pushres:id:", msg.Id)
 		return msg.Id, true

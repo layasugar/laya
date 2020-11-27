@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 )
 
+var I18n = &I18ner{}
+
 // I18ner Internationalization support
 type I18ner struct {
 	Bundle *i.Bundle
@@ -48,12 +50,12 @@ func (i18n *I18ner) Translate(lang string, msg string) string {
 }
 
 // initialize i18n
-func (i18n *I18ner) InitLang() {
-	log.Info("i18n init",i18n.Conf.Open)
-	if i18n.Conf.Open {
-		i18n.Bundle = i.NewBundle(language.English)
-		i18n.Bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-		err := i18n.LoadAllFile("./conf/lang/")
+func init() {
+	log.Info("i18n init", I18n.Conf.Open)
+	if I18n.Conf.Open {
+		I18n.Bundle = i.NewBundle(language.English)
+		I18n.Bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
+		err := I18n.LoadAllFile("./conf/lang/")
 		if err != nil {
 			panic(err)
 		}

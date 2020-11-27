@@ -1,4 +1,4 @@
-package conf
+package config
 
 import (
 	"fmt"
@@ -35,13 +35,13 @@ func RegisterFileWatcher(pattern string, handler fileutil.WatcherEventHandler) e
 
 // defaultConfChangeHandler 配置文件变化默认回调
 func defaultConfChangeHandler(e *fileutil.WatcherEvent) error {
-	log.Println("[conf_autoreload] conf file changed:", e)
+	log.Println("[conf_autoreload] config file changed:", e)
 	cacheKeyPre := cacheKeyPrefix(cleanPath(e.Name))
 	confCache.Range(func(key interface{}, value interface{}) bool {
 		keyStr := fmt.Sprintf("%v", key)
 		if strings.HasPrefix(keyStr, cacheKeyPre) {
 			confCache.Delete(key)
-			log.Println("[conf_autoreload] conf file was changed and clean the cache:", e)
+			log.Println("[conf_autoreload] config file was changed and clean the cache:", e)
 		}
 		return true
 	})

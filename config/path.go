@@ -1,4 +1,4 @@
-package conf
+package config
 
 import (
 	"fmt"
@@ -46,7 +46,7 @@ func validConfPath(confPath string) error {
 }
 
 func dumpConfDir() string {
-	return filepath.Join(env.DataRootPath(), "var", "conf", "dump")
+	return filepath.Join(env.DataRootPath(), "var", "config", "dump")
 }
 
 var dumpOnce sync.Once
@@ -65,7 +65,7 @@ func dumpConf(confPath string, confStr string) {
 	if !fileutil.Exists(dir) {
 		err := os.MkdirAll(dir, 0755)
 		if err != nil {
-			log.Println("create dump conf dir failed:", err)
+			log.Println("create dump config dir failed:", err)
 			return
 		}
 	}

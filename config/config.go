@@ -1,4 +1,4 @@
-package conf
+package config
 
 import (
 	"fmt"
@@ -43,7 +43,7 @@ func ReadFile(confPath string, config interface{}) (err error) {
 		var confStr string
 		confStr, err = parserConfWithUserParserFns(confStrRaw)
 
-		//若配置文件有变化，则异步写入data/var/conf/dump 目录下去，以方便查看
+		//若配置文件有变化，则异步写入data/var/config/dump 目录下去，以方便查看
 		if confStrRaw != confStr {
 			go dumpConf(confPath, confStr)
 		}

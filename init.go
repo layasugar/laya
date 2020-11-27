@@ -12,7 +12,7 @@ import (
 
 func init() {
 	InitEnv()
-	db.Init("./conf/db")
+	db.Init("./config/db")
 	mongodb.Init()
 	redis.Init()
 }

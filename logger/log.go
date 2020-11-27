@@ -3,7 +3,7 @@
 package llog
 
 import (
-	"github.com/LaYa-op/laya/conf"
+	"github.com/LaYa-op/laya/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -28,7 +28,7 @@ type Config struct {
 // InitLog 初始化日志文件
 func InitLog() {
 
-	err := conf.ReadFile(name, &config)
+	err := config.ReadFile(name, &config)
 	logConf := config.GetLogConf()
 
 	loglevel := zapcore.InfoLevel

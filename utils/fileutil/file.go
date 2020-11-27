@@ -59,7 +59,7 @@ func FilePutContents(filePath string, data []byte, def ...int) error {
 }
 
 // FilesWithSuffixInDir 查找文件夹中符合后缀要求的文件名
-// NOTICE: 如果用类似的后缀，如 conf config, 函数不去重
+// NOTICE: 如果用类似的后缀，如 config config, 函数不去重
 func FilesWithSuffixInDir(dir string, suffixes []string) (res []string, err error) {
 	files, err := filepath.Glob(dir + "/*")
 	if err != nil {

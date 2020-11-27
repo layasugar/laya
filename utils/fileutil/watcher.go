@@ -36,7 +36,7 @@ type WatcherEvent struct {
 	//文件名,相对路径,相对于rootpath的文件名，eg: cal/services/a.toml
 	Name string
 
-	//文件的完整路径名，绝对路径,eg: /home/work/appName/conf/cal/services/a.toml
+	//文件的完整路径名，绝对路径,eg: /home/work/appName/config/cal/services/a.toml
 	Path string
 }
 

@@ -2,7 +2,7 @@ package redis
 
 import (
 	"context"
-	"github.com/LaYa-op/laya/conf"
+	"github.com/LaYa-op/laya/config"
 	"github.com/go-redis/redis/v8"
 	"log"
 	"time"
@@ -13,14 +13,14 @@ var Rdb *redis.Client
 // 初始化redis
 func Init() {
 	path := ""
-	Configs := conf.ListFiles(path)
+	Configs := config.ListFiles(path)
 
 	log.Printf("[store_db] DB_INIT with %d cluster\n", len(Configs))
 	var config Config
 	for _, name := range Configs {
-		err := conf.ReadFile(name, &config)
+		err := config.ReadFile(name, &config)
 		if err != nil {
-			log.Printf("[store_db] parse db conf %s failed,err= %s\n", name, err)
+			log.Printf("[store_db] parse db config %s failed,err= %s\n", name, err)
 			continue
 		}
 	}

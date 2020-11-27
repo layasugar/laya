@@ -1,7 +1,7 @@
 package db
 
 import (
-	"github.com/LaYa-op/laya/conf"
+	"github.com/LaYa-op/laya/config"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"log"
@@ -13,15 +13,15 @@ var DB *gorm.DB
 
 func Init(configPath ...string) {
 	path := ""
-	Configs := conf.ListFiles(path)
+	Configs := config.ListFiles(path)
 	if len(configPath) == 1 {
 		path = configPath[0]
 	}
 	var config Config
 	for _, name := range Configs {
-		err := conf.ReadFile(name, &config)
+		err := config.ReadFile(name, &config)
 		if err != nil {
-			log.Printf("[store_db] parse db conf %s failed,err= %s\n", name, err)
+			log.Printf("[store_db] parse db config %s failed,err= %s\n", name, err)
 			continue
 		}
 	}

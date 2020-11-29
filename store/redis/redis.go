@@ -2,27 +2,21 @@ package redis
 
 import (
 	"context"
-	"github.com/LaYa-op/laya/config"
+	"github.com/BurntSushi/toml"
 	"github.com/go-redis/redis/v8"
 	"log"
 	"time"
 )
 
 var Rdb *redis.Client
+var path = "./config/redis/redis.toml"
 
 // 初始化redis
 func Init() {
-	path := ""
-	Configs := config.ListFiles(path)
-
-	log.Printf("[store_db] DB_INIT with %d cluster\n", len(Configs))
 	var config Config
-	for _, name := range Configs {
-		err := config.ReadFile(name, &config)
-		if err != nil {
-			log.Printf("[store_db] parse db config %s failed,err= %s\n", name, err)
-			continue
-		}
+	if _, err := toml.DecodeFile(path, &config); err != nil {
+		log.Printf("[store_redis] parse db config %s failed,err= %s\n", path, err)
+		return
 	}
 	if config.Open {
 		conn(&config)

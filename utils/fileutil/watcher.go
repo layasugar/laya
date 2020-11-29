@@ -276,8 +276,3 @@ func (w *Watcher) RegisterFileWatcher(pattern string, handleFn WatcherEventHandl
 	w.handles[pattern] = append(w.handles[pattern], handler)
 	return nil
 }
-
-//todo
-//func (w *Watcher) UnRegisterFileWatcher(handleFn WatcherEventHandler)(err error){
-//
-//}

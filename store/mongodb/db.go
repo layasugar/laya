@@ -2,7 +2,7 @@ package mongodb
 
 import (
 	"context"
-	"github.com/LaYa-op/laya/config"
+	"github.com/BurntSushi/toml"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
@@ -11,19 +11,14 @@ import (
 
 var Mdb *mongo.Client
 
+var path = "./config/mongo"
+
 // 初始化mongodb
 func Init() {
-	path := ""
-	Configs := config.ListFiles(path)
-
-	log.Printf("[store_mongodb] DB_INIT with %d cluster\n", len(Configs))
 	var config Config
-	for _, name := range Configs {
-		err := config.ReadFile(name, &config)
-		if err != nil {
-			log.Printf("[store_mongodb] parse db config %s failed,err= %s\n", name, err)
-			continue
-		}
+	if _, err := toml.DecodeFile(path, &config); err != nil {
+		log.Printf("[store_mongodb] parse db config %s failed,err= %s\n", path, err)
+		return
 	}
 	if config.Open {
 		conn(&config)

@@ -1,7 +1,7 @@
 package db
 
 import (
-	"github.com/LaYa-op/laya/config"
+	"github.com/BurntSushi/toml"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"log"
@@ -11,27 +11,21 @@ import (
 // db is sql *db
 var DB *gorm.DB
 
-func Init(configPath ...string) {
-	path := ""
-	Configs := config.ListFiles(path)
-	if len(configPath) == 1 {
-		path = configPath[0]
-	}
+var path = "./config/db/db.toml"
+
+func Init() {
 	var config Config
-	for _, name := range Configs {
-		err := config.ReadFile(name, &config)
-		if err != nil {
-			log.Printf("[store_db] parse db config %s failed,err= %s\n", name, err)
-			continue
-		}
+	if _, err := toml.DecodeFile(path, &config); err != nil {
+		log.Printf("[store_db] parse db config %s failed,err= %s\n", path, err)
+		return
 	}
 	if config.Open {
-		mysqlDB(&config)
+		mysqlConn(&config)
 	}
 }
 
 // init mysql pool
-func mysqlDB(conf *Config) {
+func mysqlConn(conf *Config) {
 	var err error
 	DB, err = gorm.Open(mysql.Open(conf.Dsn), &gorm.Config{})
 	if err != nil {
@@ -48,8 +42,8 @@ func mysqlDB(conf *Config) {
 	sqlDB.SetConnMaxLifetime(time.Hour * time.Duration(conf.ConnMaxLifetime))
 }
 
-func pgsqlDB(conf *Config) {}
+func pgsqlConn(conf *Config) {}
 
-func sqlLiteDB(conf *Config) {}
+func sqlLiteConn(conf *Config) {}
 
-func sqlServerDB(conf *Config) {}
+func sqlServerConn(conf *Config) {}

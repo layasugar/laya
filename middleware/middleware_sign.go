@@ -1,8 +1,9 @@
 package middleware
 
 import (
-	"github.com/LaYa-op/laya"
+	"context"
 	"github.com/LaYa-op/laya/response"
+	"github.com/LaYa-op/laya/store/redis"
 	"github.com/LaYa-op/laya/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/micro/go-micro/v2/util/log"
@@ -45,13 +46,13 @@ func Validate(sign string, params url.Values, c *gin.Context) {
 	intT, _ := strconv.ParseInt(t, 10, 64)
 	uuid := params.Get("U")
 
-	exist, _ := laya.Redis.SIsMember("user:uuid", uuid).Result()
+	exist, _ := redis.Rdb.SIsMember(context.Background(), "user:uuid", uuid).Result()
 	if exist {
 		c.Set("$.RequestFrequentUuid.code", response.RequestFrequentUuid)
 		c.Abort()
 		return
 	}
-	laya.Redis.SAdd("user:uuid", uuid)
+	redis.Rdb.SAdd(context.Background(), "user:uuid", uuid)
 	log.Info(time.Now().UnixNano()/1e6 - intT)
 	if time.Now().UnixNano()/1e6-intT > 3000 {
 		c.Set("$.RequestFrequentTime.code", response.RequestFrequentTime)

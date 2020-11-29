@@ -23,10 +23,6 @@ func init() {
 // ReadFile 读取toml格式的配置文件
 func ReadFile(confPath string, config interface{}) (err error) {
 
-	//if err := validConfPath(confPath); err != nil {
-	//	return err
-	//}
-
 	confPath = cleanPath(confPath)
 
 	cacheKey := fmt.Sprintf("%s%s", cacheKeyPrefix(confPath), reflect.TypeOf(config).String())

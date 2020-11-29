@@ -1,8 +1,9 @@
 package middleware
 
 import (
-	"github.com/LaYa-op/laya"
+	"context"
 	"github.com/LaYa-op/laya/response"
+	"github.com/LaYa-op/laya/store/redis"
 	"github.com/gin-gonic/gin"
 	"strconv"
 )
@@ -10,7 +11,7 @@ import (
 // implements the controllers.HandlerWrapper
 func (*Middleware) Auth(c *gin.Context) {
 	token := c.GetHeader("Token")
-	uid, err := laya.Redis.Get("user:token:" + token).Result()
+	uid, err := redis.Rdb.Get(context.Background(), "user:token:"+token).Result()
 	if err != nil {
 		c.Set("$.TokenErr.code", response.TokenErr)
 		c.Abort()

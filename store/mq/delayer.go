@@ -1,3 +1,3 @@
 package mq
 
-var DelayServer string
+var DelayServer = ""

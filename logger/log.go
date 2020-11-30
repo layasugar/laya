@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	zapLog *zap.SugaredLogger // 简易版日志文件
+	ZapLog *zap.SugaredLogger // 简易版日志文件
 	//Logger *zap.Logger // 这个日志强大一些, 目前还用不到
 	logLevel = zap.NewAtomicLevel()
 )
@@ -67,7 +67,7 @@ func Init() {
 	}
 
 	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
-	zapLog = logger.Sugar()
+	ZapLog = logger.Sugar()
 }
 
 func setLevel(level zapcore.Level) {
@@ -75,25 +75,25 @@ func setLevel(level zapcore.Level) {
 }
 
 func Info(args ...interface{}) {
-	zapLog.Info(args...)
+	ZapLog.Info(args...)
 }
 
 func InfoF(template string, args ...interface{}) {
-	zapLog.Infof(template, args...)
+	ZapLog.Infof(template, args...)
 }
 
 func Warn(args ...interface{}) {
-	zapLog.Warn(args...)
+	ZapLog.Warn(args...)
 }
 
 func WarnF(template string, args ...interface{}) {
-	zapLog.Warnf(template, args...)
+	ZapLog.Warnf(template, args...)
 }
 
 func Error(args ...interface{}) {
-	zapLog.Error(args...)
+	ZapLog.Error(args...)
 }
 
 func ErrorF(template string, args ...interface{}) {
-	zapLog.Errorf(template, args...)
+	ZapLog.Errorf(template, args...)
 }

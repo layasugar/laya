@@ -26,7 +26,7 @@ type Config struct {
 }
 
 // InitLog 初始化日志文件
-func InitLog() {
+func Init() {
 	var config Config
 	if _, err := toml.DecodeFile(path, &config); err != nil {
 		log.Printf("[store_db] parse db config %s failed,err= %s\n", path, err)

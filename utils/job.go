@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/LaYa-op/laya/store/mq"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"strings"
@@ -69,9 +70,11 @@ type QueuePush struct {
 	TTR   int64  `json:"ttr"`
 	Body  string `json:"body" `
 }
+
 type QueuePop struct {
 	Topic string `json:"topic"`
 }
+
 type QueueRemove struct {
 	Id string `json:"id"`
 }
@@ -81,6 +84,7 @@ type ResData struct {
 	Message string     `json:"message"`
 	Data    ResultData `json:"data"`
 }
+
 type ResultData struct {
 	Id   string `json:"id"`
 	Body string `json:"body"`
@@ -91,7 +95,7 @@ func JobPush(topic string, body interface{}, delayTime int64) (string, bool) {
 	jobMsg, _ := json.Marshal(body)
 	msg := QueuePush{
 		Topic: topic,
-		Id:    fmt.Sprintf("%x", md5.Sum([]byte(strconv.FormatInt(time.Now().UnixNano(), 10)+RandSeqs(5)))),
+		Id:    fmt.Sprintf("%x", md5.Sum([]byte(strconv.FormatInt(time.Now().UnixNano(), 10)+RandString(5)))),
 		Delay: delayTime,
 		TTR:   120,
 		Body:  string(jobMsg),
@@ -137,9 +141,9 @@ func JobFinish(id string) (string, error) {
 	msgJson, err := json.Marshal(msg)
 	urls := mq.DelayServer + "/finish"
 	client := &http.Client{}
-	req, err := http.NewRequest("POST", urls, bytes.NewBuffer(msgJson))
-	req.Header.Add("Content-Type", "application/json;charset=UTF-8")
-	resp, err := client.Do(req)
+	request, err := http.NewRequest("POST", urls, bytes.NewBuffer(msgJson))
+	request.Header.Add("Content-Type", "application/json;charset=UTF-8")
+	resp, err := client.Do(request)
 	if err != nil {
 		return msg.Id, err
 	}
@@ -149,7 +153,7 @@ func JobFinish(id string) (string, error) {
 		return msg.Id, err
 	}
 	var result ResData
-	_ = json.Unmarshal(res, result)
+	_ = json.Unmarshal(res, &result)
 	return msg.Id, err
 }
 
@@ -174,6 +178,16 @@ func JobRemove(id string) (string, error) {
 	}
 
 	var result ResData
-	_ = json.Unmarshal(res, result)
+	_ = json.Unmarshal(res, &result)
 	return msg.Id, err
+}
+
+// 生成随机字符串
+func RandString(n int) string {
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(b)
 }

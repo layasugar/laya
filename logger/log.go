@@ -1,18 +1,15 @@
 // Package log is a global internal logger
 // logger: this is extend package, use https://github.com/uber-go/zap
-package llog
+package log
 
 import (
-	"github.com/LaYa-op/laya/config"
+	"github.com/BurntSushi/toml"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
+	"log"
 	"os"
 )
-
-func init() {
-
-}
 
 var (
 	zapLog *zap.SugaredLogger // 简易版日志文件
@@ -20,19 +17,24 @@ var (
 	logLevel = zap.NewAtomicLevel()
 )
 
+var path = "./config/db/db.toml"
+
 type Config struct {
-	Driver string `toml:"driver"`
-	Path   string `toml:"path"`
+	Driver   string `toml:"driver"`
+	Path     string `toml:"path"`
+	LogLevel string `toml:"log_level"`
 }
 
 // InitLog 初始化日志文件
 func InitLog() {
-
-	err := config.ReadFile(name, &config)
-	logConf := config.GetLogConf()
+	var config Config
+	if _, err := toml.DecodeFile(path, &config); err != nil {
+		log.Printf("[store_db] parse db config %s failed,err= %s\n", path, err)
+		return
+	}
 
 	loglevel := zapcore.InfoLevel
-	switch logConf.LogLevel {
+	switch config.LogLevel {
 	case "INFO":
 		loglevel = zapcore.InfoLevel
 	case "ERROR":
@@ -42,11 +44,11 @@ func InitLog() {
 
 	var core zapcore.Core
 	// 打印至文件中
-	if logConf.LogType == "file" {
-		config := zap.NewProductionEncoderConfig()
-		config.EncodeTime = zapcore.ISO8601TimeEncoder
+	if config.Driver == "file" {
+		configs := zap.NewProductionEncoderConfig()
+		configs.EncodeTime = zapcore.ISO8601TimeEncoder
 		w := zapcore.AddSync(&lumberjack.Logger{
-			Filename:   logConf.LogPath,
+			Filename:   config.Path,
 			MaxSize:    128, // MB
 			LocalTime:  true,
 			Compress:   true,
@@ -54,7 +56,7 @@ func InitLog() {
 		})
 
 		core = zapcore.NewCore(
-			zapcore.NewJSONEncoder(config),
+			zapcore.NewJSONEncoder(configs),
 			w,
 			logLevel,
 		)

@@ -2,7 +2,6 @@ package mongodb
 
 import (
 	"context"
-	"github.com/BurntSushi/toml"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
@@ -11,17 +10,17 @@ import (
 
 var Mdb *mongo.Client
 
-var path = "./config/mongo"
+type Config struct {
+	Open        bool   `toml:"open"`
+	DSN         string `toml:"dsn"`
+	maxIdleConn uint64 `toml:"maxIdleConn"`
+	maxOpenConn uint64 `toml:"maxOpenConn"`
+}
 
 // 初始化mongodb
-func Init() {
-	var config Config
-	if _, err := toml.DecodeFile(path, &config); err != nil {
-		log.Printf("[store_mongodb] parse db config %s failed,err= %s\n", path, err)
-		return
-	}
+func Init(config *Config) {
 	if config.Open {
-		conn(&config)
+		conn(config)
 	}
 }
 
@@ -34,7 +33,7 @@ func conn(conf *Config) {
 		SetMinPoolSize(conf.maxIdleConn)
 	Mdb, err = mongo.NewClient(MdbOptions)
 	if err != nil {
-		log.Printf("[store_mongodb] open conn,err= %s\n", err)
+		log.Printf("[store_mongodb] open conn,err=%s\n", err)
 		panic(err)
 	}
 

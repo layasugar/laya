@@ -10,16 +10,16 @@ import (
 
 var I18n = &I18ner{}
 
+// i18n config
+type Config struct {
+	Open        bool   `json:"open"`
+	DefaultLang string `json:"defaultLang"`
+}
+
 // I18ner Internationalization support
 type I18ner struct {
 	Bundle *i.Bundle
-	Conf   Options
-}
-
-// i18n config
-type Options struct {
-	Open        bool   `json:"open"`
-	DefaultLang string `json:"defaultLang"`
+	Conf   Config
 }
 
 // getMessage Gets the restfulApi to return value translation information
@@ -50,7 +50,7 @@ func (i18n *I18ner) Translate(lang string, msg string) string {
 }
 
 // initialize i18n
-func init() {
+func Init() {
 	log.Info("i18n init", I18n.Conf.Open)
 	if I18n.Conf.Open {
 		I18n.Bundle = i.NewBundle(language.English)

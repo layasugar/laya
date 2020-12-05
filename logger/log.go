@@ -1,13 +1,11 @@
 // Package log is a global internal logger
 // logger: this is extend package, use https://github.com/uber-go/zap
-package log
+package logger
 
 import (
-	"github.com/BurntSushi/toml"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
-	"log"
 	"os"
 )
 
@@ -17,8 +15,6 @@ var (
 	logLevel = zap.NewAtomicLevel()
 )
 
-var path = "./config/db/db.toml"
-
 type Config struct {
 	Driver   string `toml:"driver"`
 	Path     string `toml:"path"`
@@ -26,13 +22,7 @@ type Config struct {
 }
 
 // InitLog 初始化日志文件
-func Init() {
-	var config Config
-	if _, err := toml.DecodeFile(path, &config); err != nil {
-		log.Printf("[store_db] parse db config %s failed,err= %s\n", path, err)
-		return
-	}
-
+func Init(config *Config) {
 	loglevel := zapcore.InfoLevel
 	switch config.LogLevel {
 	case "INFO":

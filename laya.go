@@ -1,5 +1,3 @@
 package laya
 
-import "github.com/LaYa-op/laya/version"
-
-const VERSION = version.VERSION
+const VERSION = "1.0.0"

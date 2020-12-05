@@ -2,7 +2,6 @@ package i18n
 
 import (
 	"github.com/BurntSushi/toml"
-	"github.com/micro/go-micro/v2/util/log"
 	i "github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 	"io/ioutil"
@@ -14,15 +13,17 @@ var I18n = &I18ner{}
 type Config struct {
 	Open        bool   `json:"open"`
 	DefaultLang string `json:"defaultLang"`
+	Path        string `json:"path"`
 }
 
 // I18ner Internationalization support
 type I18ner struct {
 	Bundle *i.Bundle
-	Conf   Config
+	Conf   *Config
 }
 
 // getMessage Gets the restfulApi to return value translation information
+// al = accept_language
 func (i18n *I18ner) GetMessage(al string, msg string) string {
 	lang := i18n.getLang(al)
 	loc := i.NewLocalizer(i18n.Bundle, lang)
@@ -50,12 +51,12 @@ func (i18n *I18ner) Translate(lang string, msg string) string {
 }
 
 // initialize i18n
-func Init() {
-	log.Info("i18n init", I18n.Conf.Open)
+func Init(Conf *Config) {
+	I18n.Conf = Conf
 	if I18n.Conf.Open {
 		I18n.Bundle = i.NewBundle(language.English)
 		I18n.Bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-		err := I18n.LoadAllFile("./config/lang/")
+		err := I18n.LoadAllFile(I18n.Conf.Path)
 		if err != nil {
 			panic(err)
 		}

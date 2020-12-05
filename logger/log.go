@@ -10,15 +10,18 @@ import (
 )
 
 var (
-	ZapLog *zap.SugaredLogger // 简易版日志文件
-	//Logger *zap.Logger // 这个日志强大一些, 目前还用不到
+	Sugar *zap.SugaredLogger
+	//	ZapLog   *zap.Logger
 	logLevel = zap.NewAtomicLevel()
 )
 
 type Config struct {
-	Driver   string `toml:"driver"`
-	Path     string `toml:"path"`
-	LogLevel string `toml:"log_level"`
+	Driver     string `toml:"driver"`
+	Path       string `toml:"path"`
+	LogLevel   string `toml:"log_level"`
+	MaxSize    int    `toml:"max_size"`
+	MaxAge     int    `toml:"max_age"`
+	MaxBackups int    `toml:"max_backups"`
 }
 
 // InitLog 初始化日志文件
@@ -38,11 +41,12 @@ func Init(config *Config) {
 		configs := zap.NewProductionEncoderConfig()
 		configs.EncodeTime = zapcore.ISO8601TimeEncoder
 		w := zapcore.AddSync(&lumberjack.Logger{
-			Filename:   config.Path,
-			MaxSize:    128, // MB
-			LocalTime:  true,
-			Compress:   true,
-			MaxBackups: 8, // 最多保留 n 个备份
+			Filename:   config.Path, // 日志文件的位置
+			MaxSize:    32,          // MB
+			LocalTime:  true,        // 是否使用自己本地时间
+			Compress:   true,        // 是否压缩/归档旧文件
+			MaxAge:     90,          // 保留旧文件的最大天数
+			MaxBackups: 300,         // 保留旧文件的最大个数
 		})
 
 		core = zapcore.NewCore(
@@ -57,7 +61,7 @@ func Init(config *Config) {
 	}
 
 	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
-	ZapLog = logger.Sugar()
+	Sugar = logger.Sugar()
 }
 
 func setLevel(level zapcore.Level) {
@@ -65,25 +69,25 @@ func setLevel(level zapcore.Level) {
 }
 
 func Info(args ...interface{}) {
-	ZapLog.Info(args...)
+	Sugar.Info(args...)
 }
 
 func InfoF(template string, args ...interface{}) {
-	ZapLog.Infof(template, args...)
+	Sugar.Infof(template, args...)
 }
 
 func Warn(args ...interface{}) {
-	ZapLog.Warn(args...)
+	Sugar.Warn(args...)
 }
 
 func WarnF(template string, args ...interface{}) {
-	ZapLog.Warnf(template, args...)
+	Sugar.Warnf(template, args...)
 }
 
 func Error(args ...interface{}) {
-	ZapLog.Error(args...)
+	Sugar.Error(args...)
 }
 
 func ErrorF(template string, args ...interface{}) {
-	ZapLog.Errorf(template, args...)
+	Sugar.Errorf(template, args...)
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/LaYa-op/laya/config"
 	"github.com/LaYa-op/laya/env"
+	"github.com/LaYa-op/laya/i18n"
 	"github.com/LaYa-op/laya/logger"
 	"github.com/LaYa-op/laya/store/db"
 	"github.com/LaYa-op/laya/store/redis"
@@ -28,7 +29,7 @@ func (app *App) InitWithConfigName(fn string) *App {
 	cf := config.AppConfig{}
 
 	if _, err := toml.DecodeFile(fn, &cf); err != nil {
-		panic(fmt.Sprintf("Can't load config file %s: %s", fn, err.Error()))
+		panic(fmt.Sprintf("Can't load config file %s: %s\n", fn, err.Error()))
 	}
 
 	return app.InitWithConfig(&cf)
@@ -36,7 +37,7 @@ func (app *App) InitWithConfigName(fn string) *App {
 
 func (app *App) InitWithConfig(config *config.AppConfig) *App {
 	if config == nil {
-		panic("Can't initial App with nil config")
+		panic("Can't initial App with nil config\n")
 	}
 	app.config = config
 
@@ -55,10 +56,10 @@ func (app *App) InitWithConfig(config *config.AppConfig) *App {
 		}
 	}
 
-	app.InitLog()
+	app.InitLogAndI18n()
 	app.InitDb()
 
-	logger.ZapLog.Infof("[app.Init] inited with: root_path=%s, config_dir=%s, app_name=%s, run_mode=%s",
+	fmt.Printf("[app.Init] inited with: root_path=%s, config_dir=%s, app_name=%s, run_mode=%s\n",
 		env.RootPath(), env.ConfRootPath(), env.AppName(), env.RunMode())
 
 	return app
@@ -71,12 +72,13 @@ func (app *App) WebServer() *WebServer {
 func (app *App) RunWebServer() {
 	err := app.webServer.Run(app.config.HTTPListen)
 	if err != nil {
-		logger.ZapLog.Warnf("Can't RunWebServer: %s", err.Error())
+		fmt.Printf("Can't RunWebServer: %s\n", err.Error())
 	}
 }
 
-func (app *App) InitLog() {
+func (app *App) InitLogAndI18n() {
 	logger.Init(app.config.LogConfig)
+	i18n.Init(app.config.I18nConfig)
 }
 
 func (app *App) InitDb() {

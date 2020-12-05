@@ -2,7 +2,6 @@ package response
 
 import (
 	"github.com/LaYa-op/laya/i18n"
-	"github.com/gin-gonic/gin"
 	"strconv"
 	"strings"
 )
@@ -12,17 +11,16 @@ import (
 // 2. 失败返回--{0,"系统发生错误！",{},{}} code 必须为0,code=0前端按照msg进行提示
 
 type Response struct {
-	DataBuf
+	RespData
 	i18n.I18ner
 }
 
-type DataBuf struct {
+type RespData struct {
 	Code     int
 	Msg      string
 	Data     interface{}
 	WithData interface{}
 	Page     *PageRes `json:"Page,omitempty"`
-	Location string   `json:"Location,omitempty"`
 }
 
 type PageRes struct {
@@ -41,12 +39,9 @@ func (resp *Response) GetResponse(params map[string]interface{}, al string) inte
 		lastOne := strings.Split(name, ".")[len(strings.Split(name, "."))-1]
 		switch lastOne {
 		case "code":
-			resp.DataBuf.Code = value.(int)
+			resp.RespData.Code = value.(int)
 		case "response":
-			resp.DataBuf = value.(DataBuf)
-		}
-		if gin.Mode() == gin.DebugMode {
-			resp.Location = name
+			resp.RespData = value.(RespData)
 		}
 		resp.Msg = resp.I18ner.GetMessage(al, strconv.Itoa(resp.Code))
 	}

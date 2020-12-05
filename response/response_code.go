@@ -1,8 +1,9 @@
 package response
 
 const (
-	Err     = 0 // 失败
-	Success = 1 // 成功
+	SystemErr = -1 // 系统错误
+	Err       = 0  // 失败
+	Success   = 1  // 成功
 
 	// 登录验证，接口签名错误
 	TokenErr            = 40001 // token校验失败

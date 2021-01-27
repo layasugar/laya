@@ -1,3 +1,3 @@
-package mq
+package store
 
 var DelayServer = ""

@@ -16,7 +16,7 @@ func initWatcher() {
 	defer initLock.Unlock()
 
 	if watcher == nil {
-		watcher = fileutil.NewWatcher(Path, 65535)
+		watcher = fileutil.NewWatcher(path, 65535)
 		//默认需要监听所有的event
 		_ = RegisterFileWatcher("/*", defaultConfChangeHandler)
 	}

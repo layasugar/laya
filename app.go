@@ -1,64 +1,53 @@
 package laya
 
 import (
+	"flag"
 	"fmt"
-	"github.com/BurntSushi/toml"
 	"github.com/LaYa-op/laya/config"
 	"github.com/LaYa-op/laya/env"
+	"github.com/LaYa-op/laya/glogs"
 	"github.com/LaYa-op/laya/i18n"
-	"github.com/LaYa-op/laya/logger"
-	"github.com/LaYa-op/laya/store/db"
-	"github.com/LaYa-op/laya/store/redis"
+	"github.com/LaYa-op/laya/store"
 	"github.com/gin-gonic/gin"
 )
 
 type App struct {
-	config    *config.AppConfig
 	webServer *WebServer
 }
 
 func NewApp() *App {
-	return new(App).Init()
+	return new(App).InitWithConfig()
 }
 
-func (app *App) Init() *App {
-	return app.InitWithConfigName(config.Path)
-}
-
-func (app *App) InitWithConfigName(fn string) *App {
-	cf := config.AppConfig{}
-
-	if _, err := toml.DecodeFile(fn, &cf); err != nil {
-		panic(fmt.Sprintf("Can't load config file %s: %s\n", fn, err.Error()))
+func (app *App) InitWithConfig() *App {
+	var configPath string
+	flag.StringVar(&configPath, "config_path", "", "配置文件地址：xx/xx/app.toml")
+	flag.Parse()
+	err := config.InitConfig(configPath)
+	if err != nil {
+		panic(err)
 	}
 
-	return app.InitWithConfig(&cf)
-}
-
-func (app *App) InitWithConfig(config *config.AppConfig) *App {
-	if config == nil {
-		panic("Can't initial App with nil config\n")
+	cf := config.GetBaseConf()
+	if cf.AppName != "" {
+		env.SetAppName(cf.AppName)
 	}
-	app.config = config
-
-	if app.config.AppName != "" {
-		env.SetAppName(app.config.AppName)
+	if cf.RunMode != "" {
+		env.SetRunMode(cf.RunMode)
 	}
-
-	if app.config.RunMode != "" {
-		env.SetRunMode(app.config.RunMode)
-	}
-
-	if app.config.HTTPListen != "" {
-		app.webServer = NewWebServer(app.config.RunMode)
+	if cf.HttpListen != "" {
+		app.webServer = NewWebServer(cf.RunMode)
 		if len(DefaultWebServerMiddlewares) > 0 {
 			app.webServer.Use(DefaultWebServerMiddlewares...)
 		}
 	}
 
-	app.InitLogAndI18n()
-	app.InitDb()
-
+	glogs.Init()
+	i18n.Init()
+	store.InitDB()
+	store.InitMdb()
+	store.InitRdb()
+	store.InitMemory()
 	fmt.Printf("[app.Init] inited with: root_path=%s, config_dir=%s, app_name=%s, run_mode=%s\n",
 		env.RootPath(), env.ConfRootPath(), env.AppName(), env.RunMode())
 
@@ -70,20 +59,11 @@ func (app *App) WebServer() *WebServer {
 }
 
 func (app *App) RunWebServer() {
-	err := app.webServer.Run(app.config.HTTPListen)
+	cf := config.GetBaseConf()
+	err := app.webServer.Run(cf.HttpListen)
 	if err != nil {
 		fmt.Printf("Can't RunWebServer: %s\n", err.Error())
 	}
-}
-
-func (app *App) InitLogAndI18n() {
-	logger.Init(app.config.LogConfig)
-	i18n.Init(app.config.I18nConfig)
-}
-
-func (app *App) InitDb() {
-	db.Init(app.config.DBConfig)
-	redis.Init(app.config.RDBConfig)
 }
 
 var DefaultWebServerMiddlewares []gin.HandlerFunc

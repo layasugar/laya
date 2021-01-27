@@ -2,6 +2,7 @@ package i18n
 
 import (
 	"github.com/BurntSushi/toml"
+	"github.com/LaYa-op/laya/config"
 	i "github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 	"io/ioutil"
@@ -9,17 +10,9 @@ import (
 
 var I18n = &I18ner{}
 
-// i18n config
-type Config struct {
-	Open        bool   `json:"open"`
-	DefaultLang string `json:"defaultLang"`
-	Path        string `json:"path"`
-}
-
 // I18ner Internationalization support
 type I18ner struct {
 	Bundle *i.Bundle
-	Conf   *Config
 }
 
 // getMessage Gets the restfulApi to return value translation information
@@ -51,12 +44,12 @@ func (i18n *I18ner) Translate(lang string, msg string) string {
 }
 
 // initialize i18n
-func Init(Conf *Config) {
-	I18n.Conf = Conf
-	if I18n.Conf.Open {
+func Init() {
+	c := config.GetI18nConfig()
+	if c.Open {
 		I18n.Bundle = i.NewBundle(language.English)
 		I18n.Bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-		err := I18n.LoadAllFile(I18n.Conf.Path)
+		err := I18n.LoadAllFile(c.Path)
 		if err != nil {
 			panic(err)
 		}
@@ -81,9 +74,10 @@ func (i18n *I18ner) LoadAllFile(pathname string) error {
 
 // get language
 func (i18n *I18ner) getLang(lang string) string {
+	c := config.GetI18nConfig()
 	if lang == "" {
-		if i18n.Conf.Open {
-			lang = i18n.Conf.DefaultLang
+		if c.Open {
+			lang = c.DefaultLang
 		} else {
 			lang = language.English.String()
 		}

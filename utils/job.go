@@ -5,7 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"github.com/LaYa-op/laya/store/mq"
+	"github.com/LaYa-op/laya/store"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -101,7 +101,7 @@ func JobPush(topic string, body interface{}, delayTime int64) (string, bool) {
 		Body:  string(jobMsg),
 	}
 	msgJson, _ := json.Marshal(msg)
-	urls := mq.DelayServer + "/push"
+	urls := store.DelayServer + "/push"
 	client := &http.Client{}
 	req, _ := http.NewRequest("POST", urls, bytes.NewBuffer(msgJson))
 	req.Header.Add("Content-Type", "application/json;charset=UTF-8")
@@ -121,7 +121,7 @@ func JobPush(topic string, body interface{}, delayTime int64) (string, bool) {
 // 任务pop
 func JobPop(topic string) (ResData, error) {
 	var data ResData
-	urls := mq.DelayServer + "/pop"
+	urls := store.DelayServer + "/pop"
 	resp, err := http.Post(urls, "application/json;charset=UTF-8", strings.NewReader("{\"topic\":\""+topic+"\"}"))
 	if err != nil {
 		return data, err
@@ -139,7 +139,7 @@ func JobPop(topic string) (ResData, error) {
 func JobFinish(id string) (string, error) {
 	msg := QueueRemove{Id: id}
 	msgJson, err := json.Marshal(msg)
-	urls := mq.DelayServer + "/finish"
+	urls := store.DelayServer + "/finish"
 	client := &http.Client{}
 	request, err := http.NewRequest("POST", urls, bytes.NewBuffer(msgJson))
 	request.Header.Add("Content-Type", "application/json;charset=UTF-8")
@@ -163,7 +163,7 @@ func JobRemove(id string) (string, error) {
 		Id: id,
 	}
 	msgJson, err := json.Marshal(msg)
-	urls := mq.DelayServer + "/delete"
+	urls := store.DelayServer + "/delete"
 	client := &http.Client{}
 	req, err := http.NewRequest("POST", urls, bytes.NewBuffer(msgJson))
 	req.Header.Add("Content-Type", "application/json;charset=UTF-8")

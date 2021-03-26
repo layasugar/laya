@@ -3,12 +3,15 @@
 package glogs
 
 import (
-	"github.com/layatips/laya/conf"
+	"github.com/gin-gonic/gin"
+	"github.com/layatips/laya/gconf"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
 	"os"
 )
+
+const RequestIDName = "request-id"
 
 var (
 	Sugar *zap.SugaredLogger
@@ -17,15 +20,15 @@ var (
 )
 
 // InitLog 初始化日志文件
-func Init() {
+func InitLog() {
 	// 获取配置开启日志
-	c := conf.GetLogConf()
+	c := gconf.GetLogConf()
 	if c.Open {
 		InitSugar(c)
 	}
 }
 
-func InitSugar(c conf.LogConf) {
+func InitSugar(c gconf.LogConf) {
 	loglevel := zapcore.InfoLevel
 	switch c.LogLevel {
 	case "INFO":
@@ -64,30 +67,28 @@ func InitSugar(c conf.LogConf) {
 	Sugar = logger.Sugar()
 }
 
-func setLevel(level zapcore.Level) {
-	logLevel.SetLevel(level)
+func setLevel(level zapcore.Level)                { logLevel.SetLevel(level) }
+func Info(args ...interface{})                    { Sugar.Info(args...) }
+func InfoF(template string, args ...interface{})  { Sugar.Infof(template, args...) }
+func Warn(args ...interface{})                    { Sugar.Warn(args...) }
+func WarnF(template string, args ...interface{})  { Sugar.Warnf(template, args...) }
+func Error(args ...interface{})                   { Sugar.Error(args...) }
+func ErrorF(template string, args ...interface{}) { Sugar.Errorf(template, args...) }
+
+func InfoFR(c *gin.Context, template string, args ...interface{}) {
+	requestID := c.GetHeader(RequestIDName)
+	template = "request_id=" + requestID + "," + template
+	InfoF(template, args...)
 }
 
-func Info(args ...interface{}) {
-	Sugar.Info(args...)
+func WarnFR(c *gin.Context, template string, args ...interface{}) {
+	requestID := c.GetHeader(RequestIDName)
+	template = "request_id=" + requestID + "," + template
+	WarnF(template, args...)
 }
 
-func InfoF(template string, args ...interface{}) {
-	Sugar.Infof(template, args...)
-}
-
-func Warn(args ...interface{}) {
-	Sugar.Warn(args...)
-}
-
-func WarnF(template string, args ...interface{}) {
-	Sugar.Warnf(template, args...)
-}
-
-func Error(args ...interface{}) {
-	Sugar.Error(args...)
-}
-
-func ErrorF(template string, args ...interface{}) {
-	Sugar.Errorf(template, args...)
+func ErrorFR(c *gin.Context, template string, args ...interface{}) {
+	requestID := c.GetHeader(RequestIDName)
+	template = "request_id=" + requestID + "," + template
+	ErrorF(template, args...)
 }

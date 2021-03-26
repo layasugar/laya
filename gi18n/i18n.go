@@ -3,27 +3,27 @@ package gi18n
 import (
 	"github.com/BurntSushi/toml"
 	"github.com/layatips/laya/gconf"
-	i "github.com/nicksnyder/go-gi18n/v2/i18n"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 	"io/ioutil"
 )
 
-var I18n = &I18ner{}
+var GI18n = &I18ner{}
 
 // I18ner Internationalization support
 type I18ner struct {
-	Bundle *i.Bundle
+	Bundle *i18n.Bundle
 }
 
 // getMessage Gets the restfulApi to return value translation information
 // al = accept_language
-func (i18n *I18ner) GetMessage(al string, msg string) string {
-	lang := i18n.getLang(al)
-	loc := i.NewLocalizer(i18n.Bundle, lang)
+func (gi18n *I18ner) GetMessage(al string, msg string) string {
+	lang := gi18n.getLang(al)
+	loc := i18n.NewLocalizer(gi18n.Bundle, lang)
 
-	return loc.MustLocalize(&i.LocalizeConfig{
+	return loc.MustLocalize(&i18n.LocalizeConfig{
 		MessageID: msg,
-		DefaultMessage: &i.Message{
+		DefaultMessage: &i18n.Message{
 			ID:    msg,
 			Other: "The translation could not be found.",
 		},
@@ -31,12 +31,12 @@ func (i18n *I18ner) GetMessage(al string, msg string) string {
 }
 
 // translate Get general translation information
-func (i18n *I18ner) Translate(lang string, msg string) string {
-	loc := i.NewLocalizer(i18n.Bundle, lang)
+func (gi18n *I18ner) Translate(lang string, msg string) string {
+	loc := i18n.NewLocalizer(gi18n.Bundle, lang)
 
-	return loc.MustLocalize(&i.LocalizeConfig{
+	return loc.MustLocalize(&i18n.LocalizeConfig{
 		MessageID: msg,
-		DefaultMessage: &i.Message{
+		DefaultMessage: &i18n.Message{
 			ID:    msg,
 			Other: "The translation could not be found.",
 		},
@@ -47,9 +47,9 @@ func (i18n *I18ner) Translate(lang string, msg string) string {
 func Init() {
 	c := gconf.GetI18nConfig()
 	if c.Open {
-		I18n.Bundle = i.NewBundle(language.English)
-		I18n.Bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-		err := I18n.LoadAllFile(c.Path)
+		GI18n.Bundle = i18n.NewBundle(language.English)
+		GI18n.Bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
+		err := GI18n.LoadAllFile(c.Path)
 		if err != nil {
 			panic(err)
 		}
@@ -57,13 +57,13 @@ func Init() {
 }
 
 // Load the file
-func (i18n *I18ner) LoadAllFile(pathname string) error {
+func (gi18n *I18ner) LoadAllFile(pathname string) error {
 	rd, err := ioutil.ReadDir(pathname)
 	for _, fi := range rd {
 		if fi.IsDir() {
-			_ = i18n.LoadAllFile(pathname + fi.Name() + "\\")
+			_ = gi18n.LoadAllFile(pathname + fi.Name() + "\\")
 		} else {
-			_, err := i18n.Bundle.LoadMessageFile(pathname + fi.Name())
+			_, err := gi18n.Bundle.LoadMessageFile(pathname + fi.Name())
 			if err != nil {
 				return err
 			}
@@ -73,7 +73,7 @@ func (i18n *I18ner) LoadAllFile(pathname string) error {
 }
 
 // get language
-func (i18n *I18ner) getLang(lang string) string {
+func (gi18n *I18ner) getLang(lang string) string {
 	c := gconf.GetI18nConfig()
 	if lang == "" {
 		if c.Open {

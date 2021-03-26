@@ -3,12 +3,12 @@ package laya
 import (
 	"flag"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/layatips/laya/gconf"
 	"github.com/layatips/laya/genv"
-	"github.com/layatips/laya/glogs"
 	"github.com/layatips/laya/gi18n"
+	"github.com/layatips/laya/glogs"
 	"github.com/layatips/laya/gstore"
-	"github.com/gin-gonic/gin"
 )
 
 type App struct {
@@ -23,12 +23,12 @@ func (app *App) InitWithConfig() *App {
 	var configPath string
 	flag.StringVar(&configPath, "config_path", "", "配置文件地址：xx/xx/app.toml")
 	flag.Parse()
-	err := conf.InitConfig(configPath)
+	err := gconf.InitConfig(configPath)
 	if err != nil {
 		panic(err)
 	}
 
-	cf := conf.GetBaseConf()
+	cf := gconf.GetBaseConf()
 	if cf.AppName != "" {
 		genv.SetAppName(cf.AppName)
 	}
@@ -48,8 +48,8 @@ func (app *App) InitWithConfig() *App {
 	gstore.InitMdb()
 	gstore.InitRdb()
 	gstore.InitMemory()
-	fmt.Printf("[app.InitLog] inited with: root_path=%s, config_dir=%s, app_name=%s, run_mode=%s\n",
-		genv.RootPath(), genv.ConfRootPath(), genv.AppName(), genv.RunMode())
+	fmt.Printf("[app.InitLog]  config_dir=%s, app_name=%s, run_mode=%s\n",
+		genv.ConfRootPath(), genv.AppName(), genv.RunMode())
 
 	return app
 }
@@ -59,7 +59,7 @@ func (app *App) WebServer() *WebServer {
 }
 
 func (app *App) RunWebServer() {
-	cf := conf.GetBaseConf()
+	cf := gconf.GetBaseConf()
 	err := app.webServer.Run(cf.HttpListen)
 	if err != nil {
 		fmt.Printf("Can't RunWebServer: %s\n", err.Error())

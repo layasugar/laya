@@ -1,8 +1,8 @@
 package gmiddleware
 
 import (
-	"github.com/layatips/laya/gresp"
 	"github.com/gin-gonic/gin"
+	"github.com/layatips/laya/gresp"
 	"net/http"
 )
 

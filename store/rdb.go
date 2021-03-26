@@ -2,7 +2,7 @@ package store
 
 import (
 	"context"
-	"github.com/LaYa-op/laya/config"
+	"github.com/layatips/laya/config"
 	"github.com/go-redis/redis/v8"
 	"log"
 	"time"

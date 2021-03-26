@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/LaYa-op/laya/response"
+	"github.com/layatips/laya/response"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )

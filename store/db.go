@@ -1,7 +1,7 @@
 package store
 
 import (
-	"github.com/LaYa-op/laya/config"
+	"github.com/layatips/laya/config"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"log"

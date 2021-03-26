@@ -1,7 +1,7 @@
-package config
+package gconf
 
 import (
-	"github.com/LaYa-op/laya/utils/fileutil"
+	"github.com/layatips/laya/utils/fileutil"
 	"sync"
 )
 

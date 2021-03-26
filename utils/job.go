@@ -5,7 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"github.com/LaYa-op/laya/store"
+	"github.com/layatips/laya/store"
 	"io/ioutil"
 	"math/rand"
 	"net/http"

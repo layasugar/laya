@@ -3,11 +3,11 @@ package laya
 import (
 	"flag"
 	"fmt"
-	"github.com/LaYa-op/laya/config"
-	"github.com/LaYa-op/laya/env"
-	"github.com/LaYa-op/laya/glogs"
-	"github.com/LaYa-op/laya/i18n"
-	"github.com/LaYa-op/laya/store"
+	"github.com/layatips/laya/config"
+	"github.com/layatips/laya/env"
+	"github.com/layatips/laya/glogs"
+	"github.com/layatips/laya/i18n"
+	"github.com/layatips/laya/store"
 	"github.com/gin-gonic/gin"
 )
 

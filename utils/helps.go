@@ -79,10 +79,7 @@ func GenValidateCode(width int) string {
 	return sb.String()
 }
 
-const (
-	XForwardedFor = "X-Forwarded-For" // 获取真实ip
-	XRealIP       = "X-Real-IP"       // 获取真实ip
-)
+
 
 // RemoteIp 返回远程客户端的 IP，如 192.168.1.1
 func RemoteIp(req *http.Request) string {

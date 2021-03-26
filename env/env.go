@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/LaYa-op/laya/utils"
+	"github.com/layatips/laya/utils"
 )
 
 var (

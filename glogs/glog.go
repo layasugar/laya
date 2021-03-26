@@ -3,7 +3,7 @@
 package glogs
 
 import (
-	"github.com/LaYa-op/laya/config"
+	"github.com/layatips/laya/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"

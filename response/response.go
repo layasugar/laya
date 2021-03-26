@@ -1,7 +1,7 @@
 package response
 
 import (
-	"github.com/LaYa-op/laya/i18n"
+	"github.com/layatips/laya/i18n"
 	"strconv"
 	"strings"
 )

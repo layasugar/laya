@@ -2,7 +2,7 @@ package store
 
 import (
 	"context"
-	"github.com/LaYa-op/laya/config"
+	"github.com/layatips/laya/config"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
@@ -13,7 +13,7 @@ var Mdb *mongo.Client
 
 // 初始化mongodb
 func InitMdb() {
-	c := config.GetMdbConf()
+	c := gconf.GetMdbConf()
 	if c.Open {
 		connMdb(c.MinPoolSize, c.MaxPoolSize, c.DSN)
 	}

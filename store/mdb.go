@@ -2,7 +2,7 @@ package store
 
 import (
 	"context"
-	"github.com/layatips/laya/config"
+	"github.com/layatips/laya/conf"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"

@@ -3,7 +3,7 @@ package laya
 import (
 	"flag"
 	"fmt"
-	"github.com/layatips/laya/config"
+	"github.com/layatips/laya/conf"
 	"github.com/layatips/laya/env"
 	"github.com/layatips/laya/glogs"
 	"github.com/layatips/laya/i18n"

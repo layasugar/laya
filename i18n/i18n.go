@@ -2,7 +2,7 @@ package i18n
 
 import (
 	"github.com/BurntSushi/toml"
-	"github.com/layatips/laya/config"
+	"github.com/layatips/laya/conf"
 	i "github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 	"io/ioutil"
@@ -45,7 +45,7 @@ func (i18n *I18ner) Translate(lang string, msg string) string {
 
 // initialize i18n
 func Init() {
-	c := config.GetI18nConfig()
+	c := conf.GetI18nConfig()
 	if c.Open {
 		I18n.Bundle = i.NewBundle(language.English)
 		I18n.Bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
@@ -74,7 +74,7 @@ func (i18n *I18ner) LoadAllFile(pathname string) error {
 
 // get language
 func (i18n *I18ner) getLang(lang string) string {
-	c := config.GetI18nConfig()
+	c := conf.GetI18nConfig()
 	if lang == "" {
 		if c.Open {
 			lang = c.DefaultLang

@@ -1,4 +1,4 @@
-package gconf
+package conf
 
 import (
 	"github.com/layatips/laya/utils/fileutil"

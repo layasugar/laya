@@ -1,11 +1,11 @@
-package gconf
+package conf
 
 import (
 	"fmt"
 	"github.com/BurntSushi/toml"
 )
 
-var path = "./config/app.toml"
+var path = "./conf/app.toml"
 
 var c *Config
 
@@ -99,7 +99,7 @@ func InitConfig(confPath string) error {
 	}
 
 	if _, err := toml.DecodeFile(fn, &c); err != nil {
-		panic(fmt.Sprintf("Can't load config file %s: %s\n", fn, err.Error()))
+		panic(fmt.Sprintf("Can't load conf file %s: %s\n", fn, err.Error()))
 	}
 
 	return nil

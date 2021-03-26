@@ -3,7 +3,7 @@
 package glogs
 
 import (
-	"github.com/layatips/laya/config"
+	"github.com/layatips/laya/conf"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -19,13 +19,13 @@ var (
 // InitLog 初始化日志文件
 func Init() {
 	// 获取配置开启日志
-	c := config.GetLogConf()
+	c := conf.GetLogConf()
 	if c.Open {
 		InitSugar(c)
 	}
 }
 
-func InitSugar(c config.LogConf) {
+func InitSugar(c conf.LogConf) {
 	loglevel := zapcore.InfoLevel
 	switch c.LogLevel {
 	case "INFO":

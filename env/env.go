@@ -18,7 +18,7 @@ var (
 const (
 	_DefaultAppName     = "unknown"
 	_DefaultRunMode     = "debug"
-	_defaultConfDirName = "config"
+	_defaultConfDirName = "conf"
 )
 
 // 设置应用的根目录
@@ -108,20 +108,20 @@ func detectRootPath() string {
 	}
 	// 如果有和可执行文件平级的conf目录，则当前目录就是根目录
 	// 这通常是直接在代码目录里go build然后直接执行生成的结果
-	dir = filepath.Join(binDir, "config")
+	dir = filepath.Join(binDir, "conf")
 	if _, err := os.Stat(dir); !os.IsNotExist(err) {
 		dir = binDir
 		return dir
 	}
 	// 如果有和可执行文件上级平级的conf目录，则上层目录就是根目录
 	// 这一般是按标准进行部署
-	dir = filepath.Join(filepath.Dir(binDir), "config")
+	dir = filepath.Join(filepath.Dir(binDir), "conf")
 	if _, err := os.Stat(dir); !os.IsNotExist(err) {
 		dir = filepath.Dir(binDir)
 		return dir
 	}
 	// 如果都没有，但可执行文件的父目录名称为bin，则bin的上一层就是根目录
-	// 这种情况适用于配置目录名为：etc, config, configs等情况
+	// 这种情况适用于配置目录名为：etc, conf, configs等情况
 	if filepath.Base(binDir) == "bin" {
 		dir = filepath.Dir(binDir)
 		return dir

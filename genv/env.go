@@ -40,14 +40,6 @@ func SetConfDirName(confDirName string) {
 	envConfDirName = confDirName
 }
 
-// 返回配置文件根目录绝对地址
-func ConfRootPath() string {
-	if envConfDirName == "" {
-		SetConfDirName(_defaultConfDirName)
-	}
-	return filepath.Join(RootPath(), envConfDirName)
-}
-
 // 设置app名称
 func SetAppName(appName string) {
 	envAppName = appName
@@ -59,16 +51,6 @@ func AppName() string {
 		SetAppName(_DefaultAppName)
 	}
 	return envAppName
-}
-
-// 返回data 目录的绝对地址
-func DataRootPath() string {
-	return filepath.Join(RootPath(), "data")
-}
-
-// 返回log根目录的绝对地址
-func LogRootPath() string {
-	return filepath.Join(RootPath(), "log")
 }
 
 // 自动寻找rootPath

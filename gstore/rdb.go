@@ -12,7 +12,7 @@ var Rdb *redis.Client
 
 // 初始化redis
 func InitRdb() {
-	c := conf.GetRdbConf()
+	c := gconf.GetRdbConf()
 	if c.Open {
 		connRdb(c.DB, c.PoolSize, c.MaxRetries, c.IdleTimeout, c.Addr, c.Pwd)
 	}

@@ -12,8 +12,8 @@ import (
 var DB *gorm.DB
 
 func InitDB() {
-	runMode := conf.GetRunMode()
-	c := conf.GetDBConf()
+	runMode := gconf.GetRunMode()
+	c := gconf.GetDBConf()
 	if c.Open {
 		mysqlConn(c.MaxIdleConn, c.MaxOpenConn, c.ConnMaxLifetime, c.Dsn, runMode)
 	}

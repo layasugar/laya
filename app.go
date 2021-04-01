@@ -23,6 +23,9 @@ func (app *App) InitWithConfig() *App {
 	var configPath string
 	flag.StringVar(&configPath, "config_path", "", "配置文件地址：xx/xx/app.toml")
 	flag.Parse()
+	if configPath == "" {
+		configPath = "./conf/app.json"
+	}
 	err := gconf.InitConfig(configPath)
 	if err != nil {
 		panic(err)
@@ -48,8 +51,7 @@ func (app *App) InitWithConfig() *App {
 	gstore.InitMdb()
 	gstore.InitRdb()
 	gstore.InitMemory()
-	fmt.Printf("[app.InitLog]  config_dir=%s, app_name=%s, run_mode=%s\n",
-		genv.ConfRootPath(), genv.AppName(), genv.RunMode())
+	fmt.Printf("[app.InitLog]  config_dir=%s, app_name=%s, run_mode=%s\n", genv.AppName(), genv.RunMode())
 
 	return app
 }

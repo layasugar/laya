@@ -5,78 +5,78 @@ import (
 	"io/ioutil"
 )
 
-var path = "./gconf/app.toml"
+var path = "./gconf/app.json"
 
 var c *Config
 
 type Config struct {
 	BaseConf
-	LogConf    LogConf    `toml:"log"`
-	CacheConf  CacheConf  `toml:"cache"`
-	DBConf     DBConf     `toml:"mysql"`
-	RdbConf    RdbConf    `toml:"redis"`
-	MdbConf    MdbConf    `toml:"mongo"`
-	KafkaConf  KafkaConf  `toml:"kafka_conf"`
-	I18nConfig I18nConfig `toml:"gi18n"`
+	LogConf    LogConf    `json:"log"`
+	CacheConf  CacheConf  `json:"cache"`
+	DBConf     DBConf     `json:"mysql"`
+	RdbConf    RdbConf    `json:"redis"`
+	MdbConf    MdbConf    `json:"mongo"`
+	KafkaConf  KafkaConf  `json:"kafka_conf"`
+	I18nConfig I18nConfig `json:"gi18n"`
 	TraceConf  TraceConf  `json:"zipkin"`
 	DingConf   DingConf   `json:"ding"`
 }
 
 type (
 	LogConf struct {
-		Open       bool   `toml:"open"`
-		Driver     string `toml:"driver"`      //驱动分控制台和文件
-		Path       string `toml:"path"`        //文件路径
-		LogLevel   string `toml:"log_level"`   //日志等级分info,error,warn
-		MaxSize    int    `toml:"max_size"`    //日志文件最大MB
-		MaxAge     int    `toml:"max_age"`     //保留旧文件的最大天数
-		MaxBackups int    `toml:"max_backups"` //保留旧文件的最大个数
+		Open       bool   `json:"open"`
+		Driver     string `json:"driver"`      //驱动分控制台和文件
+		Path       string `json:"path"`        //文件路径
+		LogLevel   string `json:"log_level"`   //日志等级分info,error,warn
+		MaxSize    int    `json:"max_size"`    //日志文件最大MB
+		MaxAge     int    `json:"max_age"`     //保留旧文件的最大天数
+		MaxBackups int    `json:"max_backups"` //保留旧文件的最大个数
 	}
 	CacheConf struct {
 	}
 	BaseConf struct {
-		AppName    string `toml:"app_name"`    //app名称
-		HttpListen string `toml:"http_listen"` //http监听端口
-		RunMode    string `toml:"run_mode"`    //运行模式
-		AppVersion string `toml:"version"`     //app版本号
+		AppName    string `json:"app_name"`    //app名称
+		HttpListen string `json:"http_listen"` //http监听端口
+		RunMode    string `json:"run_mode"`    //运行模式
+		AppVersion string `json:"version"`     //app版本号
 		AppUrl     string `json:"app_url"`     //当前路由
 		GinLog     string `json:"gin_log"`     //gin_log日志
 		ParamsLog  bool   `json:"params_log"`  //是否开启请求参数和返回参数打印
 	}
 	DBConf struct {
-		Open            bool   `toml:"open"`            //是否开启
-		MaxIdleConn     int    `toml:"maxIdleConn"`     //空闲连接数
-		MaxOpenConn     int    `toml:"maxOpenConn"`     //最大连接数
-		ConnMaxLifetime int    `toml:"connMaxLifetime"` //连接时长
-		Dsn             string `toml:"dsn"`             //dsn
+		Open            bool   `json:"open"`            //是否开启
+		MaxIdleConn     int    `json:"maxIdleConn"`     //空闲连接数
+		MaxOpenConn     int    `json:"maxOpenConn"`     //最大连接数
+		ConnMaxLifetime int    `json:"connMaxLifetime"` //连接时长
+		Dsn             string `json:"dsn"`             //dsn
 	}
 	RdbConf struct {
-		Open        bool   `toml:"open"`        //是否开启
-		DB          int    `toml:"db"`          //默认连接库
-		PoolSize    int    `toml:"poolSize"`    //连接数量
-		MaxRetries  int    `toml:"maxRetries"`  //最大重试次数
-		IdleTimeout int    `toml:"idleTimeout"` //空闲链接超时时间(单位：time.Second)
-		Addr        string `toml:"addr"`        //DSN
-		Pwd         string `toml:"pwd"`         //密码
+		Open        bool   `json:"open"`        //是否开启
+		DB          int    `json:"db"`          //默认连接库
+		PoolSize    int    `json:"poolSize"`    //连接数量
+		MaxRetries  int    `json:"maxRetries"`  //最大重试次数
+		IdleTimeout int    `json:"idleTimeout"` //空闲链接超时时间(单位：time.Second)
+		Addr        string `json:"addr"`        //DSN
+		Pwd         string `json:"pwd"`         //密码
 	}
 	MdbConf struct {
-		Open        bool   `toml:"open"`        //是否开启
-		DSN         string `toml:"dsn"`         //dsn
-		MinPoolSize uint64 `toml:"minPoolSize"` //连接池最小连接数
-		MaxPoolSize uint64 `toml:"maxPoolSize"` //连接池最大连接数
+		Open        bool   `json:"open"`        //是否开启
+		DSN         string `json:"dsn"`         //dsn
+		MinPoolSize uint64 `json:"minPoolSize"` //连接池最小连接数
+		MaxPoolSize uint64 `json:"maxPoolSize"` //连接池最大连接数
 	}
 	KafkaConf struct {
-		Open      bool     `toml:"open"`
-		Brokers   []string `toml:"brokers"`
-		CertFile  string   `toml:"cert_file"`
-		KeyFile   string   `toml:"key_file"`
-		CaFile    string   `toml:"ca_file"`
-		VerifySsl bool     `toml:"verify_ssl"`
+		Open      bool     `json:"open"`
+		Brokers   []string `json:"brokers"`
+		CertFile  string   `json:"cert_file"`
+		KeyFile   string   `json:"key_file"`
+		CaFile    string   `json:"ca_file"`
+		VerifySsl bool     `json:"verify_ssl"`
 	}
 	I18nConfig struct {
-		Open        bool   `toml:"open"`
-		DefaultLang string `toml:"defaultLang"`
-		Path        string `toml:"path"`
+		Open        bool   `json:"open"`
+		DefaultLang string `json:"defaultLang"`
+		Path        string `json:"path"`
 	}
 	TraceConf struct {
 		Open            bool   `json:"open"`

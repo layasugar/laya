@@ -11,29 +11,17 @@ var c *Config
 
 type Config struct {
 	BaseConf
-	LogConf    LogConf    `json:"log"`
-	CacheConf  CacheConf  `json:"cache"`
-	DBConf     DBConf     `json:"mysql"`
-	RdbConf    RdbConf    `json:"redis"`
-	MdbConf    MdbConf    `json:"mongo"`
-	KafkaConf  KafkaConf  `json:"kafka_conf"`
-	I18nConfig I18nConfig `json:"gi18n"`
-	TraceConf  TraceConf  `json:"zipkin"`
-	DingConf   DingConf   `json:"ding"`
+	LogConf   *LogConf  `json:"log"`
+	CacheConf CacheConf `json:"cache"`
+	DBConf    DBConf    `json:"mysql"`
+	RdbConf   RdbConf   `json:"redis"`
+	MdbConf   MdbConf   `json:"mongo"`
+	KafkaConf KafkaConf `json:"kafka_conf"`
+	TraceConf TraceConf `json:"zipkin"`
+	DingConf  DingConf  `json:"ding"`
 }
 
 type (
-	LogConf struct {
-		Open       bool   `json:"open"`
-		Driver     string `json:"driver"`      //驱动分控制台和文件
-		Path       string `json:"path"`        //文件路径
-		LogLevel   string `json:"log_level"`   //日志等级分info,error,warn
-		MaxSize    int    `json:"max_size"`    //日志文件最大MB
-		MaxAge     int    `json:"max_age"`     //保留旧文件的最大天数
-		MaxBackups int    `json:"max_backups"` //保留旧文件的最大个数
-	}
-	CacheConf struct {
-	}
 	BaseConf struct {
 		AppName    string `json:"app_name"`    //app名称
 		HttpListen string `json:"http_listen"` //http监听端口
@@ -43,6 +31,15 @@ type (
 		GinLog     string `json:"gin_log"`     //gin_log日志
 		ParamsLog  bool   `json:"params_log"`  //是否开启请求参数和返回参数打印
 	}
+	LogConf struct {
+		Path       string `json:"path"`        //文件路径
+		MaxSize    int    `json:"max_size"`    //日志文件最大MB
+		MaxAge     int    `json:"max_age"`     //保留旧文件的最大天数
+		MaxBackups int    `json:"max_backups"` //保留旧文件的最大个数
+	}
+	CacheConf struct {
+	}
+
 	DBConf struct {
 		Open            bool   `json:"open"`            //是否开启
 		MaxIdleConn     int    `json:"maxIdleConn"`     //空闲连接数
@@ -73,11 +70,7 @@ type (
 		CaFile    string   `json:"ca_file"`
 		VerifySsl bool     `json:"verify_ssl"`
 	}
-	I18nConfig struct {
-		Open        bool   `json:"open"`
-		DefaultLang string `json:"defaultLang"`
-		Path        string `json:"path"`
-	}
+
 	TraceConf struct {
 		Open            bool   `json:"open"`
 		ServiceName     string `json:"service_name"`     //服务名
@@ -103,16 +96,25 @@ func InitConfig(confPath string) error {
 		panic(err)
 	}
 
+	//判断有没有日志配置如果没有赋初始值
+	if c.LogConf == nil {
+		c.LogConf = &LogConf{
+			Path:       "/home/logs/app/" + c.BaseConf.AppName + "/app.log",
+			MaxSize:    32,
+			MaxAge:     90,
+			MaxBackups: 300,
+		}
+	}
+
 	return nil
 }
 
-func GetBaseConf() BaseConf     { return c.BaseConf }
-func GetLogConf() LogConf       { return c.LogConf }
-func GetDBConf() DBConf         { return c.DBConf }
-func GetRdbConf() RdbConf       { return c.RdbConf }
-func GetMdbConf() MdbConf       { return c.MdbConf }
-func GetI18nConfig() I18nConfig { return c.I18nConfig }
-func GetAppName() string        { return c.BaseConf.AppName }
-func GetHttpListen() string     { return c.BaseConf.HttpListen }
-func GetRunMode() string        { return c.BaseConf.RunMode }
-func GetAppVersion() string     { return c.BaseConf.AppVersion }
+func GetBaseConf() BaseConf { return c.BaseConf }
+func GetLogConf() LogConf   { return *c.LogConf }
+func GetDBConf() DBConf     { return c.DBConf }
+func GetRdbConf() RdbConf   { return c.RdbConf }
+func GetMdbConf() MdbConf   { return c.MdbConf }
+func GetAppName() string    { return c.BaseConf.AppName }
+func GetHttpListen() string { return c.BaseConf.HttpListen }
+func GetRunMode() string    { return c.BaseConf.RunMode }
+func GetAppVersion() string { return c.BaseConf.AppVersion }

@@ -5,9 +5,11 @@ package glogs
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/layatips/laya/gconf"
+	"github.com/layatips/laya/genv"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
+	"log"
 	"os"
 )
 
@@ -23,33 +25,26 @@ var (
 func InitLog() {
 	// 获取配置开启日志
 	c := gconf.GetLogConf()
-	if c.Open {
-		InitSugar(c)
-	}
+	InitSugar(c)
 }
 
 func InitSugar(c gconf.LogConf) {
+	runMode := gconf.GetRunMode()
 	loglevel := zapcore.InfoLevel
-	switch c.LogLevel {
-	case "INFO":
-		loglevel = zapcore.InfoLevel
-	case "ERROR":
-		loglevel = zapcore.ErrorLevel
-	}
 	setLevel(loglevel)
 
 	var core zapcore.Core
 	// 打印至文件中
-	if c.Driver == "file" {
+	if runMode == "release" {
 		configs := zap.NewProductionEncoderConfig()
 		configs.EncodeTime = zapcore.ISO8601TimeEncoder
 		w := zapcore.AddSync(&lumberjack.Logger{
-			Filename:   c.Path, // 日志文件的位置
-			MaxSize:    32,     // MB
-			LocalTime:  true,   // 是否使用自己本地时间
-			Compress:   true,   // 是否压缩/归档旧文件
-			MaxAge:     90,     // 保留旧文件的最大天数
-			MaxBackups: 300,    // 保留旧文件的最大个数
+			Filename:   c.Path + genv.AppName() + "/app.log", // 日志文件的位置
+			MaxSize:    c.MaxSize,                            // MB
+			LocalTime:  true,                                 // 是否使用自己本地时间
+			Compress:   true,                                 // 是否压缩/归档旧文件
+			MaxAge:     c.MaxAge,                             // 保留旧文件的最大天数
+			MaxBackups: c.MaxBackups,                         // 保留旧文件的最大个数
 		})
 
 		core = zapcore.NewCore(
@@ -57,10 +52,12 @@ func InitSugar(c gconf.LogConf) {
 			w,
 			logLevel,
 		)
+		log.Printf("[glogs_sugar] logs open success at %s\n", c.Path+genv.AppName()+"/app.log")
 	} else {
 		// 打印在控制台
 		consoleEncoder := zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig())
 		core = zapcore.NewCore(consoleEncoder, zapcore.Lock(os.Stdout), logLevel)
+		log.Printf("[glogs_sugar] logs open success at console\n")
 	}
 
 	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))

@@ -6,9 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/layatips/laya/gconf"
 	"github.com/layatips/laya/genv"
-	"github.com/layatips/laya/gi18n"
 	"github.com/layatips/laya/glogs"
-	"github.com/layatips/laya/gstore"
+	"github.com/layatips/laya/gmiddleware"
+	"log"
 )
 
 type App struct {
@@ -21,7 +21,7 @@ func NewApp() *App {
 
 func (app *App) InitWithConfig() *App {
 	var configPath string
-	flag.StringVar(&configPath, "config_path", "", "配置文件地址：xx/xx/app.toml")
+	flag.StringVar(&configPath, "config_path", "", "配置文件地址：xx/xx/app.json")
 	flag.Parse()
 	if configPath == "" {
 		configPath = "./conf/app.json"
@@ -44,15 +44,8 @@ func (app *App) InitWithConfig() *App {
 			app.webServer.Use(DefaultWebServerMiddlewares...)
 		}
 	}
-
+	log.Printf("%s %s %s starting at %q\n", cf.AppName, cf.RunMode, cf.AppUrl, cf.HttpListen)
 	glogs.InitLog()
-	gi18n.Init()
-	gstore.InitDB()
-	gstore.InitMdb()
-	gstore.InitRdb()
-	gstore.InitMemory()
-	fmt.Printf("[app.InitLog]  config_dir=%s, app_name=%s, run_mode=%s\n", genv.AppName(), genv.RunMode())
-
 	return app
 }
 
@@ -68,4 +61,12 @@ func (app *App) RunWebServer() {
 	}
 }
 
-var DefaultWebServerMiddlewares []gin.HandlerFunc
+func (app *App) Use(fc ...func()) {
+	for _, f := range fc {
+		f()
+	}
+}
+
+var DefaultWebServerMiddlewares = []gin.HandlerFunc{
+	gmiddleware.SetHeader,
+}

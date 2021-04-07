@@ -5,28 +5,23 @@ import (
 	"github.com/layatips/laya/gconf"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"log"
 	"time"
 )
 
-var Mdb *mongo.Client
-
 // 初始化mongodb
-func InitMdb() {
-	c := gconf.GetMdbConf()
-	if c.Open {
-		connMdb(c.MinPoolSize, c.MaxPoolSize, c.DSN)
-	}
+func InitMdb(cf *gconf.MdbConf) *mongo.Client {
+	return connMdb(cf.MinPoolSize, cf.MaxPoolSize, cf.DSN)
 }
 
-func connMdb(minPoolSize, maxPoolSize uint64, dsn string) {
+func connMdb(minPoolSize, maxPoolSize uint64, dsn string) *mongo.Client {
 	var err error
-
 	MdbOptions := options.Client().
 		ApplyURI(dsn).
 		SetMaxPoolSize(minPoolSize).
 		SetMinPoolSize(maxPoolSize)
-	Mdb, err = mongo.NewClient(MdbOptions)
+	Mdb, err := mongo.NewClient(MdbOptions)
 	if err != nil {
 		log.Printf("[store_mongodb] connMdb open,err=%s\n", err)
 		panic(err)
@@ -40,4 +35,10 @@ func connMdb(minPoolSize, maxPoolSize uint64, dsn string) {
 		panic(err)
 	}
 	log.Printf("[store_mongodb] mongo connMdb success")
+
+	return Mdb
+}
+
+func MdbSurvive(mdb *mongo.Client) error {
+	return mdb.Ping(context.Background(), readpref.Primary())
 }

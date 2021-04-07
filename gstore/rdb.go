@@ -8,17 +8,12 @@ import (
 	"time"
 )
 
-var Rdb *redis.Client
-
 // 初始化redis
-func InitRdb() {
-	c := gconf.GetRdbConf()
-	if c.Open {
-		connRdb(c.DB, c.PoolSize, c.MaxRetries, c.IdleTimeout, c.Addr, c.Pwd)
-	}
+func InitRdb(cf *gconf.RdbConf) *redis.Client {
+	return connRdb(cf.DB, cf.PoolSize, cf.MaxRetries, cf.IdleTimeout, cf.Addr, cf.Pwd)
 }
 
-func connRdb(db, poolSize, maxRetries, idleTimeout int, addr, pwd string) {
+func connRdb(db, poolSize, maxRetries, idleTimeout int, addr, pwd string) *redis.Client {
 	options := redis.Options{
 		Addr:        addr,                                     // Redis地址
 		DB:          db,                                       // Redis库
@@ -29,7 +24,7 @@ func connRdb(db, poolSize, maxRetries, idleTimeout int, addr, pwd string) {
 	if pwd != "" {
 		options.Password = pwd
 	}
-	Rdb = redis.NewClient(&options)
+	Rdb := redis.NewClient(&options)
 	pong, err := Rdb.Ping(context.Background()).Result()
 	if err == redis.Nil {
 		log.Printf("[store_redis] Nil reply returned by Rdb when key does not exist.")
@@ -39,4 +34,16 @@ func connRdb(db, poolSize, maxRetries, idleTimeout int, addr, pwd string) {
 	} else {
 		log.Printf("[store_redis] redis connRdb success,suc=%s\n", pong)
 	}
+	return Rdb
+}
+
+func RdbSurvive(rdb *redis.Client) error {
+	err := rdb.Ping(context.Background()).Err()
+	if err == redis.Nil {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	return nil
 }

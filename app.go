@@ -12,7 +12,7 @@ import (
 )
 
 type App struct {
-	webServer *WebServer
+	WebServer *gin.Engine
 }
 
 func NewApp() *App {
@@ -39,9 +39,9 @@ func (app *App) InitWithConfig() *App {
 		genv.SetRunMode(cf.RunMode)
 	}
 	if cf.HttpListen != "" {
-		app.webServer = NewWebServer(cf.RunMode)
+		app.WebServer = gin.Default()
 		if len(DefaultWebServerMiddlewares) > 0 {
-			app.webServer.Use(DefaultWebServerMiddlewares...)
+			app.WebServer.Use(DefaultWebServerMiddlewares...)
 		}
 	}
 	log.Printf("%s %s %s starting at %q\n", cf.AppName, cf.RunMode, cf.AppUrl, cf.HttpListen)
@@ -49,13 +49,13 @@ func (app *App) InitWithConfig() *App {
 	return app
 }
 
-func (app *App) WebServer() *WebServer {
-	return app.webServer
-}
+//func (app *App) WebServer() *gin.Engine {
+//	return app.webServer
+//}
 
 func (app *App) RunWebServer() {
 	cf := gconf.GetBaseConf()
-	err := app.webServer.Run(cf.HttpListen)
+	err := app.WebServer.Run(cf.HttpListen)
 	if err != nil {
 		fmt.Printf("Can't RunWebServer: %s\n", err.Error())
 	}
@@ -65,6 +65,11 @@ func (app *App) Use(fc ...func()) {
 	for _, f := range fc {
 		f()
 	}
+}
+
+// RegisterRouter 注册路由
+func (app *App) RegisterRouter(rr func(*gin.Engine)) {
+	rr(app.WebServer)
 }
 
 var DefaultWebServerMiddlewares = []gin.HandlerFunc{

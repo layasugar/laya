@@ -3,6 +3,7 @@
 package glogs
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/layatips/laya/gconf"
 	"github.com/layatips/laya/genv"
@@ -24,12 +25,20 @@ var (
 // InitLog 初始化日志文件
 func InitLog() {
 	// 获取配置开启日志
-	c := gconf.GetLogConf()
-	InitSugar(c)
+	cf, err := gconf.GetLogConf()
+	if errors.Is(err, gconf.Nil) {
+		cf = &gconf.LogConf{
+			Path:       "/home/logs/app/" + genv.AppName() + "/app.log",
+			MaxSize:    32,
+			MaxAge:     90,
+			MaxBackups: 300,
+		}
+	}
+	InitSugar(cf)
 }
 
-func InitSugar(c gconf.LogConf) {
-	runMode := gconf.GetRunMode()
+func InitSugar(cf *gconf.LogConf) {
+	runMode := genv.RunMode()
 	loglevel := zapcore.InfoLevel
 	setLevel(loglevel)
 
@@ -39,12 +48,12 @@ func InitSugar(c gconf.LogConf) {
 		configs := zap.NewProductionEncoderConfig()
 		configs.EncodeTime = zapcore.ISO8601TimeEncoder
 		w := zapcore.AddSync(&lumberjack.Logger{
-			Filename:   c.Path + genv.AppName() + "/app.log", // 日志文件的位置
-			MaxSize:    c.MaxSize,                            // MB
-			LocalTime:  true,                                 // 是否使用自己本地时间
-			Compress:   true,                                 // 是否压缩/归档旧文件
-			MaxAge:     c.MaxAge,                             // 保留旧文件的最大天数
-			MaxBackups: c.MaxBackups,                         // 保留旧文件的最大个数
+			Filename:   cf.Path + genv.AppName() + "/app.log", // 日志文件的位置
+			MaxSize:    cf.MaxSize,                            // MB
+			LocalTime:  true,                                  // 是否使用自己本地时间
+			Compress:   true,                                  // 是否压缩/归档旧文件
+			MaxAge:     cf.MaxAge,                             // 保留旧文件的最大天数
+			MaxBackups: cf.MaxBackups,                         // 保留旧文件的最大个数
 		})
 
 		core = zapcore.NewCore(
@@ -52,7 +61,7 @@ func InitSugar(c gconf.LogConf) {
 			w,
 			logLevel,
 		)
-		log.Printf("[glogs_sugar] logs open success at %s\n", c.Path+genv.AppName()+"/app.log")
+		log.Printf("[glogs_sugar] logs open success at %s\n", cf.Path+genv.AppName()+"/app.log")
 	} else {
 		// 打印在控制台
 		consoleEncoder := zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig())

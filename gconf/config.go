@@ -14,7 +14,7 @@ var mc map[string]json.RawMessage
 type Config struct {
 	BaseConf  BaseConf  `json:"app"`
 	LogConf   *LogConf  `json:"log"`
-	CacheConf CacheConf `json:"cache"`
+	CacheConf MemConf   `json:"cache"`
 	DBConf    DBConf    `json:"mysql"`
 	RdbConf   RdbConf   `json:"redis"`
 	MdbConf   MdbConf   `json:"mongo"`
@@ -39,7 +39,9 @@ type (
 		MaxAge     int    `json:"max_age"`     //保留旧文件的最大天数
 		MaxBackups int    `json:"max_backups"` //保留旧文件的最大个数
 	}
-	CacheConf struct {
+	MemConf struct {
+		DefaultExp int64 `json:"default_exp"`
+		Cleanup    int64 `json:"cleanup"`
 	}
 	DBConf struct {
 		Dsn             string `json:"dsn"`             //dsn
@@ -116,11 +118,37 @@ func InitConfig(cfp string) error {
 	return nil
 }
 
-func GetBaseConf() BaseConf { return c.BaseConf }
-func GetLogConf() LogConf   { return *c.LogConf }
+func GetBaseConf() (*BaseConf, error) {
+	var bcf = BaseConf{}
+	raw, ok := mc["base"]
+	if !ok {
+		return nil, Nil
+	}
+	err := json.Unmarshal(raw, &bcf)
+	if err != nil {
+		return nil, err
+	}
+	return &bcf, nil
+}
+func GetLogConf() (*LogConf, error) {
+	var logc = LogConf{}
+	raw, ok := mc["log"]
+	if !ok {
+		return nil, Nil
+	}
+	err := json.Unmarshal(raw, &logc)
+	if err != nil {
+		return nil, err
+	}
+	return &logc, nil
+}
 func GetDBConf(k string) (*DBConf, error) {
 	var dbc = DBConf{}
-	err := json.Unmarshal(mc[k], &dbc)
+	raw, ok := mc[k]
+	if !ok {
+		return nil, Nil
+	}
+	err := json.Unmarshal(raw, &dbc)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +156,11 @@ func GetDBConf(k string) (*DBConf, error) {
 }
 func GetRdbConf(k string) (*RdbConf, error) {
 	var rdbc = RdbConf{}
-	err := json.Unmarshal(mc[k], &rdbc)
+	raw, ok := mc[k]
+	if !ok {
+		return nil, Nil
+	}
+	err := json.Unmarshal(raw, &rdbc)
 	if err != nil {
 		return nil, err
 	}
@@ -136,15 +168,29 @@ func GetRdbConf(k string) (*RdbConf, error) {
 }
 func GetMdbConf(k string) (*MdbConf, error) {
 	var mdbc = MdbConf{}
-	err := json.Unmarshal(mc[k], &mdbc)
+	raw, ok := mc[k]
+	if !ok {
+		return nil, Nil
+	}
+	err := json.Unmarshal(raw, &mdbc)
 	if err != nil {
 		return nil, err
 	}
 	return &mdbc, nil
 }
-func GetAppName() string {
-	return c.BaseConf.AppName
+func GetMemConf() (*MemConf, error) {
+	var memc = MemConf{}
+	raw, ok := mc["mem"]
+	if !ok {
+		return nil, Nil
+	}
+	err := json.Unmarshal(raw, &memc)
+	if err != nil {
+		return nil, err
+	}
+	return &memc, nil
 }
+
 func GetHttpListen() string { return c.BaseConf.HttpListen }
 func GetRunMode() string    { return c.BaseConf.RunMode }
 func GetAppVersion() string { return c.BaseConf.AppVersion }

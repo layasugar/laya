@@ -9,10 +9,7 @@ import (
 	"github.com/layatips/laya/genv"
 	"github.com/layatips/laya/glogs"
 	"github.com/layatips/laya/gmiddleware"
-	"io"
 	"log"
-	"os"
-	"path"
 )
 
 type App struct {
@@ -46,7 +43,6 @@ func (app *App) InitWithConfig() *App {
 			RunMode:    "debug",
 			AppVersion: "1.0.0",
 			AppUrl:     "127.0.0.1:10080",
-			GinLog:     "/home/logs/app/default-app/gin_http.log",
 			ParamLog:   true,
 		}
 	}
@@ -65,30 +61,15 @@ func (app *App) InitWithConfig() *App {
 	if cf.AppUrl != "" {
 		genv.SetAppUrl(cf.AppUrl)
 	}
-	if cf.GinLog != "" {
-		genv.SetGinLog(cf.GinLog)
-	}
-	if cf.ParamLog {
-		genv.SetParamLog(cf.ParamLog)
-	}
+	genv.SetParamLog(cf.ParamLog)
+
 	gin.SetMode(genv.RunMode())
+	glogs.InitLog()
 	app.WebServer = gin.Default()
 	if len(DefaultWebServerMiddlewares) > 0 {
 		app.WebServer.Use(DefaultWebServerMiddlewares...)
 	}
-	if genv.RunMode() == "debug" {
-		err := os.MkdirAll(path.Dir(genv.GinLog()), os.ModeDir)
-		if err != nil {
-			log.Printf("[store_gin_log] Could not create log path")
-		}
-		logfile, err := os.Create(genv.GinLog())
-		if err != nil {
-			log.Printf("[store_gin_log] Could not create log file")
-		}
-		gin.DefaultWriter = io.MultiWriter(logfile)
-	}
 
-	glogs.InitLog()
 	return app
 }
 
@@ -113,4 +94,5 @@ func (app *App) RegisterRouter(rr func(*gin.Engine)) {
 
 var DefaultWebServerMiddlewares = []gin.HandlerFunc{
 	gmiddleware.SetHeader,
+	gmiddleware.LogInParams,
 }

@@ -6,8 +6,7 @@ var (
 	envHttpListen = ""
 	envAppVersion = ""
 	envAppUrl     = ""
-	envGinLog     = ""
-	envParamLog   = false
+	envParamLog   = true
 )
 
 const (
@@ -16,8 +15,6 @@ const (
 	_DefaultRunMode    = "debug"
 	_DefaultAppVersion = "1.0.0"
 	_DefaultAppUrl     = "127.0.0.1:10080"
-	_DefaultGinLog     = "/home/logs/app/default-app/gin_http.log"
-	_DefaultParamLog   = true
 )
 
 // 设置app名称
@@ -46,12 +43,12 @@ func RunMode() string {
 	return envRunMode
 }
 
-// 设置运行模式
+// 设置app的版本号
 func SetAppVersion(appVersion string) {
 	envAppVersion = appVersion
 }
 
-// 返回当前的运行模式
+// 返回app的版本号
 func AppVersion() string {
 	if envAppVersion == "" {
 		SetAppVersion(_DefaultAppVersion)
@@ -72,12 +69,12 @@ func HttpListen() string {
 	return envHttpListen
 }
 
-// 设置app名称
+// 设置app_url
 func SetAppUrl(appUrl string) {
 	envAppUrl = appUrl
 }
 
-// 返回当前app名称
+// 返回当前app_url
 func AppUrl() string {
 	if envAppUrl == "" {
 		SetAppUrl(_DefaultAppUrl)
@@ -85,28 +82,12 @@ func AppUrl() string {
 	return envAppUrl
 }
 
-// 设置app名称
-func SetGinLog(ginLog string) {
-	envGinLog = ginLog
-}
-
-// 返回当前app名称
-func GinLog() string {
-	if envGinLog == "" {
-		SetGinLog(_DefaultGinLog)
-	}
-	return envGinLog
-}
-
-// 设置app名称
+// 设置是否打印入参和出参
 func SetParamLog(ParamLog bool) {
 	envParamLog = ParamLog
 }
 
-// 返回当前app名称
+// 返回是否打印入参和出参
 func ParamLog() bool {
-	if !envParamLog {
-		SetParamLog(_DefaultParamLog)
-	}
 	return envParamLog
 }

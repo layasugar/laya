@@ -10,8 +10,10 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
+	"io"
 	"log"
 	"os"
+	"path"
 )
 
 const RequestIDName = "request-id"
@@ -28,12 +30,22 @@ func InitLog() {
 	cf, err := gconf.GetLogConf()
 	if errors.Is(err, gconf.Nil) {
 		cf = &gconf.LogConf{
-			Path:       "/home/logs/app/" + genv.AppName() + "/app.log",
+			Path:       "/home/logs/app/",
 			MaxSize:    32,
 			MaxAge:     90,
 			MaxBackups: 300,
 		}
 	}
+	ginLog := cf.Path + genv.AppName() + "/gin_http.log"
+	err = os.MkdirAll(path.Dir(ginLog), os.ModeDir)
+	if err != nil {
+		log.Printf("[store_gin_log] Could not create log path")
+	}
+	logfile, err := os.OpenFile(ginLog, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
+	if err != nil {
+		log.Printf("[store_gin_log] Could not create log file")
+	}
+	gin.DefaultWriter = io.MultiWriter(logfile)
 	InitSugar(cf)
 }
 

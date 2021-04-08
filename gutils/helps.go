@@ -122,3 +122,13 @@ func GetAddressByIP(ipA string) string {
 
 	return record.Country.Names["zh-CN"] + "-" + province + "-" + record.City.Names["zh-CN"]
 }
+
+// string是否在[]string里面
+func InSliceString(k string, s []string) bool {
+	for _, v := range s {
+		if k == v {
+			return true
+		}
+	}
+	return false
+}

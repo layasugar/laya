@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/layatips/laya/genv"
 	"github.com/layatips/laya/glogs"
+	"github.com/layatips/laya/gutils"
 	"net/http"
 )
 
@@ -31,7 +32,7 @@ func (res *Resp) Suc(c *gin.Context, data interface{}, msg ...string) {
 	}
 	rr.Data = data
 	rr.RequestID = c.GetHeader(requestIDName)
-	if c.Request.RequestURI != "/ready" && c.Request.RequestURI != "/healthz" {
+	if !gutils.InSliceString(c.Request.RequestURI, gutils.IgnoreRoutes) {
 		if genv.ParamLog() {
 			log, _ := json.Marshal(&rr)
 			glogs.InfoFR(c, "title=出参打印,path=%s,content=%s", c.Request.RequestURI, log)
@@ -50,7 +51,7 @@ func (res *Resp) Fail(c *gin.Context, err error) {
 		rr.Message = err.Error()
 	}
 	rr.RequestID = c.GetHeader(requestIDName)
-	if c.Request.RequestURI != "/ready" && c.Request.RequestURI != "/healthz" {
+	if !gutils.InSliceString(c.Request.RequestURI, gutils.IgnoreRoutes) {
 		if genv.ParamLog() {
 			log, _ := json.Marshal(&rr)
 			glogs.InfoFR(c, "title=出参打印,path=%s,content=%s", c.Request.RequestURI, log)

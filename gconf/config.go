@@ -29,7 +29,6 @@ type (
 		RunMode    string `json:"run_mode"`    //运行模式
 		AppVersion string `json:"version"`     //app版本号
 		AppUrl     string `json:"app_url"`     //当前路由
-		GinLog     string `json:"gin_log"`     //gin_log日志
 		ParamLog   bool   `json:"param_log"`   //是否开启请求参数和返回参数打印
 	}
 	LogConf struct {

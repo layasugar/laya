@@ -8,7 +8,6 @@ import (
 
 var path = "./gconf/app.json"
 
-var c *Config
 var mc map[string]json.RawMessage
 
 type Config struct {
@@ -31,7 +30,7 @@ type (
 		AppVersion string `json:"version"`     //app版本号
 		AppUrl     string `json:"app_url"`     //当前路由
 		GinLog     string `json:"gin_log"`     //gin_log日志
-		ParamsLog  bool   `json:"params_log"`  //是否开启请求参数和返回参数打印
+		ParamLog   bool   `json:"param_log"`   //是否开启请求参数和返回参数打印
 	}
 	LogConf struct {
 		Path       string `json:"path"`        //文件路径
@@ -72,7 +71,6 @@ type (
 		CaFile    string   `json:"ca_file"`
 		VerifySsl bool     `json:"verify_ssl"`
 	}
-
 	TraceConf struct {
 		Open            bool   `json:"open"`
 		ServiceName     string `json:"service_name"`     //服务名
@@ -88,14 +86,8 @@ type (
 )
 
 func InitConfig(cfp string) error {
-	c = new(Config)
 	r, err := ioutil.ReadFile(cfp)
 	if err != nil {
-		panic(err)
-	}
-	err = json.Unmarshal(r, &c)
-	if err != nil {
-		log.Printf("%s file load err,err is %s\n", cfp, err.Error())
 		panic(err)
 	}
 	mc = make(map[string]json.RawMessage)
@@ -104,23 +96,12 @@ func InitConfig(cfp string) error {
 		log.Printf("%s file load err,err is %s\n", cfp, err.Error())
 		panic(err)
 	}
-
-	//判断有没有日志配置如果没有赋初始值
-	if c.LogConf == nil {
-		c.LogConf = &LogConf{
-			Path:       "/home/logs/app/" + c.BaseConf.AppName + "/app.log",
-			MaxSize:    32,
-			MaxAge:     90,
-			MaxBackups: 300,
-		}
-	}
-
 	return nil
 }
 
 func GetBaseConf() (*BaseConf, error) {
 	var bcf = BaseConf{}
-	raw, ok := mc["base"]
+	raw, ok := mc["app"]
 	if !ok {
 		return nil, Nil
 	}
@@ -141,6 +122,18 @@ func GetLogConf() (*LogConf, error) {
 		return nil, err
 	}
 	return &logc, nil
+}
+func GetMemConf() (*MemConf, error) {
+	var memc = MemConf{}
+	raw, ok := mc["mem"]
+	if !ok {
+		return nil, Nil
+	}
+	err := json.Unmarshal(raw, &memc)
+	if err != nil {
+		return nil, err
+	}
+	return &memc, nil
 }
 func GetDBConf(k string) (*DBConf, error) {
 	var dbc = DBConf{}
@@ -178,19 +171,3 @@ func GetMdbConf(k string) (*MdbConf, error) {
 	}
 	return &mdbc, nil
 }
-func GetMemConf() (*MemConf, error) {
-	var memc = MemConf{}
-	raw, ok := mc["mem"]
-	if !ok {
-		return nil, Nil
-	}
-	err := json.Unmarshal(raw, &memc)
-	if err != nil {
-		return nil, err
-	}
-	return &memc, nil
-}
-
-func GetHttpListen() string { return c.BaseConf.HttpListen }
-func GetRunMode() string    { return c.BaseConf.RunMode }
-func GetAppVersion() string { return c.BaseConf.AppVersion }

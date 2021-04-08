@@ -47,58 +47,54 @@ func (app *App) InitWithConfig() *App {
 			AppVersion: "1.0.0",
 			AppUrl:     "127.0.0.1:10080",
 			GinLog:     "/home/logs/app/default-app/gin_http.log",
-			ParamsLog:  true,
+			ParamLog:   true,
 		}
 	}
 	if cf.AppName != "" {
 		genv.SetAppName(cf.AppName)
 	}
 	if cf.HttpListen != "" {
-		genv.SetRunMode(cf.RunMode)
+		genv.SetHttpListen(cf.HttpListen)
 	}
 	if cf.RunMode != "" {
 		genv.SetRunMode(cf.RunMode)
 	}
 	if cf.AppVersion != "" {
-		genv.SetRunMode(cf.RunMode)
+		genv.SetAppVersion(cf.AppVersion)
 	}
 	if cf.AppUrl != "" {
-		genv.SetRunMode(cf.RunMode)
+		genv.SetAppUrl(cf.AppUrl)
 	}
 	if cf.GinLog != "" {
-		genv.SetRunMode(cf.RunMode)
+		genv.SetGinLog(cf.GinLog)
 	}
-	if cf.ParamsLog {
-		genv.SetRunMode(cf.RunMode)
+	if cf.ParamLog {
+		genv.SetParamLog(cf.ParamLog)
 	}
-
-	log.Printf("%s %s %s starting at %q\n", cf.AppName, cf.RunMode, cf.AppUrl, cf.HttpListen)
-	glogs.InitLog()
-	return app
-}
-
-//func (app *App) WebServer() *gin.Engine {
-//	return app.webServer
-//}
-
-func (app *App) RunWebServer() {
+	gin.SetMode(genv.RunMode())
 	app.WebServer = gin.Default()
 	if len(DefaultWebServerMiddlewares) > 0 {
 		app.WebServer.Use(DefaultWebServerMiddlewares...)
 	}
-	cf := gconf.GetBaseConf()
-	err := app.WebServer.Run(cf.HttpListen)
 	if genv.RunMode() == "debug" {
-		err := os.MkdirAll(path.Dir(cf.GinLog), os.ModeDir)
+		err := os.MkdirAll(path.Dir(genv.GinLog()), os.ModeDir)
 		if err != nil {
 			log.Printf("[store_gin_log] Could not create log path")
 		}
-		logfile, err := os.Create(cf.GinLog)
+		logfile, err := os.Create(genv.GinLog())
 		if err != nil {
 			log.Printf("[store_gin_log] Could not create log file")
 		}
 		gin.DefaultWriter = io.MultiWriter(logfile)
 	}
+
+	glogs.InitLog()
+	return app
+}
+
+func (app *App) RunWebServer() {
+	log.Printf("%s %s %s starting at %q\n", genv.AppName(), genv.RunMode(), genv.AppUrl(), genv.HttpListen())
+	err := app.WebServer.Run(genv.HttpListen())
 	if err != nil {
 		fmt.Printf("Can't RunWebServer: %s\n", err.Error())
 	}

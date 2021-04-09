@@ -7,6 +7,7 @@ var (
 	envAppVersion = ""
 	envAppUrl     = ""
 	envParamLog   = true
+	ConfigPath    = "./conf/app.json"
 )
 
 const (

@@ -1,10 +1,11 @@
-package fileutil
+// 一个简化版的文件系统watcher
 
-//一个简化版的文件系统watcher
+package gconf
 
 import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
+	"github.com/layatips/laya/gutils"
 	"log"
 	"os"
 	"path/filepath"
@@ -55,8 +56,9 @@ type handleType struct {
 
 // Watcher watcher对象
 type Watcher struct {
-	rootDir  string
-	fwatcher *fsnotify.Watcher
+	onConfigChange func(fsnotify.Event)
+	rootDir        string
+	fwatcher       *fsnotify.Watcher
 
 	//注册的对应路径和回调的数据 eg：{"abc/*":func(e *Event)error{},"def/e/*":func(e *Event)error{}}
 	handles      map[string][]*handleType
@@ -77,17 +79,14 @@ func error4log(err error) string {
 	return fmt.Sprintf("faild, err=%s", err)
 }
 
-// NewWatcher 创建一个新的watcher对象
-// rootDir为待watch的根目录
+// NewWatcher 创建一个新的watcher对象 rootDir为待watch的根目录
 func NewWatcher(rootDir string, handlesMax uint64) *Watcher {
 	w := &Watcher{
 		rootDir:    rootDir,
 		handles:    make(map[string][]*handleType),
 		handlesMax: handlesMax,
 	}
-
 	w.watchRoot()
-
 	return w
 }
 
@@ -104,15 +103,15 @@ func (w *Watcher) watchRoot() error {
 	for {
 		//若对应的文件目录此时不存在，则等待
 		//比如将当前目录rm掉了，copy 或者mv 了一个目录过来
-		if Exists(w.rootDir) {
+		if gutils.Exists(w.rootDir) {
 			err := w.fwatcher.Add(w.rootDir)
-			log.Printf("[fileutil_watcher] root_dir added watch %s, root_dir= %s\n", error4log(err), w.rootDir)
+			log.Printf("[gconf_watcher] root_dir added watch %s, root_dir= %s\n", error4log(err), w.rootDir)
 			if err != nil {
 				return err
 			}
 			break
 		}
-		log.Printf("[fileutil_watcher] root_dir not exists, waiting for add watch, root_dir= %s\n", w.rootDir)
+		log.Printf("[gconf_watcher] root_dir not exists, waiting for add watch, root_dir= %s\n", w.rootDir)
 		time.Sleep(1 * time.Second)
 	}
 
@@ -122,7 +121,7 @@ func (w *Watcher) watchRoot() error {
 			case event := <-w.fwatcher.Events:
 				go w.fireEvent(event)
 			case err := <-w.fwatcher.Errors:
-				log.Printf("[fileutil_watcher] file watcher catch err: %s", err.Error())
+				log.Printf("[gconf_watcher] file watcher catch err: %s", err.Error())
 			}
 		}
 	}()
@@ -166,7 +165,7 @@ func (w *Watcher) fireEvent(event fsnotify.Event) {
 	} else if event.Op&fsnotify.Rename == fsnotify.Rename {
 		myEvent.Type = WatcherEventDelete
 	} else {
-		log.Printf("[fileutil_watcher] other event ignore: %s\n", event)
+		log.Printf("[gconf_watcher] other event ignore: %s\n", event)
 		return
 	}
 	var err error
@@ -175,16 +174,16 @@ func (w *Watcher) fireEvent(event fsnotify.Event) {
 	case WatcherEventDelete:
 		//目录被删除了，或者mv到其他地方、rename成别的名字了
 		if fname == w.rootDir {
-			log.Printf("[fileutil_watcher] root dir was deleted, path=%s\n", fname)
+			log.Printf("[gconf_watcher] root dir was deleted, path=%s\n", fname)
 			w.watchRoot()
 		} else if !isRemove {
 			err = w.fwatcher.Remove(fname)
-			log.Printf("[fileutil_watcher] file was deleted, path= %s, remove watch %s\n", fname, error4log(err))
+			log.Printf("[gconf_watcher] file was deleted, path= %s, remove watch %s\n", fname, error4log(err))
 		}
 	case WatcherEventCreate:
 		//新创建的文件必须再次加入
 		err = w.fwatcher.Add(fname)
-		log.Printf("[fileutil_watcher] a new file was founded, path= %s, addwatch it %s\n", fname, error4log(err))
+		log.Printf("[gconf_watcher] a new file was founded, path= %s, addwatch it %s\n", fname, error4log(err))
 	}
 
 	w.rw.RLock()
@@ -211,7 +210,7 @@ func (w *Watcher) fireEvent(event fsnotify.Event) {
 		}
 	}
 
-	log.Printf("[fileutil_watcher] fired file event ( %v ): handles total= %d\n", myEvent, len(handlesFired))
+	//log.Printf("[gconf_watcher] fired file event ( %v ): handles total= %d\n", myEvent, len(handlesFired))
 }
 
 func (w *Watcher) isMatch(pattern string, fpath string) bool {
@@ -240,8 +239,7 @@ func (w *Watcher) Close() error {
 	return nil
 }
 
-// RegisterFileWatcher 注册文件变更事件观察者
-// pattern 是可以包括  * 的路径，如  db/*.toml 或者 db/demo.toml
+// RegisterFileWatcher 注册文件变更事件观察者 pattern 是可以包括  * 的路径，如  db/*.toml 或者 db/demo.toml
 func (w *Watcher) RegisterFileWatcher(pattern string, handleFn WatcherEventHandler) (err error) {
 	if handleFn == nil {
 		return fmt.Errorf("regirster handleFn is nil")

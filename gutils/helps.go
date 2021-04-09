@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -131,4 +132,13 @@ func InSliceString(k string, s []string) bool {
 		}
 	}
 	return false
+}
+
+// Exists 判断文件或目录是否存在
+func Exists(filePath string) bool {
+	_, err := os.Stat(filePath)
+	if err == nil {
+		return true
+	}
+	return os.IsExist(err)
 }

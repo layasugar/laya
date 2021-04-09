@@ -6,8 +6,6 @@ import (
 	"log"
 )
 
-var path = "./gconf/app.json"
-
 var mc map[string]json.RawMessage
 
 type Config struct {

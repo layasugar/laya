@@ -2,7 +2,6 @@ package laya
 
 import (
 	"errors"
-	"flag"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/layatips/laya/gconf"
@@ -10,10 +9,14 @@ import (
 	"github.com/layatips/laya/glogs"
 	"github.com/layatips/laya/gmiddleware"
 	"log"
+	"path/filepath"
+	"sync"
 )
 
 type App struct {
 	WebServer *gin.Engine
+	watcher   *gconf.Watcher
+	watchLock sync.Mutex
 }
 
 func NewApp() *App {
@@ -21,13 +24,7 @@ func NewApp() *App {
 }
 
 func (app *App) InitWithConfig() *App {
-	var configPath string
-	flag.StringVar(&configPath, "config_path", "", "配置文件地址：xx/xx/app.json")
-	flag.Parse()
-	if configPath == "" {
-		configPath = "./conf/app.json"
-	}
-	err := gconf.InitConfig(configPath)
+	err := gconf.InitConfig(genv.ConfigPath)
 	if err != nil {
 		panic(err)
 	}
@@ -90,6 +87,18 @@ func (app *App) Use(fc ...func()) {
 // RegisterRouter 注册路由
 func (app *App) RegisterRouter(rr func(*gin.Engine)) {
 	rr(app.WebServer)
+}
+
+// RegisterWatcher
+func (app *App) RegisterFileWatcher(path string, fh gconf.WatcherEventHandler) {
+	app.watchLock.Lock()
+	defer app.watchLock.Unlock()
+
+	if app.watcher == nil {
+		app.watcher = gconf.NewWatcher(filepath.Dir(path), 65535)
+		//默认需要监听所有的event
+		go app.watcher.RegisterFileWatcher(filepath.Base(path), fh)
+	}
 }
 
 var DefaultWebServerMiddlewares = []gin.HandlerFunc{

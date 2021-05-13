@@ -7,6 +7,8 @@ var (
 	envAppVersion = ""
 	envAppUrl     = ""
 	envParamLog   = true
+	envLogPath    = ""
+	envLogType    = ""
 	ConfigPath    = "./conf/app.json"
 )
 
@@ -16,6 +18,7 @@ const (
 	_DefaultRunMode    = "debug"
 	_DefaultAppVersion = "1.0.0"
 	_DefaultAppUrl     = "127.0.0.1:10080"
+	_DefaultLogPath    = "/home/logs/app/"
 )
 
 // 设置app名称
@@ -91,4 +94,27 @@ func SetParamLog(ParamLog bool) {
 // 返回是否打印入参和出参
 func ParamLog() bool {
 	return envParamLog
+}
+
+// 设置日志路径
+func SetLogPath(path string) {
+	envLogPath = path
+}
+
+// 返回日志基本路径
+func LogPath() string {
+	if envLogPath == "" {
+		SetLogPath(_DefaultLogPath)
+	}
+	return envLogPath
+}
+
+// 设置日志类型
+func SetLogType(path string) {
+	envLogType = path
+}
+
+// 返回日志类型
+func LogType() string {
+	return envLogType
 }

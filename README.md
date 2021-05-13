@@ -1,3 +1,11 @@
-## laya base framework
-
-## laya-go is a template for laya [click here](https://github.com/layatips/laya-go)
+### golang公共组件框架包
+- `gcache` [缓存组件](https://github.com/layatips/laya/tree/master/gcache)
+- `gconf` [配置组件](https://github.com/layatips/laya/tree/master/gconf)
+- `genv` [环境变量组件](https://github.com/layatips/laya/tree/master/genv)
+- `gkafka` [kafka组件](https://github.com/layatips/laya/tree/master/gkafka)
+- `glogs` [日志组件和钉钉通知还有zipkin的链路追踪](https://github.com/layatips/laya/tree/master/glogs)
+- `gmq` [mq组件](https://github.com/layatips/laya/tree/master/gmq)
+- `gstore` [数据库链接组件](https://github.com/layatips/laya/tree/master/gstore)
+- `gtime` [时间组件](https://github.com/layatips/laya/tree/master/gtime)
+- `gutils` [常用方法lib](https://github.com/layatips/laya/tree/master/gutils)
+- `app.go` [应用初始化包配合模板使用](https://github.com/layatips/laya-go)

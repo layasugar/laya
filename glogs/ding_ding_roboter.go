@@ -16,8 +16,13 @@ import (
 	"time"
 )
 
+// 有缓存通道
+var DingCh = make(chan *AlarmData, 10)
+var robotKey string
+var robotHost string
+
 type AlarmMsg struct {
-	Msgtype  string        `json:"msgtype"`
+	MsgType  string        `json:"msgtype"`
 	Text     AlarmText     `json:"text"`
 	Markdown AlarmMarkdown `json:"markdown"`
 	At       AlarmAt       `json:"at"`
@@ -33,27 +38,25 @@ type AlarmMarkdown struct {
 }
 
 type AlarmAt struct {
-	AtMobiless []string `json:"atMobiles"`
-	IsAtAll    bool     `json:"isAtAll"`
+	AtMobiles []string `json:"atMobiles"`
+	IsAtAll   bool     `json:"isAtAll"`
 }
 
 type AlarmData struct {
-	RobotKey    string                 //机器人key
-	RobotHost   string                 //机器人域名
 	Title       string                 //报警标题
 	Description string                 //报警描述
 	Content     map[string]interface{} //kv数据
 }
 
-func SendAlarm(d *AlarmData) error {
+func (ad *AlarmData) SendAlarm() error {
 	var s string
 	msg := bytes.Buffer{}
-	s += fmt.Sprintf("## %s\r\n#### %s\r\n", d.Title, d.Description)
-	for k, v := range d.Content {
+	s += fmt.Sprintf("## %s\r\n#### %s\r\n", ad.Title, ad.Description)
+	for k, v := range ad.Content {
 		s += fmt.Sprintf("> %s：%v\r\n\r\n", k, v)
 	}
 	msg.WriteString(s)
-	err := sendToDingTalk(d.RobotKey, d.RobotHost, msg.String())
+	err := sendToDingTalk(robotKey, robotHost, msg.String())
 	if err != nil {
 		return err
 	}
@@ -78,7 +81,7 @@ func sendToDingTalk(robotKey, robotHost, msg string) error {
 	sig = strings.Replace(sig, "_", "%2F", -1)
 	requestUrl := robotHost + "&timestamp=" + nowStr + "&sign=" + sig
 	textMsg := &AlarmMsg{}
-	textMsg.Msgtype = "markdown"
+	textMsg.MsgType = "markdown"
 	textMsg.Markdown = AlarmMarkdown{}
 	textMsg.Markdown.Title = "payment post request mq Error"
 	textMsg.Markdown.Text = msg
@@ -94,6 +97,32 @@ func sendToDingTalk(robotKey, robotHost, msg string) error {
 		return err
 	}
 	responseData, _ := ioutil.ReadAll(resp.Body)
-	log.Printf("钉钉通知也失败了：%s", string(responseData))
+	log.Printf("钉钉通知请求结果：%s", string(responseData))
 	return nil
+}
+
+func InitDing(key, host string) {
+	robotKey = key
+	robotHost = host
+	go func() {
+		for {
+			d := <-DingCh
+			err := d.SendAlarm()
+			if err != nil {
+				log.Printf("发送钉钉失败：err=%s", err.Error())
+			}
+		}
+	}()
+	log.Printf("[glogs_ding] ding_ding_push success")
+}
+
+func SendDing(d *AlarmData) {
+	if robotKey == "" || robotHost == "" {
+		log.Printf("钉钉推送并未初始化")
+		return
+	}
+	go func(d *AlarmData) {
+		DingCh <- d
+	}(d)
+	return
 }

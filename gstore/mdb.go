@@ -2,7 +2,6 @@ package gstore
 
 import (
 	"context"
-	"github.com/layatips/laya/gconf"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -11,8 +10,8 @@ import (
 )
 
 // 初始化mongodb
-func InitMdb(cf *gconf.MdbConf) *mongo.Client {
-	return connMdb(cf.MinPoolSize, cf.MaxPoolSize, cf.DSN)
+func InitMdb(minPoolSize, maxPoolSize uint64, dSN string) *mongo.Client {
+	return connMdb(minPoolSize, maxPoolSize, dSN)
 }
 
 func connMdb(minPoolSize, maxPoolSize uint64, dsn string) *mongo.Client {
@@ -23,7 +22,7 @@ func connMdb(minPoolSize, maxPoolSize uint64, dsn string) *mongo.Client {
 		SetMinPoolSize(maxPoolSize)
 	Mdb, err := mongo.NewClient(MdbOptions)
 	if err != nil {
-		log.Printf("[store_mongodb] connMdb open,err=%s\n", err)
+		log.Printf("[gstore_mongodb] mongo fail, err=%s", err)
 		panic(err)
 	}
 
@@ -31,10 +30,10 @@ func connMdb(minPoolSize, maxPoolSize uint64, dsn string) *mongo.Client {
 	defer cancel()
 	err = Mdb.Connect(ctx)
 	if err != nil {
-		log.Printf("[store_mongodb] mongo connMdb error,err=%s\n", err)
+		log.Printf("[gstore_mongodb] mongo fail, err=%s", err)
 		panic(err)
 	}
-	log.Printf("[store_mongodb] mongo connMdb success")
+	log.Printf("[gstore_mongodb] mongo success")
 
 	return Mdb
 }

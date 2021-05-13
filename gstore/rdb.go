@@ -3,14 +3,13 @@ package gstore
 import (
 	"context"
 	"github.com/go-redis/redis/v8"
-	"github.com/layatips/laya/gconf"
 	"log"
 	"time"
 )
 
 // 初始化redis
-func InitRdb(cf *gconf.RdbConf) *redis.Client {
-	return connRdb(cf.DB, cf.PoolSize, cf.MaxRetries, cf.IdleTimeout, cf.Addr, cf.Pwd)
+func InitRdb(db, poolSize, maxRetries, idleTimeout int, addr, pwd string) *redis.Client {
+	return connRdb(db, poolSize, maxRetries, idleTimeout, addr, pwd)
 }
 
 func connRdb(db, poolSize, maxRetries, idleTimeout int, addr, pwd string) *redis.Client {
@@ -25,14 +24,14 @@ func connRdb(db, poolSize, maxRetries, idleTimeout int, addr, pwd string) *redis
 		options.Password = pwd
 	}
 	Rdb := redis.NewClient(&options)
-	pong, err := Rdb.Ping(context.Background()).Result()
+	_, err := Rdb.Ping(context.Background()).Result()
 	if err == redis.Nil {
-		log.Printf("[store_redis] Nil reply returned by Rdb when key does not exist.")
+		log.Printf("[gstore_redis] Nil reply returned by Rdb when key does not exist.")
 	} else if err != nil {
-		log.Printf("[store_redis] redis connRdb err,err=%s\n", err)
+		log.Printf("[gstore_redis] redis fail, err=%s", err)
 		panic(err)
 	} else {
-		log.Printf("[store_redis] redis connRdb success,suc=%s\n", pong)
+		log.Printf("[gstore_redis] redis success")
 	}
 	return Rdb
 }

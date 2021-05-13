@@ -7,8 +7,10 @@ import (
 	"github.com/layatips/laya/gconf"
 	"github.com/layatips/laya/genv"
 	"github.com/layatips/laya/glogs"
-	"github.com/layatips/laya/gmiddleware"
+	"io"
 	"log"
+	"os"
+	"path"
 	"path/filepath"
 	"sync"
 )
@@ -18,6 +20,8 @@ type App struct {
 	watcher   *gconf.Watcher
 	watchLock sync.Mutex
 }
+
+var DefaultWebServerMiddlewares = []gin.HandlerFunc{}
 
 func NewApp() *App {
 	return new(App).InitWithConfig()
@@ -41,27 +45,23 @@ func (app *App) InitWithConfig() *App {
 			AppVersion: "1.0.0",
 			AppUrl:     "127.0.0.1:10080",
 			ParamLog:   true,
+			LogPath:    "/home/logs/app",
 		}
 	}
-	if cf.AppName != "" {
-		genv.SetAppName(cf.AppName)
-	}
-	if cf.HttpListen != "" {
-		genv.SetHttpListen(cf.HttpListen)
-	}
-	if cf.RunMode != "" {
-		genv.SetRunMode(cf.RunMode)
-	}
-	if cf.AppVersion != "" {
-		genv.SetAppVersion(cf.AppVersion)
-	}
-	if cf.AppUrl != "" {
-		genv.SetAppUrl(cf.AppUrl)
-	}
-	genv.SetParamLog(cf.ParamLog)
-
+	setEnv(cf)
+	// set gin request log and log mode
 	gin.SetMode(genv.RunMode())
-	glogs.InitLog()
+	setGinLog()
+
+	logPath := genv.LogPath() + "/" + genv.AppName()
+	glogs.InitLog(genv.AppName(), genv.LogType(), logPath)
+
+	// set trace
+	setTrace()
+
+	// set ding—ding push msg
+	setDing()
+
 	app.WebServer = gin.Default()
 	if len(DefaultWebServerMiddlewares) > 0 {
 		app.WebServer.Use(DefaultWebServerMiddlewares...)
@@ -101,7 +101,84 @@ func (app *App) RegisterFileWatcher(path string, fh gconf.WatcherEventHandler) {
 	}
 }
 
-var DefaultWebServerMiddlewares = []gin.HandlerFunc{
-	gmiddleware.SetHeader,
-	gmiddleware.LogInParams,
+// Check trace it's on or not
+func setTrace() {
+	tc, err := gconf.GetTraceConf()
+	if errors.Is(err, gconf.Nil) {
+		return
+	}
+	if err != nil {
+		log.Printf("trace配置获取失败,err=%s", err.Error())
+		return
+	}
+	if tc == nil {
+		return
+	} else {
+		if tc.ZipkinAddr == "" {
+			return
+		}
+		err = glogs.InitTrace(genv.AppName(), genv.HttpListen(), tc.ZipkinAddr, tc.Mod)
+		if err != nil {
+			log.Printf("trace初始化失败")
+			return
+		}
+	}
+}
+
+func setDing() {
+	dc, err := gconf.GetDingConf()
+	if errors.Is(err, gconf.Nil) {
+		return
+	}
+	if err != nil {
+		log.Printf("trace配置获取失败,err=%s", err.Error())
+		return
+	}
+	if dc == nil {
+		return
+	} else {
+		if dc.RobotKey == "" || dc.RobotHost == "" {
+			return
+		}
+		glogs.InitDing(dc.RobotKey, dc.RobotHost)
+	}
+}
+
+func setEnv(cf *gconf.BaseConf) {
+	if cf.AppName != "" {
+		genv.SetAppName(cf.AppName)
+	}
+	if cf.HttpListen != "" {
+		genv.SetHttpListen(cf.HttpListen)
+	}
+	if cf.RunMode != "" {
+		genv.SetRunMode(cf.RunMode)
+	}
+	if cf.AppVersion != "" {
+		genv.SetAppVersion(cf.AppVersion)
+	}
+	if cf.AppUrl != "" {
+		genv.SetAppUrl(cf.AppUrl)
+	}
+	if cf.LogPath != "" {
+		genv.SetLogPath(cf.LogPath)
+	}
+	if genv.RunMode() == "release" {
+		genv.SetLogType("file")
+	}
+	genv.SetParamLog(cf.ParamLog)
+}
+
+func setGinLog() {
+	// 设置gin的请求日志
+	ginLog := genv.LogPath() + "/" + genv.AppName() + "/gin_http.log"
+	err := os.MkdirAll(path.Dir(ginLog), os.ModeDir)
+	if err != nil {
+		log.Printf("[store_gin_log] Could not create log path")
+	}
+	logfile, err := os.OpenFile(ginLog, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
+	if err != nil {
+		log.Printf("[store_gin_log] Could not create log file")
+	}
+	gin.DefaultWriter = io.MultiWriter(logfile)
 }

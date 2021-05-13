@@ -10,12 +10,10 @@ var mc map[string]json.RawMessage
 
 type Config struct {
 	BaseConf  BaseConf  `json:"app"`
-	LogConf   *LogConf  `json:"log"`
-	CacheConf MemConf   `json:"cache"`
 	DBConf    DBConf    `json:"mysql"`
 	RdbConf   RdbConf   `json:"redis"`
 	MdbConf   MdbConf   `json:"mongo"`
-	KafkaConf KafkaConf `json:"kafka_conf"`
+	KafkaConf KafkaConf `json:"kafka"`
 	TraceConf TraceConf `json:"zipkin"`
 	DingConf  DingConf  `json:"ding"`
 }
@@ -28,16 +26,7 @@ type (
 		AppVersion string `json:"version"`     //app版本号
 		AppUrl     string `json:"app_url"`     //当前路由
 		ParamLog   bool   `json:"param_log"`   //是否开启请求参数和返回参数打印
-	}
-	LogConf struct {
-		Path       string `json:"path"`        //文件路径
-		MaxSize    int    `json:"max_size"`    //日志文件最大MB
-		MaxAge     int    `json:"max_age"`     //保留旧文件的最大天数
-		MaxBackups int    `json:"max_backups"` //保留旧文件的最大个数
-	}
-	MemConf struct {
-		DefaultExp int64 `json:"default_exp"`
-		Cleanup    int64 `json:"cleanup"`
+		LogPath    string `json:"log_path"`    //日志路径"/home/log/app"
 	}
 	DBConf struct {
 		Dsn             string `json:"dsn"`             //dsn
@@ -46,7 +35,6 @@ type (
 		ConnMaxLifetime int    `json:"connMaxLifetime"` //连接时长
 	}
 	RdbConf struct {
-		Open        bool   `json:"open"`        //是否开启
 		DB          int    `json:"db"`          //默认连接库
 		PoolSize    int    `json:"poolSize"`    //连接数量
 		MaxRetries  int    `json:"maxRetries"`  //最大重试次数
@@ -55,28 +43,27 @@ type (
 		Pwd         string `json:"pwd"`         //密码
 	}
 	MdbConf struct {
-		Open        bool   `json:"open"`        //是否开启
 		DSN         string `json:"dsn"`         //dsn
 		MinPoolSize uint64 `json:"minPoolSize"` //连接池最小连接数
 		MaxPoolSize uint64 `json:"maxPoolSize"` //连接池最大连接数
 	}
 	KafkaConf struct {
-		Open      bool     `json:"open"`
-		Brokers   []string `json:"brokers"`
-		CertFile  string   `json:"cert_file"`
-		KeyFile   string   `json:"key_file"`
-		CaFile    string   `json:"ca_file"`
-		VerifySsl bool     `json:"verify_ssl"`
+		Brokers      []string `json:"brokers"`
+		Topic        string   `json:"topic"`
+		Group        string   `json:"group"`
+		User         string   `json:"user"`
+		Pwd          string   `json:"pwd"`
+		CertFile     string   `json:"cert_file"`
+		KeyFile      string   `json:"key_file"`
+		CaFile       string   `json:"ca_file"`
+		KafkaVersion string   `json:"kafka_version"`
+		VerifySsl    bool     `json:"verify_ssl"`
 	}
 	TraceConf struct {
-		Open            bool   `json:"open"`
-		ServiceName     string `json:"service_name"`     //服务名
-		ServiceEndpoint string `json:"service_endpoint"` //当前服务节点
-		ZipkinAddr      string `json:"zipkin_addr"`      //zipkin地址
-		Mod             uint64 `json:"mod"`              //采样率,0==不进行链路追踪，1==全量。值越大，采样率越低，对性能影响越小
+		ZipkinAddr string `json:"zipkin_addr"` //zipkin地址
+		Mod        uint64 `json:"mod"`         //采样率,0==不进行链路追踪，1==全量。值越大，采样率越低，对性能影响越小
 	}
 	DingConf struct {
-		Open      bool   `json:"open"`
 		RobotKey  string `json:"robot_key"`
 		RobotHost string `json:"robot_host"`
 	}
@@ -108,29 +95,29 @@ func GetBaseConf() (*BaseConf, error) {
 	}
 	return &bcf, nil
 }
-func GetLogConf() (*LogConf, error) {
-	var logc = LogConf{}
-	raw, ok := mc["log"]
+func GetTraceConf() (*TraceConf, error) {
+	var tc = TraceConf{}
+	raw, ok := mc["zipkin"]
 	if !ok {
 		return nil, Nil
 	}
-	err := json.Unmarshal(raw, &logc)
+	err := json.Unmarshal(raw, &tc)
 	if err != nil {
 		return nil, err
 	}
-	return &logc, nil
+	return &tc, nil
 }
-func GetMemConf() (*MemConf, error) {
-	var memc = MemConf{}
-	raw, ok := mc["mem"]
+func GetDingConf() (*DingConf, error) {
+	var dc = DingConf{}
+	raw, ok := mc["ding"]
 	if !ok {
 		return nil, Nil
 	}
-	err := json.Unmarshal(raw, &memc)
+	err := json.Unmarshal(raw, &dc)
 	if err != nil {
 		return nil, err
 	}
-	return &memc, nil
+	return &dc, nil
 }
 func GetDBConf(k string) (*DBConf, error) {
 	var dbc = DBConf{}
@@ -167,4 +154,16 @@ func GetMdbConf(k string) (*MdbConf, error) {
 		return nil, err
 	}
 	return &mdbc, nil
+}
+func GetKafkaConf(k string) (*KafkaConf, error) {
+	var kc = KafkaConf{}
+	raw, ok := mc[k]
+	if !ok {
+		return nil, Nil
+	}
+	err := json.Unmarshal(raw, &kc)
+	if err != nil {
+		return nil, err
+	}
+	return &kc, nil
 }

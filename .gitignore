@@ -1,4 +1,7 @@
-/.git
 /.idea
-/logs
+/*.exe
+/config/app.local.ini
+/logs/*.log
+vendor/*
 vendor
+.DS_Store

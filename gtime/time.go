@@ -1,4 +1,4 @@
-package gutils
+package gtime
 
 import (
 	"bytes"
@@ -10,6 +10,7 @@ import (
 
 // nullBytes is a JSON null literal
 var nullBytes = []byte("null")
+var cstZone = time.FixedZone("CST", 8*3600)
 
 const (
 	timeFormat = "2006-01-02 15:04:05"
@@ -82,7 +83,7 @@ func (t *Time) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	now, err := time.ParseInLocation(`"`+timeFormat+`"`, string(data), time.Local)
+	now, err := time.ParseInLocation(`"`+timeFormat+`"`, string(data), cstZone)
 	if err != nil {
 		return fmt.Errorf("null: couldn't unmarshal JSON: %w", err)
 	}

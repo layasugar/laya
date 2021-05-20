@@ -1,5 +1,6 @@
 ### golang公共组件框架包
 - `gcache` [缓存组件](https://github.com/layatips/laya/tree/master/gcache)
+- `gcal` [http组件](https://github.com/layatips/laya/tree/master/gcal)
 - `gconf` [配置组件](https://github.com/layatips/laya/tree/master/gconf)
 - `genv` [环境变量组件](https://github.com/layatips/laya/tree/master/genv)
 - `gkafka` [kafka组件](https://github.com/layatips/laya/tree/master/gkafka)

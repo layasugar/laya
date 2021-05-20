@@ -21,13 +21,21 @@ type App struct {
 	watchLock sync.Mutex
 }
 
-var DefaultWebServerMiddlewares = []gin.HandlerFunc{}
-
-func NewApp() *App {
-	return new(App).InitWithConfig()
+func DefaultApp() *App {
+	return NewApp(SetLogger, SetGinLog, SetDing, SetTrace, SetWebServer)
 }
 
-func (app *App) InitWithConfig() *App {
+func NewApp(options ...AppOption) *App {
+	app := new(App).initWithConfig()
+	for _, option := range options {
+		option(app)
+	}
+	return app
+}
+
+type AppOption func(app *App)
+
+func (app *App) initWithConfig() *App {
 	err := gconf.InitConfig(genv.ConfigPath)
 	if err != nil {
 		panic(err)
@@ -48,25 +56,7 @@ func (app *App) InitWithConfig() *App {
 			LogPath:    "/home/logs/app",
 		}
 	}
-	setEnv(cf)
-	// set gin request log and log mode
-	gin.SetMode(genv.RunMode())
-	setGinLog()
-
-	logPath := genv.LogPath() + "/" + genv.AppName()
-	glogs.InitLog(genv.AppName(), genv.LogType(), logPath)
-
-	// set trace
-	setTrace()
-
-	// set ding—ding push msg
-	setDing()
-
-	app.WebServer = gin.Default()
-	if len(DefaultWebServerMiddlewares) > 0 {
-		app.WebServer.Use(DefaultWebServerMiddlewares...)
-	}
-
+	app.registerEnv(cf)
 	return app
 }
 
@@ -101,8 +91,37 @@ func (app *App) RegisterFileWatcher(path string, fh gconf.WatcherEventHandler) {
 	}
 }
 
+// set env
+func (app *App) registerEnv(cf *gconf.BaseConf) {
+	if cf.AppName != "" {
+		genv.SetAppName(cf.AppName)
+	}
+	if cf.HttpListen != "" {
+		genv.SetHttpListen(cf.HttpListen)
+	}
+	if cf.RunMode != "" {
+		genv.SetRunMode(cf.RunMode)
+	}
+	if cf.AppVersion != "" {
+		genv.SetAppVersion(cf.AppVersion)
+	}
+	if cf.AppUrl != "" {
+		genv.SetAppUrl(cf.AppUrl)
+	}
+	if cf.LogPath != "" {
+		genv.SetLogPath(cf.LogPath)
+	}
+	if cf.AppMode != "" {
+		genv.SetAppMode(cf.AppMode)
+	}
+	if genv.RunMode() == "release" {
+		genv.SetLogType("file")
+	}
+	genv.SetParamLog(cf.ParamLog)
+}
+
 // Check trace it's on or not
-func setTrace() {
+func SetTrace(app *App) {
 	tc, err := gconf.GetTraceConf()
 	if errors.Is(err, gconf.Nil) {
 		return
@@ -125,7 +144,8 @@ func setTrace() {
 	}
 }
 
-func setDing() {
+// set ding ding pusher
+func SetDing(app *App) {
 	dc, err := gconf.GetDingConf()
 	if errors.Is(err, gconf.Nil) {
 		return
@@ -144,32 +164,8 @@ func setDing() {
 	}
 }
 
-func setEnv(cf *gconf.BaseConf) {
-	if cf.AppName != "" {
-		genv.SetAppName(cf.AppName)
-	}
-	if cf.HttpListen != "" {
-		genv.SetHttpListen(cf.HttpListen)
-	}
-	if cf.RunMode != "" {
-		genv.SetRunMode(cf.RunMode)
-	}
-	if cf.AppVersion != "" {
-		genv.SetAppVersion(cf.AppVersion)
-	}
-	if cf.AppUrl != "" {
-		genv.SetAppUrl(cf.AppUrl)
-	}
-	if cf.LogPath != "" {
-		genv.SetLogPath(cf.LogPath)
-	}
-	if genv.RunMode() == "release" {
-		genv.SetLogType("file")
-	}
-	genv.SetParamLog(cf.ParamLog)
-}
-
-func setGinLog() {
+// set gin logger
+func SetGinLog(app *App) {
 	// 设置gin的请求日志
 	ginLog := genv.LogPath() + "/" + genv.AppName() + "/gin_http.log"
 	err := os.MkdirAll(path.Dir(ginLog), os.ModeDir)
@@ -181,4 +177,16 @@ func setGinLog() {
 		log.Printf("[store_gin_log] Could not create log file")
 	}
 	gin.DefaultWriter = io.MultiWriter(logfile)
+}
+
+// set app logger
+func SetLogger(app *App) {
+	logPath := genv.LogPath() + "/" + genv.AppName()
+	glogs.InitLog(genv.AppName(), genv.AppMode(), genv.LogType(), logPath)
+}
+
+// set web server
+func SetWebServer(app *App) {
+	gin.SetMode(genv.RunMode())
+	app.WebServer = gin.Default()
 }

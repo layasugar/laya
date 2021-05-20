@@ -13,10 +13,11 @@ import (
 	"os"
 	"strings"
 	"time"
+	"unsafe"
 )
 
 // md5
-func MD5(s string) string {
+func Md5(s string) string {
 	m := md5.Sum([]byte(s))
 	return hex.EncodeToString(m[:])
 }
@@ -141,4 +142,14 @@ func Exists(filePath string) bool {
 		return true
 	}
 	return os.IsExist(err)
+}
+
+func IsNil(obj interface{}) bool {
+	type eFace struct {
+		data unsafe.Pointer
+	}
+	if obj == nil {
+		return true
+	}
+	return (*eFace)(unsafe.Pointer(&obj)).data == nil
 }

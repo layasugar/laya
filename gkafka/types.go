@@ -35,7 +35,7 @@ func getSaramaConfig(kc *KafkaConfig) (*sarama.Config, error) {
 	if kc.KafkaVersion != "" {
 		config.Version, err = sarama.ParseKafkaVersion(kc.KafkaVersion)
 		if nil != err {
-			return nil, errors.New(fmt.Sprintf("ParseKafkaVersion, err=%s" + err.Error()))
+			return nil, errors.New(fmt.Sprintf("ParseKafkaVersion, err=%s", err.Error()))
 		}
 	}
 
@@ -52,14 +52,14 @@ func getSaramaConfig(kc *KafkaConfig) (*sarama.Config, error) {
 		if kc.KeyFile != "" && kc.CertFile != "" {
 			cert, err := tls.LoadX509KeyPair(kc.CertFile, kc.KeyFile)
 			if err != nil {
-				return nil, errors.New(fmt.Sprintf("CertFile or KeyFile is fail, err=%s" + err.Error()))
+				return nil, errors.New(fmt.Sprintf("CertFile or KeyFile is fail, err=%s", err.Error()))
 			}
 			tlsConfig.Certificates = []tls.Certificate{cert}
 		}
 
 		certBytes, err := ioutil.ReadFile(kc.CaFile)
 		if nil != err {
-			return nil, errors.New(fmt.Sprintf("CaFile is fail, err=%s" + err.Error()))
+			return nil, errors.New(fmt.Sprintf("CaFile is fail, err=%s", err.Error()))
 		}
 		clientCertPool := x509.NewCertPool()
 		ok := clientCertPool.AppendCertsFromPEM(certBytes)

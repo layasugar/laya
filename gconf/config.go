@@ -13,6 +13,7 @@ type Config struct {
 	DBConf    DBConf    `json:"mysql"`
 	RdbConf   RdbConf   `json:"redis"`
 	MdbConf   MdbConf   `json:"mongo"`
+	EsConf    EsConf    `json:"es"`
 	KafkaConf KafkaConf `json:"kafka"`
 	TraceConf TraceConf `json:"zipkin"`
 	DingConf  DingConf  `json:"ding"`
@@ -20,13 +21,15 @@ type Config struct {
 
 type (
 	BaseConf struct {
-		AppName    string `json:"app_name"`    //app名称
-		HttpListen string `json:"http_listen"` //http监听端口
-		RunMode    string `json:"run_mode"`    //运行模式
-		AppVersion string `json:"version"`     //app版本号
-		AppUrl     string `json:"app_url"`     //当前路由
-		ParamLog   bool   `json:"param_log"`   //是否开启请求参数和返回参数打印
-		LogPath    string `json:"log_path"`    //日志路径"/home/log/app"
+		AppName      string `json:"app_name"`       //app名称
+		AppSecretKey string `json:"app_secret_key"` //app密钥
+		AppMode      string `json:"app_mode"`       //app运行环境
+		HttpListen   string `json:"http_listen"`    //http监听端口
+		RunMode      string `json:"run_mode"`       //运行模式
+		AppVersion   string `json:"version"`        //app版本号
+		AppUrl       string `json:"app_url"`        //当前路由
+		ParamLog     bool   `json:"param_log"`      //是否开启请求参数和返回参数打印
+		LogPath      string `json:"log_path"`       //日志路径"/home/log/app"
 	}
 	DBConf struct {
 		Dsn             string `json:"dsn"`             //dsn
@@ -46,6 +49,11 @@ type (
 		DSN         string `json:"dsn"`         //dsn
 		MinPoolSize uint64 `json:"minPoolSize"` //连接池最小连接数
 		MaxPoolSize uint64 `json:"maxPoolSize"` //连接池最大连接数
+	}
+	EsConf struct {
+		Addr []string `json:"addr"`
+		User string   `json:"user"`
+		Pwd  string   `json:"pwd"`
 	}
 	KafkaConf struct {
 		Brokers      []string `json:"brokers"`
@@ -155,6 +163,18 @@ func GetMdbConf(k string) (*MdbConf, error) {
 	}
 	return &mdbc, nil
 }
+func GetEsConf(k string) (*EsConf, error) {
+	var esc = EsConf{}
+	raw, ok := mc[k]
+	if !ok {
+		return nil, Nil
+	}
+	err := json.Unmarshal(raw, &esc)
+	if err != nil {
+		return nil, err
+	}
+	return &esc, nil
+}
 func GetKafkaConf(k string) (*KafkaConf, error) {
 	var kc = KafkaConf{}
 	raw, ok := mc[k]
@@ -166,4 +186,11 @@ func GetKafkaConf(k string) (*KafkaConf, error) {
 		return nil, err
 	}
 	return &kc, nil
+}
+func GetConf(k string) (json.RawMessage, error) {
+	raw, ok := mc[k]
+	if !ok {
+		return nil, Nil
+	}
+	return raw, nil
 }

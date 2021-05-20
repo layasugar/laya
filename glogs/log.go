@@ -14,7 +14,10 @@ import (
 	"time"
 )
 
-const RequestIDName = "x-b3-traceid"
+const (
+	RequestIDName = "x-b3-traceid"
+	HeaderAppName = "app-name"
+)
 
 var (
 	Sugar *zap.Logger
@@ -23,11 +26,11 @@ var (
 )
 
 // InitLog 初始化日志文件 logPath= /home/logs/app/appName
-func InitLog(appName, logType, logPath string) {
-	initSugar(appName, logPath, logType)
+func InitLog(appName, appMode, logType, logPath string) {
+	initSugar(appName, appMode, logPath, logType)
 }
 
-func initSugar(appName, logPath, logType string) {
+func initSugar(appName, appMode, logPath, logType string) {
 	loglevel := zapcore.InfoLevel
 	setLevel(loglevel)
 
@@ -61,7 +64,7 @@ func initSugar(appName, logPath, logType string) {
 		log.Printf("[glogs_sugar] log success")
 	}
 
-	filed := zap.Fields(zap.String("app_name", appName))
+	filed := zap.Fields(zap.String("app_name", appName), zap.String("app_mode", appMode))
 	Sugar = zap.New(core, filed, zap.AddCaller(), zap.AddCallerSkip(1))
 	//Sugar = logger.Sugar()
 }
@@ -74,8 +77,14 @@ func Info(template string, args ...interface{}) {
 }
 func InfoF(c *gin.Context, title string, template string, args ...interface{}) {
 	requestID := c.GetHeader(RequestIDName)
+	originAppName := c.GetHeader(HeaderAppName)
+	path := c.Request.RequestURI
 	msg := fmt.Sprintf(template, args)
-	Sugar.Info(msg, zap.String("request_id", requestID), zap.String("title", title))
+	Sugar.Info(msg,
+		zap.String("path", path),
+		zap.String("request_id", requestID),
+		zap.String("title", title),
+		zap.String("origin_app_name", originAppName))
 }
 
 func Warn(template string, args ...interface{}) {
@@ -84,8 +93,14 @@ func Warn(template string, args ...interface{}) {
 }
 func WarnF(c *gin.Context, title string, template string, args ...interface{}) {
 	requestID := c.GetHeader(RequestIDName)
+	originAppName := c.GetHeader(HeaderAppName)
+	path := c.Request.RequestURI
 	msg := fmt.Sprintf(template, args)
-	Sugar.Info(msg, zap.String("request_id", requestID), zap.String("title", title))
+	Sugar.Info(msg,
+		zap.String("path", path),
+		zap.String("request_id", requestID),
+		zap.String("title", title),
+		zap.String("origin_app_name", originAppName))
 }
 
 func Error(template string, args ...interface{}) {
@@ -94,8 +109,14 @@ func Error(template string, args ...interface{}) {
 }
 func ErrorF(c *gin.Context, title string, template string, args ...interface{}) {
 	requestID := c.GetHeader(RequestIDName)
+	originAppName := c.GetHeader(HeaderAppName)
+	path := c.Request.RequestURI
 	msg := fmt.Sprintf(template, args)
-	Sugar.Info(msg, zap.String("request_id", requestID), zap.String("title", title))
+	Sugar.Info(msg,
+		zap.String("path", path),
+		zap.String("request_id", requestID),
+		zap.String("title", title),
+		zap.String("origin_app_name", originAppName))
 }
 
 func timeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {

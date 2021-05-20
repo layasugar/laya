@@ -2,6 +2,7 @@ package genv
 
 var (
 	envAppName    = ""
+	envAppMode    = ""
 	envRunMode    = ""
 	envHttpListen = ""
 	envAppVersion = ""
@@ -14,8 +15,9 @@ var (
 
 const (
 	_DefaultAppName    = "default-app"
-	_DefaultHttpListen = "0.0.0.0:10080"
+	_DefaultAppMode    = "dev"
 	_DefaultRunMode    = "debug"
+	_DefaultHttpListen = "0.0.0.0:10080"
 	_DefaultAppVersion = "1.0.0"
 	_DefaultAppUrl     = "127.0.0.1:10080"
 	_DefaultLogPath    = "/home/logs/app/"
@@ -32,6 +34,19 @@ func AppName() string {
 		SetAppName(_DefaultAppName)
 	}
 	return envAppName
+}
+
+// 设置app运行环境
+func SetAppMode(appMode string) {
+	envAppMode = appMode
+}
+
+// 返回当前app运行环境
+func AppMode() string {
+	if envAppMode == "" {
+		SetAppMode(_DefaultAppMode)
+	}
+	return envAppMode
 }
 
 // 设置运行模式

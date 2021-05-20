@@ -69,13 +69,15 @@ glogs.InitTrace(genv.AppName(), genv.HttpListen(), zipkinAddr, mod)
 ```
 // gin全局trace中间件
 func SetTrace(c *gin.Context) {
-    span := glogs.StartSpanFromReq(c.Request, c.Request.RequestURI)
-    if span != nil {
-        span.Tag(glogs.RequestIDName, c.GetHeader(glogs.RequestIDName))
-        _ = glogs.InjectToReq(context.WithValue(context.Background(), glogs.GetSpanContextKey(), span.Context()), c.Request)
-        c.Next()
-        span.Finish()
-    }
+	if !gutils.InSliceString(c.Request.RequestURI, gutils.IgnoreRoutes) {
+		span := glogs.StartSpanR(c.Request, c.Request.RequestURI)
+		if span != nil {
+			span.Tag(glogs.RequestIDName, c.GetHeader(glogs.RequestIDName))
+			_ = glogs.Inject(context.WithValue(context.Background(), glogs.GetSpanContextKey(), span.Context()), c.Request)
+			c.Next()
+			span.Finish()
+		}
+	}
 }
 ```
 

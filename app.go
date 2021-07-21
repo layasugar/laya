@@ -7,10 +7,9 @@ import (
 	"github.com/layatips/laya/gconf"
 	"github.com/layatips/laya/genv"
 	"github.com/layatips/laya/glogs"
-	"io"
+	rotatelogs "github.com/layatips/laya/glogs/log"
+	"github.com/layatips/laya/gpprof"
 	"log"
-	"os"
-	"path"
 	"path/filepath"
 	"sync"
 )
@@ -27,6 +26,7 @@ func DefaultApp() *App {
 
 func NewApp(options ...AppOption) *App {
 	app := new(App).initWithConfig()
+	SetPprof()
 	for _, option := range options {
 		option(app)
 	}
@@ -114,6 +114,9 @@ func (app *App) registerEnv(cf *gconf.BaseConf) {
 	if cf.AppMode != "" {
 		genv.SetAppMode(cf.AppMode)
 	}
+	if cf.Pprof {
+		genv.SetPprof(cf.Pprof)
+	}
 	if genv.RunMode() == "release" {
 		genv.SetLogType("file")
 	}
@@ -166,27 +169,34 @@ func SetDing(app *App) {
 
 // set gin logger
 func SetGinLog(app *App) {
-	// 设置gin的请求日志
-	ginLog := genv.LogPath() + "/" + genv.AppName() + "/gin_http.log"
-	err := os.MkdirAll(path.Dir(ginLog), os.ModeDir)
-	if err != nil {
-		log.Printf("[store_gin_log] Could not create log path")
+	if genv.AppMode() == "release" {
+		// 设置gin的请求日志
+		ginLogFile := genv.LogPath() + "/" + genv.AppName() + "/gin-http" + "/%Y-%m-%d.log"
+		gin.DefaultWriter = glogs.GetWriter(
+			ginLogFile,
+			rotatelogs.WithRotationSize(64*1024*1024),
+		)
 	}
-	logfile, err := os.OpenFile(ginLog, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
-	if err != nil {
-		log.Printf("[store_gin_log] Could not create log file")
-	}
-	gin.DefaultWriter = io.MultiWriter(logfile)
 }
 
 // set app logger
 func SetLogger(app *App) {
-	logPath := genv.LogPath() + "/" + genv.AppName()
-	glogs.InitLog(genv.AppName(), genv.AppMode(), genv.LogType(), logPath)
+	glogs.InitLog(
+		glogs.SetLogAppName(genv.AppName()),
+		glogs.SetLogAppMode(genv.AppMode()),
+		glogs.SetLogType(genv.LogType()),
+	)
 }
 
 // set web server
 func SetWebServer(app *App) {
 	gin.SetMode(genv.RunMode())
 	app.WebServer = gin.Default()
+}
+
+// open pprof
+func SetPprof() {
+	if genv.Pprof() {
+		gpprof.InitPprof()
+	}
 }

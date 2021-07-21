@@ -10,21 +10,93 @@ import "github.com/layatips/laya/glogs"
 
 ## 日志打印
 
-#### 初始化
+#### 参数默认值
+```
+    glogs.SetLogAppName(genv.AppName()),            // 默认应用名称"default-app"
+    glogs.SetLogAppMode(genv.AppMode()),            // 默认应用环境"dev"
+    glogs.SetLogType(genv.LogType()),               // 默认日志类型"file"
+    glogs.SetLogPath(genv.LogPath()),               // 默认文件目录"/home/log/app"
+    glogs.SetLogChildPath("自定义/%Y-%m-%d %H.log"), // 默认子目录"glogs/%Y-%m-%d.log"
+    glogs.SetLogMaxSize(5*1024),                    // 默认不限制
+    glogs.SetLogMaxAge(7*24*time.Hour),             // 设置单个文件最大值byte,默认值32M
+    glogs.SetRotationTime(time.Hour),               // 设置文件分割时间、默认值24*time.Hour(按天分割)
+    glogs.SetRotationCount(100),                    // 设置保留的最大文件数量、没有默认值(表示不限制)
+```
+
+
+#### 使用默认值初始化，只需要配置appName和appMode（一般情况使用这个就满足需求了）
+- 文件路径在/home/logs/app/appName/glogs/2021-05-21.log
+- 文件满32M会自动拆分(2021-05-21.1.log 2021-05-21.2.log)按照数字增加
+- 文件每天会分割一次文件
+- 文件最大保留时间为7天
+- 文件保留个数不限制
 
 ```
-glogs.InitLog(appName, logType, logPath string)
+	glogs.InitLog(
+		glogs.SetLogAppName(AppName),
+		glogs.SetLogAppMode(AppMode),
+	)
+	
+	glogs.Info(template string, args ...interface{})
+    glogs.InfoF(c *gin.Context, title string, template string, args ...interface{})
+    glogs.Warn(template string, args ...interface{})
+    glogs.WarnF(c *gin.Context, title string, template string, args ...interface{})
+    glogs.Error(template string, args ...interface{})
+    glogs.ErrorF(c *gin.Context, title string, template string, args ...interface{})
 ```
 
-#### 使用
+#### 特殊定制
 
 ```
-glogs.Info(template string, args ...interface{})
-glogs.InfoF(c *gin.Context, title string, template string, args ...interface{})
-glogs.Warn(template string, args ...interface{})
-glogs.WarnF(c *gin.Context, title string, template string, args ...interface{})
-glogs.Error(template string, args ...interface{})
-glogs.ErrorF(c *gin.Context, title string, template string, args ...interface{})
+	glogs.InitLog(
+		glogs.SetLogAppName(genv.AppName()),
+		glogs.SetLogAppMode(genv.AppMode()),
+		glogs.SetLogType(genv.LogType()),
+		glogs.SetLogPath(genv.LogPath()),
+		glogs.SetLogChildPath("自定义/%Y-%m-%d %H.log"),
+		glogs.SetLogMaxSize(5*1024),
+		glogs.SetLogMaxAge(7*24*time.Hour),
+		glogs.SetRotationTime(time.Hour),
+		glogs.SetRotationCount(100),
+	)
+	glogs.Info(template string, args ...interface{})
+    glogs.InfoF(c *gin.Context, title string, template string, args ...interface{})
+    glogs.Warn(template string, args ...interface{})
+    glogs.WarnF(c *gin.Context, title string, template string, args ...interface{})
+    glogs.Error(template string, args ...interface{})
+    glogs.ErrorF(c *gin.Context, title string, template string, args ...interface{})
+```
+
+#### 想打印到其他日志文件
+```
+	Logger := glogs.NewLogger(
+		glogs.SetLogAppName(genv.AppName()),
+		glogs.SetLogAppMode(genv.AppMode()),
+		glogs.SetLogType(genv.LogType()),
+		glogs.SetLogPath(genv.LogPath()),
+		glogs.SetLogChildPath("自定义/%Y-%m-%d %H.log"),
+		glogs.SetLogMaxSize(5*1024),
+		glogs.SetLogMaxAge(7*24*time.Hour),
+		glogs.SetRotationTime(time.Hour),
+		glogs.SetRotationCount(100),
+	)
+	Logger.Info(template string, args ...interface{})
+    Logger.InfoF(c *gin.Context, title string, template string, args ...interface{})
+    Logger.Warn(template string, args ...interface{})
+    Logger.WarnF(c *gin.Context, title string, template string, args ...interface{})
+    Logger.Error(template string, args ...interface{})
+    Logger.ErrorF(c *gin.Context, title string, template string, args ...interface{})
+```
+
+
+#### 将gin的log也定向到文件
+```
+// 设置gin的请求日志
+	ginLogFile := genv.LogPath() + "/" + genv.AppName() + "/gin-http" + "/%Y-%m-%d.log"
+	gin.DefaultWriter = glogs.GetWriter(
+		ginLogFile,
+		rotatelogs.WithRotationSize(64*1024*1024),
+	)
 ```
 
 #### 备注

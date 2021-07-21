@@ -10,7 +10,7 @@ import (
 	"syscall"
 )
 
-func (kc *Engine) InitConsumer(dataChan chan []byte) {
+func (kc *Engine) InitConsumer(dataChan chan *ConsumerData) {
 	var err error
 	kc.dataChan = dataChan
 
@@ -20,7 +20,8 @@ func (kc *Engine) InitConsumer(dataChan chan []byte) {
 	}
 
 	consumer := Consumer{
-		ready: make(chan bool),
+		ready:    make(chan bool),
+		dataChan: dataChan,
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	client, err := sarama.NewConsumerGroup(kc.config.Brokers, kc.config.Group, config)
@@ -63,7 +64,8 @@ func (kc *Engine) InitConsumer(dataChan chan []byte) {
 
 // Consumer represents a Sarama consumer group consumer
 type Consumer struct {
-	ready chan bool
+	ready    chan bool
+	dataChan chan *ConsumerData
 }
 
 // Setup is run at the beginning of a new session, before ConsumeClaim
@@ -86,7 +88,7 @@ func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 	// The `ConsumeClaim` itself is called within a goroutine, see:
 	// https://github.com/Shopify/sarama/blob/master/consumer_group.go#L27-L29
 	for message := range claim.Messages() {
-		Default.dataChan <- message.Value
+		consumer.dataChan <- &ConsumerData{Msg: message.Value, Topic: message.Topic, Partition: message.Partition, Offset: message.Offset}
 		session.MarkMessage(message, "")
 	}
 

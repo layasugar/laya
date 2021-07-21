@@ -9,7 +9,8 @@ var (
 	envAppUrl     = ""
 	envParamLog   = true
 	envLogPath    = ""
-	envLogType    = ""
+	envLogType    = "console"
+	envPprof      = false
 	ConfigPath    = "./conf/app.json"
 )
 
@@ -20,7 +21,7 @@ const (
 	_DefaultHttpListen = "0.0.0.0:10080"
 	_DefaultAppVersion = "1.0.0"
 	_DefaultAppUrl     = "127.0.0.1:10080"
-	_DefaultLogPath    = "/home/logs/app/"
+	_DefaultLogPath    = "/home/logs/app"
 )
 
 // 设置app名称
@@ -132,4 +133,12 @@ func SetLogType(path string) {
 // 返回日志类型
 func LogType() string {
 	return envLogType
+}
+
+func SetPprof(pprof bool) {
+	envPprof = pprof
+}
+
+func Pprof() bool {
+	return envPprof
 }

@@ -5,4 +5,4 @@ const (
 	XRealIP       = "X-Real-IP"       // 获取真实ip
 )
 
-var IgnoreRoutes = []string{"/", "/ready", "/health", "/reload"}
+var IgnoreRoutes = []string{"/", "/ready", "/health", "/reload", "/metrics"}

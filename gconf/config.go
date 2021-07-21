@@ -30,6 +30,7 @@ type (
 		AppUrl       string `json:"app_url"`        //当前路由
 		ParamLog     bool   `json:"param_log"`      //是否开启请求参数和返回参数打印
 		LogPath      string `json:"log_path"`       //日志路径"/home/log/app"
+		Pprof        bool   `json:"pprof"`          // 是否开启pprof
 	}
 	DBConf struct {
 		Dsn             string `json:"dsn"`             //dsn
@@ -65,6 +66,7 @@ type (
 		KeyFile      string   `json:"key_file"`
 		CaFile       string   `json:"ca_file"`
 		KafkaVersion string   `json:"kafka_version"`
+		Scram        string   `json:"scram"`
 		VerifySsl    bool     `json:"verify_ssl"`
 	}
 	TraceConf struct {

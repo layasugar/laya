@@ -2,7 +2,6 @@ package gkafka
 
 import (
 	"github.com/Shopify/sarama"
-	"log"
 )
 
 func newProducer(kc *KafkaConfig) (sarama.SyncProducer, error) {
@@ -14,22 +13,27 @@ func newProducer(kc *KafkaConfig) (sarama.SyncProducer, error) {
 	return producer, err
 }
 
-func prepareMessage(topic, message string) *sarama.ProducerMessage {
+func prepareMessage(topic, message string, partition int32) *sarama.ProducerMessage {
 	msg := &sarama.ProducerMessage{
 		Topic:     topic,
-		Partition: -1,
+		Partition: partition,
 		Value:     sarama.StringEncoder(message),
 	}
 
 	return msg
 }
 
-func (kc *Engine) SendMsg(topic, message string) (partition int32, offset int64, err error) {
-	producer, err := newProducer(kc.config)
+func (kc *Engine) InitProducer(config *KafkaConfig) error {
+	producer, err := newProducer(config)
 	if err != nil {
-		log.Printf("Could not create producer: %s", err)
+		return err
 	}
-	msg := prepareMessage(topic, message)
-	partition, offset, err = producer.SendMessage(msg)
+	kc.producer = producer
+	return nil
+}
+
+func (kc *Engine) SendMsg(topic, message string, part int32) (partition int32, offset int64, err error) {
+	msg := prepareMessage(topic, message, part)
+	partition, offset, err = kc.producer.SendMessage(msg)
 	return
 }

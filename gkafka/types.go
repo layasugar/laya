@@ -11,7 +11,15 @@ import (
 
 type Engine struct {
 	config   *KafkaConfig
-	dataChan chan []byte
+	dataChan chan *ConsumerData
+	producer sarama.SyncProducer
+}
+
+type ConsumerData struct {
+	Msg       []byte
+	Topic     string
+	Partition int32
+	Offset    int64
 }
 
 type KafkaConfig struct {
@@ -24,10 +32,9 @@ type KafkaConfig struct {
 	KeyFile      string   `json:"key_file"`
 	CaFile       string   `json:"ca_file"`
 	KafkaVersion string   `json:"kafka_version"`
+	Scram        string   `json:"scram"`
 	VerifySsl    bool     `json:"verify_ssl"`
 }
-
-var Default = &Engine{}
 
 func getSaramaConfig(kc *KafkaConfig) (*sarama.Config, error) {
 	var err error
@@ -39,11 +46,23 @@ func getSaramaConfig(kc *KafkaConfig) (*sarama.Config, error) {
 		}
 	}
 
-	if kc.VerifySsl {
+	if kc.User != "" && kc.Pwd != "" {
 		config.Net.SASL.Enable = true
 		config.Net.SASL.User = kc.User
 		config.Net.SASL.Password = kc.Pwd
 		config.Net.SASL.Handshake = true
+		if kc.Scram == "sha512" {
+			config.Net.SASL.SCRAMClientGeneratorFunc = func() sarama.SCRAMClient { return &XDGSCRAMClient{HashGeneratorFcn: SHA512} }
+			config.Net.SASL.Mechanism = sarama.SASLTypeSCRAMSHA512
+		}
+
+		if kc.Scram == "sha256" {
+			config.Net.SASL.SCRAMClientGeneratorFunc = func() sarama.SCRAMClient { return &XDGSCRAMClient{HashGeneratorFcn: SHA256} }
+			config.Net.SASL.Mechanism = sarama.SASLTypeSCRAMSHA256
+		}
+	}
+
+	if kc.VerifySsl {
 		config.Net.TLS.Enable = true
 		var tlsConfig = &tls.Config{
 			InsecureSkipVerify: true,
@@ -57,16 +76,18 @@ func getSaramaConfig(kc *KafkaConfig) (*sarama.Config, error) {
 			tlsConfig.Certificates = []tls.Certificate{cert}
 		}
 
-		certBytes, err := ioutil.ReadFile(kc.CaFile)
-		if nil != err {
-			return nil, errors.New(fmt.Sprintf("CaFile is fail, err=%s", err.Error()))
+		if kc.CaFile != "" {
+			certBytes, err := ioutil.ReadFile(kc.CaFile)
+			if nil != err {
+				return nil, errors.New(fmt.Sprintf("CaFile is fail, err=%s", err.Error()))
+			}
+			clientCertPool := x509.NewCertPool()
+			ok := clientCertPool.AppendCertsFromPEM(certBytes)
+			if !ok {
+				return nil, errors.New("AppendCertsFromPEM fail")
+			}
+			tlsConfig.RootCAs = clientCertPool
 		}
-		clientCertPool := x509.NewCertPool()
-		ok := clientCertPool.AppendCertsFromPEM(certBytes)
-		if !ok {
-			return nil, errors.New("AppendCertsFromPEM fail")
-		}
-		tlsConfig.RootCAs = clientCertPool
 		config.Net.TLS.Config = tlsConfig
 	}
 
@@ -83,6 +104,7 @@ func getSaramaConfig(kc *KafkaConfig) (*sarama.Config, error) {
 }
 
 func InitKafka(kc *KafkaConfig) *Engine {
-	Default.config = kc
-	return Default
+	return &Engine{
+		config: kc,
+	}
 }

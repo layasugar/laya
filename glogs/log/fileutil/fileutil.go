@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/layatips/laya/glogs/log/strftime"
+	"github.com/layasugar/laya/glogs/log/strftime"
 )
 
 // GenerateFn creates a file name based on the pattern, the current time, and the

@@ -17,8 +17,8 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/layatips/laya/glogs/log/fileutil"
-	"github.com/layatips/laya/glogs/log/strftime"
+	"github.com/layasugar/laya/glogs/log/fileutil"
+	"github.com/layasugar/laya/glogs/log/strftime"
 )
 
 func (c clockFn) Now() time.Time {

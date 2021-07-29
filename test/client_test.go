@@ -2,8 +2,8 @@ package test
 
 import (
 	"fmt"
-	"github.com/layatips/laya/gots"
-	"github.com/layatips/laya/gots/queries"
+	"github.com/layasugar/laya/gots"
+	"github.com/layasugar/laya/gots/queries"
 	"testing"
 )
 

@@ -5,7 +5,7 @@ package gconf
 import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
-	"github.com/layatips/laya/gutils"
+	"github.com/layasugar/laya/gutils"
 	"log"
 	"os"
 	"path/filepath"

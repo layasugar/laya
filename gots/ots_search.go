@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
 	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore/search"
-	"github.com/layatips/laya/gots/queries"
+	"github.com/layasugar/laya/gots/queries"
 	"strings"
 )
 

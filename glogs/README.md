@@ -3,7 +3,7 @@
 ## 引入日志包
 
 ```
-import "github.com/layatips/laya/glogs"
+import "github.com/layasugar/laya/glogs"
 ```
 
 ##

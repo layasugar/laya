@@ -3,7 +3,7 @@
 #### 引入包
 
 ```
-import "github.com/layatips/laya/gkafka"
+import "github.com/layasugar/laya/gkafka"
 ```
 
 #### 初始化

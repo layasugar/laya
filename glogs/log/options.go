@@ -3,7 +3,7 @@ package log
 import (
 	"time"
 
-	"github.com/layatips/laya/glogs/log/option"
+	"github.com/layasugar/laya/glogs/log/option"
 )
 
 const (

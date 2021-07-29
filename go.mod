@@ -1,4 +1,4 @@
-module github.com/layatips/laya
+module github.com/layasugar/laya
 
 go 1.15
 

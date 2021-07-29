@@ -3,7 +3,7 @@
 ## 引入cache包
 
 ```
-import "github.com/layatips/laya/gcache"
+import "github.com/layasugar/laya/gcache"
 ```
 
 #### 初始化get和set

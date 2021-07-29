@@ -26,7 +26,7 @@
 #### 引入包
 
 ```
-    "https://github.com/layatips/laya/tree/master/gsignal"
+    "https://github.com/layasugar/laya/tree/master/gsignal"
 ```
 
 #### 全局开启

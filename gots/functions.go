@@ -3,7 +3,7 @@ package gots
 import (
 	"fmt"
 	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
-	"github.com/layatips/laya/gutils"
+	"github.com/layasugar/laya/gutils"
 	"github.com/pkg/errors"
 	"reflect"
 	"strings"

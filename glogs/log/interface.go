@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/layatips/laya/glogs/log/strftime"
+	"github.com/layasugar/laya/glogs/log/strftime"
 )
 
 type Handler interface {

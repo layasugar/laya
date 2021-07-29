@@ -3,7 +3,7 @@
 #### 引入时间包
 
 ```
-import "github.com/layatips/laya/gtime"
+import "github.com/layasugar/laya/gtime"
 ```
 
 #### 在gorm模型中的应用

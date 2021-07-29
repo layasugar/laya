@@ -5,7 +5,7 @@ Advanced HTTP client for golang.
 ## 引入http client
 
 ```
-import "github.com/layatips/laya/gcal"
+import "github.com/layasugar/laya/gcal"
 ```
 
 ## Quick Start by trace
@@ -14,7 +14,7 @@ import "github.com/layatips/laya/gcal"
 package main
 
 import (
-    "github.com/layatips/laya/gcal"
+    "github.com/layasugar/laya/gcal"
 )
 
 func main() {

@@ -7,7 +7,7 @@ import (
 	"github.com/layasugar/laya/gconf"
 	"github.com/layasugar/laya/genv"
 	"github.com/layasugar/laya/glogs"
-	rotatelogs "github.com/layasugar/laya/glogs/log"
+	log2 "github.com/layasugar/laya/glogs/log"
 	"github.com/layasugar/laya/gpprof"
 	"log"
 	"path/filepath"
@@ -173,7 +173,7 @@ func SetGinLog(app *App) {
 		ginLogFile := genv.LogPath() + "/" + genv.AppName() + "/gin-http" + "/%Y-%m-%d.log"
 		gin.DefaultWriter = glogs.GetWriter(
 			ginLogFile,
-			rotatelogs.WithRotationSize(64*1024*1024),
+			log2.WithRotationSize(64*1024*1024),
 		)
 	}
 }

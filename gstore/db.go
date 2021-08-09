@@ -1,10 +1,8 @@
 package gstore
 
 import (
-	"database/sql"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 	"log"
 	"time"
 )
@@ -16,47 +14,53 @@ const (
 	defaultConnMaxIdleTime = time.Second * time.Duration(7200)  // 设置连接2个小时没有用到就断开连接(内存要求较高可降低该值)
 )
 
-type PoolCfg struct {
-	MaxIdleConn     int
-	MaxOpenConn     int
-	ConnMaxLifeTime int
-	ConnMaxIdleTime int
+type DbPoolCfg struct {
+	MaxIdleConn int `json:"max_idle_conn"` //空闲连接数
+	MaxOpenConn int `json:"max_open_conn"` //最大连接数
+	MaxLifeTime int `json:"max_life_time"` //连接可重用的最大时间
+	MaxIdleTime int `json:"max_idle_time"` //在关闭连接之前,连接可能处于空闲状态的最大时间
 }
 
-// init db
-func InitDB(dsn string, poolCfg *PoolCfg, logger logger.Interface) *gorm.DB {
-	var err error
+type dbConfig struct {
+	poolCfg *DbPoolCfg
+	gormCfg *gorm.Config
+}
 
-	Db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: logger,
-	})
+type DbConnFunc func(cfg *dbConfig)
+
+// init db
+func InitDB(dsn string, DbCfgFunc ...DbConnFunc) *gorm.DB {
+	var err error
+	var cfg dbConfig
+
+	for _, f := range DbCfgFunc {
+		f(&cfg)
+	}
+
+	if cfg.gormCfg == nil {
+		cfg.gormCfg = &gorm.Config{}
+	}
+
+	Db, err := gorm.Open(mysql.Open(dsn), cfg.gormCfg)
 	if err != nil {
 		log.Printf("[gstore_db] mysql open fail, err=%s", err)
 		panic(err)
 	}
 
-	d, err := Db.DB()
+	cfg.setDefaultPoolConfig(Db)
+
+	err = DbSurvive(Db)
 	if err != nil {
-		log.Printf("[gstore_db] mysql db fail, err=%s", err)
+		log.Printf("[gstore_db] mysql survive fail, err=%s", err)
 		panic(err)
 	}
 
-	setPoolMaxOpen(d, poolCfg.MaxOpenConn)
-	setMaxIdleConn(d, poolCfg.MaxIdleConn)
-	setConnMaxLifetime(d, poolCfg.ConnMaxLifeTime)
-	setConnMaxIdleTime(d, poolCfg.ConnMaxIdleTime)
-
-	err = d.Ping()
-	if err != nil {
-		log.Printf("[gstore_db] mysql ping fail, err:%s", err.Error())
-		panic(err)
-	}
 	log.Printf("[gstore_db] mysql success")
 	return Db
 }
 
 // mysql survive
-func DBSurvive(db *gorm.DB) error {
+func DbSurvive(db *gorm.DB) error {
 	sqlDB, err := db.DB()
 	if err != nil {
 		return err
@@ -69,38 +73,56 @@ func DBSurvive(db *gorm.DB) error {
 	return nil
 }
 
-func setPoolMaxOpen(d *sql.DB, n int) {
-	if n == 0 {
+// set pool config
+func SetPoolConfig(cfg DbPoolCfg) DbConnFunc {
+	return func(c *dbConfig) {
+		c.poolCfg = &cfg
+	}
+}
+
+// set gorm config
+func SetGormConfig(cfg *gorm.Config) DbConnFunc {
+	return func(c *dbConfig) {
+		c.gormCfg = cfg
+	}
+}
+
+func (c *dbConfig) setDefaultPoolConfig(db *gorm.DB) {
+	d, err := db.DB()
+	if err != nil {
+		log.Printf("[gstore_db] mysql db fail, err=%s", err)
+		panic(err)
+	}
+	var cfg = c.poolCfg
+	if cfg == nil {
+		d.SetMaxOpenConns(defaultPoolMaxOpen)
+		d.SetMaxIdleConns(defaultPoolMaxIdle)
+		d.SetConnMaxLifetime(defaultConnMaxLifeTime)
+		d.SetConnMaxIdleTime(defaultConnMaxIdleTime)
+		return
+	}
+
+	if cfg.MaxOpenConn == 0 {
 		d.SetMaxOpenConns(defaultPoolMaxOpen)
 	} else {
-		d.SetMaxOpenConns(n)
+		d.SetMaxOpenConns(cfg.MaxOpenConn)
 	}
-	return
-}
 
-func setMaxIdleConn(d *sql.DB, n int) {
-	if n == 0 {
+	if cfg.MaxIdleConn == 0 {
 		d.SetMaxIdleConns(defaultPoolMaxIdle)
 	} else {
-		d.SetMaxIdleConns(n)
+		d.SetMaxIdleConns(cfg.MaxIdleConn)
 	}
-	return
-}
 
-func setConnMaxLifetime(d *sql.DB, n int) {
-	if n == 0 {
+	if cfg.MaxLifeTime == 0 {
 		d.SetConnMaxLifetime(defaultConnMaxLifeTime)
 	} else {
-		d.SetConnMaxLifetime(time.Second * time.Duration(n))
+		d.SetConnMaxLifetime(time.Second * time.Duration(cfg.MaxLifeTime))
 	}
-	return
-}
 
-func setConnMaxIdleTime(d *sql.DB, n int) {
-	if n == 0 {
+	if cfg.MaxIdleTime == 0 {
 		d.SetConnMaxIdleTime(defaultConnMaxIdleTime)
 	} else {
-		d.SetConnMaxIdleTime(time.Second * time.Duration(n))
+		d.SetConnMaxIdleTime(time.Second * time.Duration(cfg.MaxIdleTime))
 	}
-	return
 }

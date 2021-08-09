@@ -1,10 +1,10 @@
 package gstore
 
 import (
-	"github.com/olivere/elastic/v6"
+	"github.com/olivere/elastic/v7"
 )
 
-// olivere/elastic/v6
+// olivere/elastic/v7
 // this is demo
 func NewEsClient(addr []string, user, pwd string) (*elastic.Client, error) {
 	// Create a client

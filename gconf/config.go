@@ -2,6 +2,7 @@ package gconf
 
 import (
 	"encoding/json"
+	"github.com/layasugar/laya/gstore"
 	"io/ioutil"
 	"log"
 )
@@ -32,11 +33,8 @@ type (
 		Pprof      bool   `json:"pprof"`       //是否开启pprof
 	}
 	DBConf struct {
-		Dsn             string `json:"dsn"`             //dsn
-		MaxIdleConn     int    `json:"maxIdleConn"`     //空闲连接数
-		MaxOpenConn     int    `json:"maxOpenConn"`     //最大连接数
-		ConnMaxLifeTime int    `json:"connMaxLifeTime"` //连接可重用的最大时间
-		ConnMaxIdleTime int    `json:"connMaxIdleTime"` //在关闭连接之前,连接可能处于空闲状态的最大时间
+		Dsn string `json:"dsn"` //dsn
+		gstore.DbPoolCfg
 	}
 	RdbConf struct {
 		DB          int    `json:"db"`          //默认连接库

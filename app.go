@@ -21,12 +21,11 @@ type App struct {
 }
 
 func DefaultApp() *App {
-	return NewApp(SetLogger, SetGinLog, SetDing, SetTrace, SetWebServer)
+	return NewApp(SetLogger, SetGinLog, SetDing, SetTrace, SetWebServer, SetPprof)
 }
 
 func NewApp(options ...AppOption) *App {
 	app := new(App).initWithConfig()
-	SetPprof()
 	for _, option := range options {
 		option(app)
 	}
@@ -195,7 +194,7 @@ func SetWebServer(app *App) {
 }
 
 // open pprof
-func SetPprof() {
+func SetPprof(app *App) {
 	if genv.Pprof() {
 		gpprof.InitPprof()
 	}

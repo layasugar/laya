@@ -21,22 +21,22 @@ type Config struct {
 
 type (
 	BaseConf struct {
-		AppName      string `json:"app_name"`       //app名称
-		AppSecretKey string `json:"app_secret_key"` //app密钥
-		AppMode      string `json:"app_mode"`       //app运行环境
-		HttpListen   string `json:"http_listen"`    //http监听端口
-		RunMode      string `json:"run_mode"`       //运行模式
-		AppVersion   string `json:"version"`        //app版本号
-		AppUrl       string `json:"app_url"`        //当前路由
-		ParamLog     bool   `json:"param_log"`      //是否开启请求参数和返回参数打印
-		LogPath      string `json:"log_path"`       //日志路径"/home/log/app"
-		Pprof        bool   `json:"pprof"`          // 是否开启pprof
+		AppName    string `json:"app_name"`    //app名称
+		AppMode    string `json:"app_mode"`    //app运行环境
+		HttpListen string `json:"http_listen"` //http监听端口
+		RunMode    string `json:"run_mode"`    //运行模式
+		AppVersion string `json:"version"`     //app版本号
+		AppUrl     string `json:"app_url"`     //当前路由
+		ParamLog   bool   `json:"param_log"`   //是否开启请求参数和返回参数打印
+		LogPath    string `json:"log_path"`    //日志路径"/home/log/app"
+		Pprof      bool   `json:"pprof"`       //是否开启pprof
 	}
 	DBConf struct {
 		Dsn             string `json:"dsn"`             //dsn
 		MaxIdleConn     int    `json:"maxIdleConn"`     //空闲连接数
 		MaxOpenConn     int    `json:"maxOpenConn"`     //最大连接数
-		ConnMaxLifetime int    `json:"connMaxLifetime"` //连接时长
+		ConnMaxLifeTime int    `json:"connMaxLifeTime"` //连接可重用的最大时间
+		ConnMaxIdleTime int    `json:"connMaxIdleTime"` //在关闭连接之前,连接可能处于空闲状态的最大时间
 	}
 	RdbConf struct {
 		DB          int    `json:"db"`          //默认连接库

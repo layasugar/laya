@@ -14,8 +14,6 @@ type Config struct {
 	DBConf    DBConf    `json:"mysql"`
 	RdbConf   RdbConf   `json:"redis"`
 	MdbConf   MdbConf   `json:"mongo"`
-	EsConf    EsConf    `json:"es"`
-	KafkaConf KafkaConf `json:"kafka"`
 	TraceConf TraceConf `json:"zipkin"`
 	DingConf  DingConf  `json:"ding"`
 }
@@ -48,24 +46,6 @@ type (
 		DSN         string `json:"dsn"`         //dsn
 		MinPoolSize uint64 `json:"minPoolSize"` //连接池最小连接数
 		MaxPoolSize uint64 `json:"maxPoolSize"` //连接池最大连接数
-	}
-	EsConf struct {
-		Addr []string `json:"addr"`
-		User string   `json:"user"`
-		Pwd  string   `json:"pwd"`
-	}
-	KafkaConf struct {
-		Brokers      []string `json:"brokers"`
-		Topic        string   `json:"topic"`
-		Group        string   `json:"group"`
-		User         string   `json:"user"`
-		Pwd          string   `json:"pwd"`
-		CertFile     string   `json:"cert_file"`
-		KeyFile      string   `json:"key_file"`
-		CaFile       string   `json:"ca_file"`
-		KafkaVersion string   `json:"kafka_version"`
-		Scram        string   `json:"scram"`
-		VerifySsl    bool     `json:"verify_ssl"`
 	}
 	TraceConf struct {
 		ZipkinAddr string `json:"zipkin_addr"` //zipkin地址
@@ -162,30 +142,6 @@ func GetMdbConf(k string) (*MdbConf, error) {
 		return nil, err
 	}
 	return &mdbc, nil
-}
-func GetEsConf(k string) (*EsConf, error) {
-	var esc = EsConf{}
-	raw, ok := mc[k]
-	if !ok {
-		return nil, Nil
-	}
-	err := json.Unmarshal(raw, &esc)
-	if err != nil {
-		return nil, err
-	}
-	return &esc, nil
-}
-func GetKafkaConf(k string) (*KafkaConf, error) {
-	var kc = KafkaConf{}
-	raw, ok := mc[k]
-	if !ok {
-		return nil, Nil
-	}
-	err := json.Unmarshal(raw, &kc)
-	if err != nil {
-		return nil, err
-	}
-	return &kc, nil
 }
 func GetConf(k string) (json.RawMessage, error) {
 	raw, ok := mc[k]

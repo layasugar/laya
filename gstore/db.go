@@ -11,7 +11,7 @@ const (
 	defaultPoolMaxIdle     = 10                                 // 连接池空闲连接数量
 	defaultPoolMaxOpen     = 100                                // 连接池最大连接数量
 	defaultConnMaxLifeTime = time.Second * time.Duration(21600) // MySQL默认长连接时间为8个小时,所以我们设置连接可重用的时间为6小时最为合理
-	defaultConnMaxIdleTime = time.Second * time.Duration(7200)  // 设置连接2个小时没有用到就断开连接(内存要求较高可降低该值)
+	defaultConnMaxIdleTime = time.Second * time.Duration(600)   // 设置连接10分钟没有用到就断开连接(内存要求较高可降低该值)
 )
 
 type DbPoolCfg struct {

@@ -1,9 +1,7 @@
 ### golang公共组件框架包
 - `gcache` [缓存组件](https://github.com/layasugar/laya/tree/master/gcache)
-- `gcal` [http组件](https://github.com/layasugar/laya/tree/master/gcal)
 - `gconf` [配置组件](https://github.com/layasugar/laya/tree/master/gconf)
 - `genv` [环境变量组件](https://github.com/layasugar/laya/tree/master/genv)
-- `glogs` [日志组件和钉钉通知还有zipkin的链路追踪](https://github.com/layasugar/laya/tree/master/glogs)
 - `gpprof` [pprof监控](https://github.com/layasugar/laya/tree/master/gpprof)
 - `gsignal` [signal信号](https://github.com/layasugar/laya/tree/master/gsignal)
 - `gstore` [数据库链接组件](https://github.com/layasugar/laya/tree/master/gstore)

@@ -4,10 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/layasugar/glogs"
 	"github.com/layasugar/laya/gconf"
 	"github.com/layasugar/laya/genv"
-	"github.com/layasugar/laya/glogs"
-	log2 "github.com/layasugar/laya/glogs/log"
 	"github.com/layasugar/laya/gpprof"
 	"log"
 	"path/filepath"
@@ -171,9 +170,29 @@ func SetGinLog(app *App) {
 	if genv.AppMode() == "release" {
 		// 设置gin的请求日志
 		ginLogFile := genv.LogPath() + "/" + genv.AppName() + "/gin-http" + "/%Y-%m-%d.log"
+		var cfg = glogs.LogConfig{
+			RotationSize: 64 * 1024 * 1024,
+			NoBuffWrite:  true,
+		}
 		gin.DefaultWriter = glogs.GetWriter(
 			ginLogFile,
-			log2.WithRotationSize(64*1024*1024),
+			&cfg,
+		)
+	}
+}
+
+// set gin logger noBuffer
+func SetGinLogNoBuffer(app *App) {
+	if genv.AppMode() == gin.ReleaseMode {
+		// 设置gin的请求日志
+		ginLogFile := genv.LogPath() + "/" + genv.AppName() + "/gin-http" + "/%Y-%m-%d.log"
+		var cfg = glogs.LogConfig{
+			RotationSize: 64 * 1024 * 1024,
+			NoBuffWrite:  true,
+		}
+		gin.DefaultWriter = glogs.GetWriter(
+			ginLogFile,
+			&cfg,
 		)
 	}
 }
@@ -184,6 +203,16 @@ func SetLogger(app *App) {
 		glogs.SetLogAppName(genv.AppName()),
 		glogs.SetLogAppMode(genv.AppMode()),
 		glogs.SetLogType(genv.LogType()),
+	)
+}
+
+// set app logger noBuffer
+func SetLoggerNoBuffer(app *App) {
+	glogs.InitLog(
+		glogs.SetLogAppName(genv.AppName()),
+		glogs.SetLogAppMode(genv.AppMode()),
+		glogs.SetLogType(genv.LogType()),
+		glogs.SetNoBuffWriter(),
 	)
 }
 

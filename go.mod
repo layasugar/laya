@@ -6,7 +6,7 @@ require (
 	github.com/fsnotify/fsnotify v1.5.1
 	github.com/gin-gonic/gin v1.7.4
 	github.com/go-redis/redis/v8 v8.11.3
-	github.com/layasugar/glogs v0.0.1
+	github.com/layasugar/glogs v0.0.2
 	github.com/mkevac/debugcharts v0.0.0-20191222103121-ae1c48aa8615
 	github.com/olivere/elastic/v7 v7.0.28
 	github.com/oschwald/geoip2-golang v1.5.0

@@ -170,14 +170,7 @@ func SetGinLog(app *App) {
 	if genv.AppMode() == "release" {
 		// 设置gin的请求日志
 		ginLogFile := genv.LogPath() + "/" + genv.AppName() + "/gin-http" + "/%Y-%m-%d.log"
-		var cfg = glogs.LogConfig{
-			RotationSize: 64 * 1024 * 1024,
-			NoBuffWrite:  true,
-		}
-		gin.DefaultWriter = glogs.GetWriter(
-			ginLogFile,
-			&cfg,
-		)
+		gin.DefaultWriter = glogs.GetWriter(ginLogFile, glogs.DefaultConfig)
 	}
 }
 
@@ -186,14 +179,9 @@ func SetGinLogNoBuffer(app *App) {
 	if genv.AppMode() == gin.ReleaseMode {
 		// 设置gin的请求日志
 		ginLogFile := genv.LogPath() + "/" + genv.AppName() + "/gin-http" + "/%Y-%m-%d.log"
-		var cfg = glogs.LogConfig{
-			RotationSize: 64 * 1024 * 1024,
-			NoBuffWrite:  true,
-		}
-		gin.DefaultWriter = glogs.GetWriter(
-			ginLogFile,
-			&cfg,
-		)
+		var cfg = *glogs.DefaultConfig
+		cfg.NoBuffWrite = true
+		gin.DefaultWriter = glogs.GetWriter(ginLogFile, &cfg)
 	}
 }
 

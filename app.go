@@ -20,7 +20,7 @@ type App struct {
 }
 
 func DefaultApp() *App {
-	return NewApp(SetLogger, SetGinLog, SetDing, SetTrace, SetWebServer, SetPprof)
+	return NewApp(SetLogger, SetGinLog, SetWebServer, SetPprof)
 }
 
 func NewApp(options ...AppOption) *App {
@@ -44,12 +44,12 @@ func (app *App) initWithConfig() *App {
 		panic(err.Error())
 	}
 	if errors.Is(err, gconf.Nil) {
-		cf = &gconf.BaseConf{
-			AppName:    "default-app",
+		cf = &gconf.App{
+			Name:       "default-app",
 			HttpListen: "0.0.0.0:10080",
 			RunMode:    "debug",
-			AppVersion: "1.0.0",
-			AppUrl:     "127.0.0.1:10080",
+			Version:    "1.0.0",
+			Url:        "127.0.0.1:10080",
 			ParamLog:   true,
 			LogPath:    "/home/logs/app",
 		}
@@ -90,9 +90,9 @@ func (app *App) RegisterFileWatcher(path string, fh gconf.WatcherEventHandler) {
 }
 
 // set env
-func (app *App) registerEnv(cf *gconf.BaseConf) {
-	if cf.AppName != "" {
-		genv.SetAppName(cf.AppName)
+func (app *App) registerEnv(cf *gconf.App) {
+	if cf.Name != "" {
+		genv.SetAppName(cf.Name)
 	}
 	if cf.HttpListen != "" {
 		genv.SetHttpListen(cf.HttpListen)
@@ -100,17 +100,17 @@ func (app *App) registerEnv(cf *gconf.BaseConf) {
 	if cf.RunMode != "" {
 		genv.SetRunMode(cf.RunMode)
 	}
-	if cf.AppVersion != "" {
-		genv.SetAppVersion(cf.AppVersion)
+	if cf.Version != "" {
+		genv.SetAppVersion(cf.Version)
 	}
-	if cf.AppUrl != "" {
-		genv.SetAppUrl(cf.AppUrl)
+	if cf.Url != "" {
+		genv.SetAppUrl(cf.Url)
 	}
 	if cf.LogPath != "" {
 		genv.SetLogPath(cf.LogPath)
 	}
-	if cf.AppMode != "" {
-		genv.SetAppMode(cf.AppMode)
+	if cf.Mode != "" {
+		genv.SetAppMode(cf.Mode)
 	}
 	if cf.Pprof {
 		genv.SetPprof(cf.Pprof)
@@ -119,50 +119,6 @@ func (app *App) registerEnv(cf *gconf.BaseConf) {
 		genv.SetLogType("file")
 	}
 	genv.SetParamLog(cf.ParamLog)
-}
-
-// Check trace it's on or not
-func SetTrace(app *App) {
-	tc, err := gconf.GetTraceConf()
-	if errors.Is(err, gconf.Nil) {
-		return
-	}
-	if err != nil {
-		log.Printf("trace配置获取失败,err=%s", err.Error())
-		return
-	}
-	if tc == nil {
-		return
-	} else {
-		if tc.ZipkinAddr == "" {
-			return
-		}
-		err = glogs.InitTrace(genv.AppName(), genv.HttpListen(), tc.ZipkinAddr, tc.Mod)
-		if err != nil {
-			log.Printf("trace初始化失败")
-			return
-		}
-	}
-}
-
-// set ding ding pusher
-func SetDing(app *App) {
-	dc, err := gconf.GetDingConf()
-	if errors.Is(err, gconf.Nil) {
-		return
-	}
-	if err != nil {
-		log.Printf("trace配置获取失败,err=%s", err.Error())
-		return
-	}
-	if dc == nil {
-		return
-	} else {
-		if dc.RobotKey == "" || dc.RobotHost == "" {
-			return
-		}
-		glogs.InitDing(dc.RobotKey, dc.RobotHost)
-	}
 }
 
 // set gin logger

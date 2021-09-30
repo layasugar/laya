@@ -2,7 +2,6 @@ package gconf
 
 import (
 	"encoding/json"
-	"github.com/layasugar/laya/gstore"
 	"io/ioutil"
 	"log"
 )
@@ -10,50 +9,43 @@ import (
 var mc map[string]json.RawMessage
 
 type Config struct {
-	BaseConf  BaseConf  `json:"app"`
-	DBConf    DBConf    `json:"mysql"`
-	RdbConf   RdbConf   `json:"redis"`
-	MdbConf   MdbConf   `json:"mongo"`
-	TraceConf TraceConf `json:"zipkin"`
-	DingConf  DingConf  `json:"ding"`
+	App     App     `json:"app"`
+	DBConf  DBConf  `json:"mysql"`
+	RdbConf RdbConf `json:"redis"`
+	MdbConf MdbConf `json:"mongo"`
 }
 
 type (
-	BaseConf struct {
-		AppName    string `json:"app_name"`    //app名称
-		AppMode    string `json:"app_mode"`    //app运行环境
+	App struct {
+		Name       string `json:"name"`        //app名称
+		Mode       string `json:"mode"`        //app运行环境
 		HttpListen string `json:"http_listen"` //http监听端口
 		RunMode    string `json:"run_mode"`    //运行模式
-		AppVersion string `json:"version"`     //app版本号
-		AppUrl     string `json:"app_url"`     //当前路由
+		Version    string `json:"version"`     //app版本号
+		Url        string `json:"url"`         //当前路由
 		ParamLog   bool   `json:"param_log"`   //是否开启请求参数和返回参数打印
 		LogPath    string `json:"log_path"`    //日志路径"/home/log/app"
 		Pprof      bool   `json:"pprof"`       //是否开启pprof
 	}
 	DBConf struct {
-		Dsn string `json:"dsn"` //dsn
-		gstore.DbPoolCfg
+		Dsn         string `json:"dsn"`           //dsn
+		MaxIdleConn int    `json:"max_idle_conn"` //空闲连接数
+		MaxOpenConn int    `json:"max_open_conn"` //最大连接数
+		MaxLifeTime int    `json:"max_life_time"` //连接可重用的最大时间
+		MaxIdleTime int    `json:"max_idle_time"` //在关闭连接之前,连接可能处于空闲状态的最大时间
 	}
 	RdbConf struct {
-		DB          int    `json:"db"`          //默认连接库
-		PoolSize    int    `json:"poolSize"`    //连接数量
-		MaxRetries  int    `json:"maxRetries"`  //最大重试次数
-		IdleTimeout int    `json:"idleTimeout"` //空闲链接超时时间(单位：time.Second)
-		Addr        string `json:"addr"`        //DSN
-		Pwd         string `json:"pwd"`         //密码
+		DB          int    `json:"db"`           //默认连接库
+		Pwd         string `json:"pwd"`          //密码
+		Addr        string `json:"addr"`         //DSN
+		PoolSize    int    `json:"pool_size"`    //连接池数量
+		MaxRetries  int    `json:"max_retries"`  //最大重试次数
+		IdleTimeout int    `json:"idle_timeout"` //空闲链接超时时间(单位：time.Second)
 	}
 	MdbConf struct {
-		DSN         string `json:"dsn"`         //dsn
-		MinPoolSize uint64 `json:"minPoolSize"` //连接池最小连接数
-		MaxPoolSize uint64 `json:"maxPoolSize"` //连接池最大连接数
-	}
-	TraceConf struct {
-		ZipkinAddr string `json:"zipkin_addr"` //zipkin地址
-		Mod        uint64 `json:"mod"`         //采样率,0==不进行链路追踪，1==全量。值越大，采样率越低，对性能影响越小
-	}
-	DingConf struct {
-		RobotKey  string `json:"robot_key"`
-		RobotHost string `json:"robot_host"`
+		DSN         string `json:"dsn"`           //dsn
+		MinPoolSize uint64 `json:"min_pool_size"` //连接池最小连接数
+		MaxPoolSize uint64 `json:"max_pool_size"` //连接池最大连接数
 	}
 )
 
@@ -71,8 +63,8 @@ func InitConfig(cfp string) error {
 	return nil
 }
 
-func GetBaseConf() (*BaseConf, error) {
-	var bcf = BaseConf{}
+func GetBaseConf() (*App, error) {
+	var bcf = App{}
 	raw, ok := mc["app"]
 	if !ok {
 		return nil, Nil
@@ -82,30 +74,6 @@ func GetBaseConf() (*BaseConf, error) {
 		return nil, err
 	}
 	return &bcf, nil
-}
-func GetTraceConf() (*TraceConf, error) {
-	var tc = TraceConf{}
-	raw, ok := mc["zipkin"]
-	if !ok {
-		return nil, Nil
-	}
-	err := json.Unmarshal(raw, &tc)
-	if err != nil {
-		return nil, err
-	}
-	return &tc, nil
-}
-func GetDingConf() (*DingConf, error) {
-	var dc = DingConf{}
-	raw, ok := mc["ding"]
-	if !ok {
-		return nil, Nil
-	}
-	err := json.Unmarshal(raw, &dc)
-	if err != nil {
-		return nil, err
-	}
-	return &dc, nil
 }
 func GetDBConf(k string) (*DBConf, error) {
 	var dbc = DBConf{}

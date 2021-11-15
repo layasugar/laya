@@ -3,6 +3,7 @@ package gutils
 import (
 	"container/list"
 	"crypto/md5"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"github.com/oschwald/geoip2-golang"
@@ -16,13 +17,13 @@ import (
 	"unsafe"
 )
 
-// md5
+// Md5 md5
 func Md5(s string) string {
 	m := md5.Sum([]byte(s))
 	return hex.EncodeToString(m[:])
 }
 
-// 获取随机字符串
+// GetRandomString 获取随机字符串
 func GetRandomString(l int) string {
 	str := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	b := []byte(str)
@@ -34,7 +35,7 @@ func GetRandomString(l int) string {
 	return string(result)
 }
 
-// 获取6位随机字符串
+// GetRandomString6 获取6位随机字符串
 func GetRandomString6(n uint64) []byte {
 	baseStr := "0123456789ABCDEFGHJKLMNPQRSTUVWXYZ"
 	base := []byte(baseStr)
@@ -68,7 +69,7 @@ func GetRandomString6(n uint64) []byte {
 	}
 }
 
-// 生成6位随机验证码
+// GenValidateCode 生成6位随机验证码
 func GenValidateCode(width int) string {
 	numeric := [10]byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 	r := len(numeric)
@@ -99,12 +100,12 @@ func RemoteIp(r *http.Request) string {
 	return remoteAddr
 }
 
-// 生成订单号
+// CreateOrder 生成订单号
 func CreateOrder() int64 {
 	return int64(rand.New(rand.NewSource(time.Now().UnixNano())).Int31n(1000000))
 }
 
-// 获取省市区通过ip
+// GetAddressByIP 获取省市区通过ip
 func GetAddressByIP(ipA string) string {
 	db, err := geoip2.Open("GeoLite2-City.mmdb")
 	if err != nil {
@@ -125,7 +126,7 @@ func GetAddressByIP(ipA string) string {
 	return record.Country.Names["zh-CN"] + "-" + province + "-" + record.City.Names["zh-CN"]
 }
 
-// string是否在[]string里面
+// InSliceString string是否在[]string里面
 func InSliceString(k string, s []string) bool {
 	for _, v := range s {
 		if k == v {
@@ -152,4 +153,37 @@ func IsNil(obj interface{}) bool {
 		return true
 	}
 	return (*eFace)(unsafe.Pointer(&obj)).data == nil
+}
+
+// Base64URLDecode 因为Base64转码后可能包含有+,/,=这些不安全的URL字符串，所以要进行换字符
+//'+' -> '-'
+//'/' -> '_'
+//'=' -> ''
+//字符串长度不足4倍的位补"="
+func Base64URLDecode(data string) string {
+	var missing = (4 - len(data)%4) % 4
+	data += strings.Repeat("=", missing) //字符串长度不足4倍的位补"="
+	data = strings.Replace(data, "_", "/", -1)
+	data = strings.Replace(data, "-", "+", -1)
+	return data
+}
+
+func Base64UrlSafeEncode(data string) string {
+	safeUrl := strings.Replace(data, "/", "_", -1)
+	safeUrl = strings.Replace(safeUrl, "+", "-", -1)
+	safeUrl = strings.Replace(safeUrl, "=", "", -1)
+	return safeUrl
+}
+
+func Base64Encode(s string) string {
+	encodeString := base64.StdEncoding.EncodeToString([]byte(s))
+	return encodeString
+}
+
+func Base64Decode(code string) string {
+	decodeBytes, err := base64.StdEncoding.DecodeString(code)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return string(decodeBytes)
 }

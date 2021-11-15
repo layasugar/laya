@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// 初始化redis
+// InitRdb 初始化redis
 func InitRdb(db, poolSize, maxRetries, idleTimeout int, addr, pwd string) *redis.Client {
 	return connRdb(db, poolSize, maxRetries, idleTimeout, addr, pwd)
 }

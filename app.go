@@ -1,7 +1,6 @@
 package laya
 
 import (
-	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/layasugar/glogs"
@@ -9,60 +8,116 @@ import (
 	"github.com/layasugar/laya/genv"
 	"github.com/layasugar/laya/gpprof"
 	"log"
-	"path/filepath"
-	"sync"
 )
 
 type App struct {
 	WebServer *gin.Engine
-	watcher   *gconf.Watcher
-	watchLock sync.Mutex
+	cfg       *appCfg
 }
 
+type appCfg struct {
+	cfgPath   string // 配置文件路径
+	webServer bool   // 是否开启webserver
+}
+
+// DefaultApp 提供基础的日志服务, ginLog, webServer, 默认的配置路径"./conf/app.json"
 func DefaultApp() *App {
-	return NewApp(SetLogger, SetGinLog, SetWebServer, SetPprof)
+	app := &App{
+		cfg: &appCfg{
+			webServer: true,
+		},
+	}
+
+	app.initWithConfig()
+	return app
 }
 
 func NewApp(options ...AppOption) *App {
-	app := new(App).initWithConfig()
+	app := &App{cfg: &appCfg{}}
 	for _, option := range options {
 		option(app)
 	}
+
+	app.initWithConfig()
 	return app
 }
 
 type AppOption func(app *App)
 
+// 初始化app
 func (app *App) initWithConfig() *App {
-	err := gconf.InitConfig(genv.ConfigPath)
+	// 初始化配置
+	err := gconf.InitConfig(app.cfg.cfgPath)
 	if err != nil {
 		panic(err)
 	}
 
-	cf, err := gconf.GetBaseConf()
-	if err != nil && !errors.Is(err, gconf.Nil) {
-		panic(err.Error())
-	}
-	if errors.Is(err, gconf.Nil) {
-		cf = &gconf.App{
-			Name:       "default-app",
-			HttpListen: "0.0.0.0:10080",
-			RunMode:    "debug",
-			Version:    "1.0.0",
-			Url:        "127.0.0.1:10080",
-			ParamLog:   true,
-			LogPath:    "/home/logs/app",
+	// 注册env
+	app.registerEnv()
+
+	// 开启日志系统
+	glogs.InitLog(
+		glogs.SetLogAppName(genv.AppName()),
+		glogs.SetLogAppMode(genv.AppMode()),
+		glogs.SetLogType(genv.LogType()),
+		glogs.SetLogPath(genv.LogPath()),
+	)
+
+	// 是否需要初始化http服务
+	if app.cfg.webServer {
+		// 是否需要重定向gin日志输出
+		if genv.RunMode() == gin.ReleaseMode {
+			ginLogFile := genv.LogPath() + "/" + genv.AppName() + "/gin/%Y-%m-%d.log"
+			gin.DefaultWriter = glogs.GetWriter(ginLogFile, glogs.DefaultConfig)
 		}
+
+		// 初始化http服务
+		gin.SetMode(genv.RunMode())
+		app.WebServer = gin.Default()
+
+		// 开启必要中间件, requestID设置, 入参日志
+		app.WebServer.Use(SetHeader, LogInParams)
 	}
-	app.registerEnv(cf)
+
+	// 是否开启pprof
+	if genv.Pprof() {
+		gpprof.StartPprof()
+	}
+
+	// 注册pprof监听函数和params监听函数和重载env函数
+	gconf.RegisterConfigCharge(func() {
+		if gconf.C.IsSet("app.pprof") {
+			var newPprof = gconf.C.GetBool("app.pprof")
+			var oldPprof = genv.Pprof()
+			if oldPprof != newPprof {
+				if newPprof {
+					gpprof.StartPprof()
+				} else {
+					gpprof.StopPprof()
+				}
+			}
+		} else {
+			gpprof.StopPprof()
+		}
+	}, func() {
+		app.registerEnv()
+	})
+
 	return app
 }
 
-func (app *App) RunWebServer() {
-	log.Printf("%s %s %s starting at %q\n", genv.AppName(), genv.RunMode(), genv.AppUrl(), genv.HttpListen())
-	err := app.WebServer.Run(genv.HttpListen())
-	if err != nil {
-		fmt.Printf("Can't RunWebServer: %s\n", err.Error())
+// RunServer 运行服务
+func (app *App) RunServer() {
+	// 启动配置回调
+	gconf.OnConfigCharge()
+
+	// 启动web服务
+	if app.cfg.webServer {
+		log.Printf("%s %s %s starting at %q\n", genv.AppName(), genv.RunMode(), genv.AppUrl(), genv.HttpListen())
+		err := app.WebServer.Run(genv.HttpListen())
+		if err != nil {
+			fmt.Printf("Can't RunWebServer: %s\n", err.Error())
+		}
 	}
 }
 
@@ -77,98 +132,38 @@ func (app *App) RegisterRouter(rr func(*gin.Engine)) {
 	rr(app.WebServer)
 }
 
-// RegisterWatcher
-func (app *App) RegisterFileWatcher(path string, fh gconf.WatcherEventHandler) {
-	app.watchLock.Lock()
-	defer app.watchLock.Unlock()
-
-	if app.watcher == nil {
-		app.watcher = gconf.NewWatcher(filepath.Dir(path), 65535)
-		//默认需要监听所有的event
-		go app.watcher.RegisterFileWatcher(filepath.Base(path), fh)
-	}
-}
-
 // set env
-func (app *App) registerEnv(cf *gconf.App) {
-	if cf.Name != "" {
-		genv.SetAppName(cf.Name)
+func (app *App) registerEnv() {
+	genv.SetAppName(gconf.C.GetString("app.name"))
+	genv.SetAppMode(gconf.C.GetString("app.mode"))
+	genv.SetRunMode(gconf.C.GetString("app.run_mode"))
+	genv.SetHttpListen(gconf.C.GetString("app.http_listen"))
+	genv.SetAppUrl(gconf.C.GetString("app.url"))
+	genv.SetPprof(gconf.C.GetBool("app.pprof"))
+	genv.SetLogPath(gconf.C.GetString("app.logger"))
+	genv.SetAppVersion(gconf.C.GetString("app.version"))
+
+	if gconf.C.IsSet("app.params") {
+		genv.SetParamLog(gconf.C.GetBool("app.params"))
+	} else {
+		genv.SetParamLog(true)
 	}
-	if cf.HttpListen != "" {
-		genv.SetHttpListen(cf.HttpListen)
-	}
-	if cf.RunMode != "" {
-		genv.SetRunMode(cf.RunMode)
-	}
-	if cf.Version != "" {
-		genv.SetAppVersion(cf.Version)
-	}
-	if cf.Url != "" {
-		genv.SetAppUrl(cf.Url)
-	}
-	if cf.LogPath != "" {
-		genv.SetLogPath(cf.LogPath)
-	}
-	if cf.Mode != "" {
-		genv.SetAppMode(cf.Mode)
-	}
-	if cf.Pprof {
-		genv.SetPprof(cf.Pprof)
-	}
+
 	if genv.RunMode() == "release" {
 		genv.SetLogType("file")
 	}
-	genv.SetParamLog(cf.ParamLog)
 }
 
-// set gin logger
-func SetGinLog(app *App) {
-	if genv.AppMode() == "release" {
-		// 设置gin的请求日志
-		ginLogFile := genv.LogPath() + "/" + genv.AppName() + "/gin-http" + "/%Y-%m-%d.log"
-		gin.DefaultWriter = glogs.GetWriter(ginLogFile, glogs.DefaultConfig)
+// SetWebServer set web server
+func SetWebServer() AppOption {
+	return func(app *App) {
+		app.cfg.webServer = true
 	}
 }
 
-// set gin logger noBuffer
-func SetGinLogNoBuffer(app *App) {
-	if genv.AppMode() == gin.ReleaseMode {
-		// 设置gin的请求日志
-		ginLogFile := genv.LogPath() + "/" + genv.AppName() + "/gin-http" + "/%Y-%m-%d.log"
-		var cfg = *glogs.DefaultConfig
-		cfg.NoBuffWrite = true
-		gin.DefaultWriter = glogs.GetWriter(ginLogFile, &cfg)
-	}
-}
-
-// set app logger
-func SetLogger(app *App) {
-	glogs.InitLog(
-		glogs.SetLogAppName(genv.AppName()),
-		glogs.SetLogAppMode(genv.AppMode()),
-		glogs.SetLogType(genv.LogType()),
-	)
-}
-
-// set app logger noBuffer
-func SetLoggerNoBuffer(app *App) {
-	glogs.InitLog(
-		glogs.SetLogAppName(genv.AppName()),
-		glogs.SetLogAppMode(genv.AppMode()),
-		glogs.SetLogType(genv.LogType()),
-		glogs.SetNoBuffWriter(),
-	)
-}
-
-// set web server
-func SetWebServer(app *App) {
-	gin.SetMode(genv.RunMode())
-	app.WebServer = gin.Default()
-}
-
-// open pprof
-func SetPprof(app *App) {
-	if genv.Pprof() {
-		gpprof.InitPprof()
+// SetConfigFile 设置配置文件
+func SetConfigFile(filePath string) AppOption {
+	return func(app *App) {
+		app.cfg.cfgPath = filePath
 	}
 }

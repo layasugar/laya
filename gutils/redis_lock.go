@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// acquireTimeout Get the lock timeout period, If no lock is obtained within this period, err will be returned here
+// GetLock acquireTimeout Get the lock timeout period, If no lock is obtained within this period, err will be returned here
 // lockTimeOut Lock timeout to prevent deadlock, lock automatically unlocked by this time
 func GetLock(redisConn *redis.Client, lockName string, acquireTimeout, lockTimeOut time.Duration) (string, error) {
 	code := uuid.NewV4().String()
@@ -29,7 +29,7 @@ func GetLock(redisConn *redis.Client, lockName string, acquireTimeout, lockTimeO
 	return "fail", errors.New("timeout")
 }
 
-// var count = 0  // test assist
+// ReleaseLock var count = 0  // test assist
 func ReleaseLock(redisConn *redis.Client, lockName, code string) bool {
 	txf := func(tx *redis.Tx) error {
 		if v, err := tx.Get(context.Background(), lockName).Result(); err != nil && err != redis.Nil {

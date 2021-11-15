@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// 初始化mongodb
+// InitMdb 初始化mongodb
 func InitMdb(minPoolSize, maxPoolSize uint64, dSN string) *mongo.Client {
 	return connMdb(minPoolSize, maxPoolSize, dSN)
 }

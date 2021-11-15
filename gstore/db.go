@@ -28,7 +28,7 @@ type dbConfig struct {
 
 type DbConnFunc func(cfg *dbConfig)
 
-// init db
+// InitDB init db
 func InitDB(dsn string, DbCfgFunc ...DbConnFunc) *gorm.DB {
 	var err error
 	var cfg dbConfig
@@ -59,7 +59,7 @@ func InitDB(dsn string, DbCfgFunc ...DbConnFunc) *gorm.DB {
 	return Db
 }
 
-// mysql survive
+// DbSurvive mysql survive
 func DbSurvive(db *gorm.DB) error {
 	sqlDB, err := db.DB()
 	if err != nil {
@@ -73,14 +73,14 @@ func DbSurvive(db *gorm.DB) error {
 	return nil
 }
 
-// set pool config
+// SetPoolConfig set pool config
 func SetPoolConfig(cfg DbPoolCfg) DbConnFunc {
 	return func(c *dbConfig) {
 		c.poolCfg = &cfg
 	}
 }
 
-// set gorm config
+// SetGormConfig set gorm config
 func SetGormConfig(cfg *gorm.Config) DbConnFunc {
 	return func(c *dbConfig) {
 		c.gormCfg = cfg

@@ -22,14 +22,16 @@ const (
 	_DefaultAppVersion = "1.0.0"
 	_DefaultAppUrl     = "127.0.0.1:10080"
 	_DefaultLogPath    = "/home/logs/app"
+	DefaultParamLog    = true
+	DefaultPprof       = false
 )
 
-// 设置app名称
+// SetAppName 设置app名称
 func SetAppName(appName string) {
 	envAppName = appName
 }
 
-// 返回当前app名称
+// AppName 返回当前app名称
 func AppName() string {
 	if envAppName == "" {
 		SetAppName(_DefaultAppName)
@@ -37,12 +39,12 @@ func AppName() string {
 	return envAppName
 }
 
-// 设置app运行环境
+// SetAppMode 设置app运行环境
 func SetAppMode(appMode string) {
 	envAppMode = appMode
 }
 
-// 返回当前app运行环境
+// AppMode 返回当前app运行环境
 func AppMode() string {
 	if envAppMode == "" {
 		SetAppMode(_DefaultAppMode)
@@ -50,12 +52,12 @@ func AppMode() string {
 	return envAppMode
 }
 
-// 设置运行模式
+// SetRunMode 设置运行模式
 func SetRunMode(runMode string) {
 	envRunMode = runMode
 }
 
-// 返回当前的运行模式
+// RunMode 返回当前的运行模式
 func RunMode() string {
 	if envRunMode == "" {
 		SetRunMode(_DefaultRunMode)
@@ -63,12 +65,12 @@ func RunMode() string {
 	return envRunMode
 }
 
-// 设置app的版本号
+// SetAppVersion 设置app的版本号
 func SetAppVersion(appVersion string) {
 	envAppVersion = appVersion
 }
 
-// 返回app的版本号
+// AppVersion 返回app的版本号
 func AppVersion() string {
 	if envAppVersion == "" {
 		SetAppVersion(_DefaultAppVersion)
@@ -76,12 +78,12 @@ func AppVersion() string {
 	return envAppVersion
 }
 
-// 设置监听端口
+// SetHttpListen 设置监听端口
 func SetHttpListen(httpListen string) {
 	envHttpListen = httpListen
 }
 
-// 返回当前监听端口
+// HttpListen 返回当前监听端口
 func HttpListen() string {
 	if envHttpListen == "" {
 		SetHttpListen(_DefaultHttpListen)
@@ -89,12 +91,12 @@ func HttpListen() string {
 	return envHttpListen
 }
 
-// 设置app_url
+// SetAppUrl 设置app_url
 func SetAppUrl(appUrl string) {
 	envAppUrl = appUrl
 }
 
-// 返回当前app_url
+// AppUrl 返回当前app_url
 func AppUrl() string {
 	if envAppUrl == "" {
 		SetAppUrl(_DefaultAppUrl)
@@ -102,22 +104,22 @@ func AppUrl() string {
 	return envAppUrl
 }
 
-// 设置是否打印入参和出参
+// SetParamLog 设置是否打印入参和出参
 func SetParamLog(ParamLog bool) {
 	envParamLog = ParamLog
 }
 
-// 返回是否打印入参和出参
+// ParamLog 返回是否打印入参和出参
 func ParamLog() bool {
 	return envParamLog
 }
 
-// 设置日志路径
+// SetLogPath 设置日志路径
 func SetLogPath(path string) {
 	envLogPath = path
 }
 
-// 返回日志基本路径
+// LogPath 返回日志基本路径
 func LogPath() string {
 	if envLogPath == "" {
 		SetLogPath(_DefaultLogPath)
@@ -125,12 +127,12 @@ func LogPath() string {
 	return envLogPath
 }
 
-// 设置日志类型
+// SetLogType 设置日志类型
 func SetLogType(path string) {
 	envLogType = path
 }
 
-// 返回日志类型
+// LogType 返回日志类型
 func LogType() string {
 	return envLogType
 }

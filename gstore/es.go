@@ -4,7 +4,7 @@ import (
 	"github.com/olivere/elastic/v7"
 )
 
-// olivere/elastic/v7
+// NewEsClient olivere/elastic/v7
 // this is demo
 func NewEsClient(addr []string, user, pwd string) (*elastic.Client, error) {
 	// Create a client

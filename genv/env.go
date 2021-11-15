@@ -11,7 +11,6 @@ var (
 	envLogPath    = ""
 	envLogType    = "console"
 	envPprof      = false
-	ConfigPath    = "./conf/app.json"
 )
 
 const (

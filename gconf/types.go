@@ -1,6 +1,6 @@
 package gconf
 
 const (
-	defaultConfigFile = "./conf/app.toml"
+	defaultConfigFile = "./config/app.toml"
 	defaultConfigType = "json,toml,yml,yaml,env"
 )

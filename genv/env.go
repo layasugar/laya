@@ -1,105 +1,90 @@
 package genv
 
-var (
-	envAppName    = ""
-	envAppMode    = ""
-	envRunMode    = ""
-	envHttpListen = ""
-	envAppVersion = ""
-	envAppUrl     = ""
-	envParamLog   = true
-	envLogPath    = ""
-	envLogType    = "console"
-	envPprof      = false
-)
+import "time"
 
-const (
-	_DefaultAppName    = "default-app"
-	_DefaultAppMode    = "dev"
-	_DefaultRunMode    = "debug"
-	_DefaultHttpListen = "0.0.0.0:10080"
-	_DefaultAppVersion = "1.0.0"
-	_DefaultAppUrl     = "127.0.0.1:10080"
-	_DefaultLogPath    = "/home/logs/app"
-	DefaultParamLog    = true
-	DefaultPprof       = false
+var (
+	envAppName          = "default-app"
+	envRunMode          = "debug"
+	envAppVersion       = "1.0.0"
+	envHttpListen       = "0.0.0.0:80"
+	envPbRpcListen      = "0.0.0.0:10082"
+	envAppUrl           = "http://127.0.0.1:80"
+	envParamLog         = true
+	envLogPath          = "/home/logs/app"
+	envLogType          = "console"
+	envLogMaxAge        = 7 * 24 * time.Hour
+	envLogMaxCount uint = 30
 )
 
 // SetAppName 设置app名称
 func SetAppName(appName string) {
-	envAppName = appName
+	if appName != "" {
+		envAppName = appName
+	}
 }
 
 // AppName 返回当前app名称
 func AppName() string {
-	if envAppName == "" {
-		SetAppName(_DefaultAppName)
-	}
 	return envAppName
-}
-
-// SetAppMode 设置app运行环境
-func SetAppMode(appMode string) {
-	envAppMode = appMode
-}
-
-// AppMode 返回当前app运行环境
-func AppMode() string {
-	if envAppMode == "" {
-		SetAppMode(_DefaultAppMode)
-	}
-	return envAppMode
 }
 
 // SetRunMode 设置运行模式
 func SetRunMode(runMode string) {
-	envRunMode = runMode
+	if runMode != "" {
+		envRunMode = runMode
+	}
 }
 
 // RunMode 返回当前的运行模式
 func RunMode() string {
-	if envRunMode == "" {
-		SetRunMode(_DefaultRunMode)
-	}
 	return envRunMode
 }
 
 // SetAppVersion 设置app的版本号
 func SetAppVersion(appVersion string) {
-	envAppVersion = appVersion
+	if appVersion != "" {
+		envAppVersion = appVersion
+	}
 }
 
 // AppVersion 返回app的版本号
 func AppVersion() string {
-	if envAppVersion == "" {
-		SetAppVersion(_DefaultAppVersion)
-	}
 	return envAppVersion
 }
 
-// SetHttpListen 设置监听端口
+// SetHttpListen 设置http监听地址
 func SetHttpListen(httpListen string) {
-	envHttpListen = httpListen
+	if httpListen != "" {
+		envHttpListen = httpListen
+	}
 }
 
-// HttpListen 返回当前监听端口
+// HttpListen 获取http监听地址
 func HttpListen() string {
-	if envHttpListen == "" {
-		SetHttpListen(_DefaultHttpListen)
-	}
 	return envHttpListen
+}
+
+// SetPbRpcListen 设置rpc监听地址
+func SetPbRpcListen(pbRpcListen string) {
+	if pbRpcListen != "" {
+		envPbRpcListen = pbRpcListen
+	}
+}
+
+// PbRpcListen 返回rpc监听地址
+func PbRpcListen() string {
+	return envPbRpcListen
 }
 
 // SetAppUrl 设置app_url
 func SetAppUrl(appUrl string) {
-	envAppUrl = appUrl
+	if appUrl != "" {
+		envAppUrl = appUrl
+	}
 }
 
 // AppUrl 返回当前app_url
 func AppUrl() string {
-	if envAppUrl == "" {
-		SetAppUrl(_DefaultAppUrl)
-	}
 	return envAppUrl
 }
 
@@ -115,20 +100,21 @@ func ParamLog() bool {
 
 // SetLogPath 设置日志路径
 func SetLogPath(path string) {
-	envLogPath = path
+	if path != "" {
+		envLogPath = path
+	}
 }
 
 // LogPath 返回日志基本路径
 func LogPath() string {
-	if envLogPath == "" {
-		SetLogPath(_DefaultLogPath)
-	}
 	return envLogPath
 }
 
 // SetLogType 设置日志类型
-func SetLogType(path string) {
-	envLogType = path
+func SetLogType(tp string) {
+	if tp != "" {
+		envLogType = tp
+	}
 }
 
 // LogType 返回日志类型
@@ -136,10 +122,26 @@ func LogType() string {
 	return envLogType
 }
 
-func SetPprof(pprof bool) {
-	envPprof = pprof
+// SetLogMaxAge 设置日志默认保留7天
+func SetLogMaxAge(maxAge int) {
+	if maxAge != 0 {
+		envLogMaxAge = time.Duration(maxAge) * 24 * time.Hour
+	}
 }
 
-func Pprof() bool {
-	return envPprof
+// LogMaxAge 返回日志默认保留7天
+func LogMaxAge() time.Duration {
+	return envLogMaxAge
+}
+
+// SetLogMaxCount 设置日志默认限制为30个
+func SetLogMaxCount(count int) {
+	if count != 0 {
+		envLogMaxCount = uint(count)
+	}
+}
+
+// LogMaxCount 返回日志默认限制为30个
+func LogMaxCount() uint {
+	return envLogMaxCount
 }

@@ -1,17 +1,22 @@
 package gstore
 
 import (
+	"github.com/layasugar/glogs"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"log"
 	"time"
 )
 
 const (
-	defaultPoolMaxIdle     = 10                                 // 连接池空闲连接数量
-	defaultPoolMaxOpen     = 100                                // 连接池最大连接数量
-	defaultConnMaxLifeTime = time.Second * time.Duration(21600) // MySQL默认长连接时间为8个小时,所以我们设置连接可重用的时间为6小时最为合理
-	defaultConnMaxIdleTime = time.Second * time.Duration(600)   // 设置连接10分钟没有用到就断开连接(内存要求较高可降低该值)
+	defaultPoolMaxIdle     = 2                                 // 连接池空闲连接数量
+	defaultPoolMaxOpen     = 13                                // 连接池最大连接数量4c*2+4只读副本+1主实例
+	defaultConnMaxLifeTime = time.Second * time.Duration(7200) // MySQL默认长连接时间为8个小时,可根据高并发业务持续时间合理设置该值
+	defaultConnMaxIdleTime = time.Second * time.Duration(600)  // 设置连接10分钟没有用到就断开连接(内存要求较高可降低该值)
+	LevelInfo              = "info"
+	LevelWarn              = "warn"
+	LevelError             = "error"
 )
 
 type DbPoolCfg struct {
@@ -29,7 +34,7 @@ type dbConfig struct {
 type DbConnFunc func(cfg *dbConfig)
 
 // InitDB init db
-func InitDB(dsn string, DbCfgFunc ...DbConnFunc) *gorm.DB {
+func InitDB(dsn string, logLevel string, DbCfgFunc ...DbConnFunc) *gorm.DB {
 	var err error
 	var cfg dbConfig
 
@@ -37,8 +42,26 @@ func InitDB(dsn string, DbCfgFunc ...DbConnFunc) *gorm.DB {
 		f(&cfg)
 	}
 
+	var level logger.LogLevel
+	switch logLevel {
+	case LevelInfo:
+		level = logger.Info
+	case LevelWarn:
+		level = logger.Warn
+	case LevelError:
+		level = logger.Error
+	default:
+		level = logger.Info
+	}
+
 	if cfg.gormCfg == nil {
-		cfg.gormCfg = &gorm.Config{}
+		cfg.gormCfg = &gorm.Config{
+			Logger: glogs.Default(glogs.Sugar, level),
+		}
+	} else {
+		if cfg.gormCfg.Logger == nil {
+			cfg.gormCfg.Logger = glogs.Default(glogs.Sugar, level)
+		}
 	}
 
 	Db, err := gorm.Open(mysql.Open(dsn), cfg.gormCfg)

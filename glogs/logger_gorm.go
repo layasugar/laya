@@ -1,0 +1,163 @@
+package glogs
+
+import (
+	"context"
+	"fmt"
+	"go.uber.org/zap"
+	"gorm.io/gorm/logger"
+	"gorm.io/gorm/utils"
+	"net/http"
+	"time"
+)
+
+var SqlLogger = "sql_logger"
+
+type GormCtx struct {
+	context.Context
+	request *http.Request
+	val     string
+}
+
+func (c *GormCtx) String() string {
+	return c.val
+}
+
+func WithRequest(r *http.Request) context.Context {
+	ctx := new(GormCtx)
+	ctx.Context = context.Background()
+	ctx.request = r
+	return ctx
+}
+
+func WithValue(value string) context.Context {
+	ctx := new(GormCtx)
+	ctx.Context = context.Background()
+	ctx.val = value
+	return ctx
+}
+
+func Default(writer *zap.Logger, level logger.LogLevel) logger.Interface {
+	var config = logger.Config{
+		SlowThreshold: 200 * time.Millisecond,
+		LogLevel:      level,
+		Colorful:      true,
+	}
+	var (
+		infoStr      = "{\"line\": \"%s\", \"level\": \"[info]\", \"msg\": \"%s\"}"
+		warnStr      = "{\"line\": \"%s\", \"level\": \"[warn]\", \"msg\": \"%s\"}"
+		errStr       = "{\"line\": \"%s\", \"level\": \"[error]\", \"msg\": \"%s\"}"
+		traceStr     = "{\"line\": \"%s\", \"耗时\": \"%.3fms\", \"rows\": \"%v\" ,\"sql\": \"%s\"}"
+		traceWarnStr = "{\"line\": \"%s\", \"错误\": \"%s\", \"耗时\": \"%.3fms\", \"rows\": \"%v\", \"sql\": \"%s\"}"
+		traceErrStr  = "{\"line\": \"%s\", \"slow\": \"%s\", \"耗时\": \"%.3fms\", \"rows\": \"%v\", \"sql\": \"%s\"}"
+	)
+
+	return &gormLogger{
+		Config:       config,
+		infoStr:      infoStr,
+		warnStr:      warnStr,
+		errStr:       errStr,
+		traceStr:     traceStr,
+		traceWarnStr: traceWarnStr,
+		traceErrStr:  traceErrStr,
+	}
+}
+
+type gormLogger struct {
+	logger.Config
+	infoStr, warnStr, errStr            string
+	traceStr, traceErrStr, traceWarnStr string
+}
+
+// LogMode logger mode
+func (l *gormLogger) LogMode(level logger.LogLevel) logger.Interface {
+	newlogger := *l
+	newlogger.LogLevel = level
+	return &newlogger
+}
+
+// Info print info
+func (l *gormLogger) Info(ctx context.Context, msg string, data ...interface{}) {
+	if l.LogLevel >= logger.Info {
+		errInfo := fmt.Sprintf(msg, data)
+		gormWriter(ctx, LevelInfo, fmt.Sprintf(l.infoStr, utils.FileWithLineNum(), errInfo), SqlLogger)
+	}
+}
+
+// Warn print warn messages
+func (l *gormLogger) Warn(ctx context.Context, msg string, data ...interface{}) {
+	if l.LogLevel >= logger.Warn {
+		errInfo := fmt.Sprintf(msg, data)
+		gormWriter(ctx, LevelWarn, fmt.Sprintf(l.infoStr, utils.FileWithLineNum(), errInfo), SqlLogger)
+	}
+}
+
+// Error print error messages
+func (l *gormLogger) Error(ctx context.Context, msg string, data ...interface{}) {
+	if l.LogLevel >= logger.Error {
+		errInfo := fmt.Sprintf(msg, data)
+		gormWriter(ctx, LevelError, fmt.Sprintf(l.infoStr, utils.FileWithLineNum(), errInfo), SqlLogger)
+	}
+}
+
+// Trace print sql message
+func (l *gormLogger) Trace(ctx context.Context, begin time.Time, fc func() (string, int64), err error) {
+	if l.LogLevel > 0 {
+		elapsed := time.Since(begin)
+		switch {
+		case err != nil && l.LogLevel >= logger.Error:
+			sql, rows := fc()
+			if rows == -1 {
+				msg := fmt.Sprintf(l.traceErrStr, utils.FileWithLineNum(), err.Error(), float64(elapsed.Nanoseconds())/1e6, "-", sql)
+				gormWriter(ctx, LevelError, msg, SqlLogger)
+			} else {
+				msg := fmt.Sprintf(l.traceErrStr, utils.FileWithLineNum(), err, float64(elapsed.Nanoseconds())/1e6, "-", sql)
+				gormWriter(ctx, LevelError, msg, SqlLogger)
+			}
+		case elapsed > l.SlowThreshold && l.SlowThreshold != 0 && l.LogLevel >= logger.Warn:
+			sql, rows := fc()
+			slowLog := fmt.Sprintf("SLOW SQL >= %v", l.SlowThreshold)
+			if rows == -1 {
+				msg := fmt.Sprintf(l.traceWarnStr, utils.FileWithLineNum(), slowLog, float64(elapsed.Nanoseconds())/1e6, "-", sql)
+				gormWriter(ctx, LevelWarn, msg, SqlLogger)
+			} else {
+				msg := fmt.Sprintf(l.traceWarnStr, utils.FileWithLineNum(), slowLog, float64(elapsed.Nanoseconds())/1e6, rows, sql)
+				gormWriter(ctx, LevelWarn, msg, SqlLogger)
+			}
+		case l.LogLevel >= logger.Info:
+			sql, rows := fc()
+			if rows == -1 {
+				msg := fmt.Sprintf(l.traceStr, utils.FileWithLineNum(), float64(elapsed.Nanoseconds())/1e6, "-", sql)
+				gormWriter(ctx, LevelInfo, msg, SqlLogger)
+			} else {
+				msg := fmt.Sprintf(l.traceStr, utils.FileWithLineNum(), float64(elapsed.Nanoseconds())/1e6, rows, sql)
+				gormWriter(ctx, LevelInfo, msg, SqlLogger)
+			}
+		}
+	}
+}
+
+func gormWriter(ctx context.Context, level, msg string, title string, fields ...zap.Field) {
+	c, ok := ctx.(*GormCtx)
+	if !ok {
+		writer(nil, level, msg, title)
+		return
+	}
+	if c.request != nil {
+		writer(c.request, level, msg, title)
+		return
+	}
+
+	requestID := c.String()
+	fields = append(fields, zap.String(RequestIDName, requestID), zap.String(KeyTitle, title))
+
+	switch level {
+	case LevelInfo:
+		getSugar().Info(msg, fields...)
+	case LevelWarn:
+		getSugar().Warn(msg, fields...)
+	case LevelError:
+		getSugar().Error(msg, fields...)
+	}
+
+	return
+}

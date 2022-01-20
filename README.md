@@ -1,10 +1,7 @@
-### golang公共组件框架包
-- `gcache` [缓存组件](https://github.com/layasugar/laya/tree/master/gcache)
-- `gconf` [配置组件](https://github.com/layasugar/laya/tree/master/gconf)
-- `genv` [环境变量组件](https://github.com/layasugar/laya/tree/master/genv)
-- `gpprof` [pprof监控](https://github.com/layasugar/laya/tree/master/gpprof)
-- `gsignal` [signal信号](https://github.com/layasugar/laya/tree/master/gsignal)
-- `gstore` [数据库链接组件](https://github.com/layasugar/laya/tree/master/gstore)
-- `gtime` [时间组件](https://github.com/layasugar/laya/tree/master/gtime)
-- `gutils` [常用方法lib](https://github.com/layasugar/laya/tree/master/gutils)
-- `app.go` [应用初始化包配合模板使用](https://github.com/layasugar/laya-go)
+# laya
+
+基本框架, 支持httpServer, rpcServer, 以及后端服务
+
+## 快速开始
+
+[使用模板快速构建项目](https://github.com/layasugar/laya-template)

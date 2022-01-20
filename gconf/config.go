@@ -4,45 +4,28 @@ import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
-	"strings"
 	"time"
 )
 
 const (
-	ctimer = 5 * time.Second
+	cTimer            = 5 * time.Second     // 配置重载时间, 配置文件更新5s后重载配置
+	httpListenKey     = "app.http_listen"   // http_listen
+	pbRpcListenKey    = "app.pbrpc_liten"   // rpc_listen
+	defaultConfigFile = "./config/app.toml" // 固定配置文件
 )
 
-var C = viper.New()
-var cFunc []func()
+var V = viper.New()
+var configChargeHandleFunc []func()
 var t *time.Timer
 
-// InitConfig 初始化配置, cfp config path配置路径或者带.的具体文件名
-// tp 是配置文件类型
-func InitConfig(cfp string) error {
-	if len(cfp) == 0 {
-		// 先加载默认的配置
-		C.SetConfigFile(defaultConfigFile)
-		err := C.ReadInConfig()
-		if err != nil {
-			panic(fmt.Errorf("Fatal error config file: %s \n", err))
-		}
-	} else {
-		if !strings.Contains(cfp, ".") {
-			panic(fmt.Errorf("Fatal error config file: %s \n", "非法路径"))
-		}
-		tree := strings.Split(cfp, ".")
-		exp := tree[len(tree)-1:]
-		if !strings.Contains(defaultConfigType, exp[0]) {
-			panic(fmt.Errorf("Fatal error config file: %s \n", "非法后缀"))
-		}
-
-		C.SetConfigFile(cfp)
-		err := C.ReadInConfig()
-		if err != nil {
-			panic(fmt.Errorf("Fatal error config file: %s \n", err))
-		}
+// InitConfig 初始化配置信息
+func InitConfig() error {
+	V.SetConfigFile(defaultConfigFile)
+	err := V.ReadInConfig()
+	if err != nil {
+		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
-	C.WatchConfig()
+	V.WatchConfig()
 	return nil
 }
 
@@ -50,25 +33,25 @@ func InitConfig(cfp string) error {
 func OnConfigCharge() {
 	var f = func(in fsnotify.Event) {
 		if t == nil {
-			t = time.NewTimer(ctimer)
+			t = time.NewTimer(cTimer)
 		} else {
-			t.Reset(ctimer)
+			t.Reset(cTimer)
 		}
 
 		go func() {
 			<-t.C
 			// 只处理写入事件
 			if in.Op&fsnotify.Write == fsnotify.Write {
-				for _, item := range cFunc {
+				for _, item := range configChargeHandleFunc {
 					item()
 				}
 			}
 		}()
 	}
-	C.OnConfigChange(f)
+	V.OnConfigChange(f)
 }
 
 // RegisterConfigCharge 可以在程序启动前注册多个配置变化函数
 func RegisterConfigCharge(f ...func()) {
-	cFunc = append(cFunc, f...)
+	configChargeHandleFunc = append(configChargeHandleFunc, f...)
 }

@@ -43,6 +43,8 @@ func (ctx *LogContext) StartSpanParent() {}
 // LogContext logger
 type LogContext struct {
 	req               *http.Request
+	traceId           string
+	clientIP          string
 	RspHTTPStatusCode int
 	ErrMsg            string
 }
@@ -55,4 +57,14 @@ func NewLogContext(req *http.Request) *LogContext {
 		req: req,
 	}
 	return ctx
+}
+
+// GetTraceId 得到TraceID
+func (ctx *LogContext) GetTraceId() string {
+	return ctx.traceId
+}
+
+// GetClientIP 得到clientIP
+func (ctx *LogContext) GetClientIP() string {
+	return ctx.clientIP
 }

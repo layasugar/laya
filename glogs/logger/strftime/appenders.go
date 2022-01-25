@@ -65,7 +65,7 @@ type Appender interface {
 }
 
 // AppendFunc is an utility type to allow users to create a
-// function-only version of an Appender
+// function-only gversion of an Appender
 type AppendFunc func([]byte, time.Time) []byte
 
 func (af AppendFunc) Append(b []byte, t time.Time) []byte {

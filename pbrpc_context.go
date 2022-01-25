@@ -1,7 +1,7 @@
 package laya
 
 import (
-	"github.com/layasugar/laya/grpc"
+	"github.com/layasugar/laya/grpcx"
 	"net"
 	"time"
 )
@@ -75,9 +75,9 @@ func (c *PbRPCContext) Next() {
 }
 
 // ReadPackage return a package
-func (c *PbRPCContext) ReadPackage() (*grpc.Package, error) {
+func (c *PbRPCContext) ReadPackage() (*grpcx.Package, error) {
 	c.conn.SetReadDeadline(time.Now().Add(c.server.ReadTimeout))
-	pkg := grpc.NewPackage()
+	pkg := grpcx.NewPackage()
 	err := pkg.ReadIO(c.conn)
 	if err != nil {
 		return nil, err
@@ -86,7 +86,7 @@ func (c *PbRPCContext) ReadPackage() (*grpc.Package, error) {
 }
 
 // WritePackage write a package
-func (c *PbRPCContext) WritePackage(pkg *grpc.Package) (int, error) {
+func (c *PbRPCContext) WritePackage(pkg *grpcx.Package) (int, error) {
 	c.conn.SetWriteDeadline(time.Now().Add(c.server.WriteTimeout))
 	return pkg.WriteIO(c.conn)
 }

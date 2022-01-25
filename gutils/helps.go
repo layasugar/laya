@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/oschwald/geoip2-golang"
+	uuid "github.com/satori/go.uuid"
 	"log"
 	"math/rand"
 	"net"
@@ -186,4 +187,10 @@ func Base64Decode(code string) string {
 		log.Fatalln(err)
 	}
 	return string(decodeBytes)
+}
+
+// GenerateTraceId 获取链路TraceId
+func GenerateTraceId() string {
+	s := uuid.NewV4().String()
+	return Md5(s)
 }

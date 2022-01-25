@@ -59,7 +59,7 @@ func (gs *Server) run(serverName string, listen string) error {
 	}
 
 	defer gs.server.Close()
-	log.Printf("[debug] Listening and serving %s on %s\n", serverName, listen)
+	log.Printf("[app] Listening and serving %s on %s\n", serverName, listen)
 	return gs.server.Run(listen)
 }
 

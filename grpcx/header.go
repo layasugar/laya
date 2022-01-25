@@ -1,8 +1,4 @@
-/*
- * Fix header for PbRPC
- */
-
-package grpc
+package pbrpc
 
 import (
 	"bytes"
@@ -39,9 +35,9 @@ func NewHeader() *Header {
 func (h *Header) Bytes() []byte {
 	b := new(bytes.Buffer)
 
-	binary.Write(b, binary.BigEndian, h.MagicCode)
-	binary.Write(b, binary.BigEndian, intToBytes(h.MessageSize))
-	binary.Write(b, binary.BigEndian, intToBytes(h.MetaSize))
+	_ = binary.Write(b, binary.BigEndian, h.MagicCode)
+	_ = binary.Write(b, binary.BigEndian, intToBytes(h.MessageSize))
+	_ = binary.Write(b, binary.BigEndian, intToBytes(h.MetaSize))
 	return b.Bytes()
 }
 
@@ -66,7 +62,7 @@ func (h *Header) SetMagicCode(MagicCode []byte) error {
 }
 
 func intToBytes(i int32) []byte {
-	bytes := make([]byte, 4)
-	binary.BigEndian.PutUint32(bytes, uint32(i))
-	return bytes
+	b := make([]byte, 4)
+	binary.BigEndian.PutUint32(b, uint32(i))
+	return b
 }

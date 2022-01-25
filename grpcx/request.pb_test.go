@@ -1,26 +1,21 @@
-package grpc_test
+package grpcx_test
 
 import (
-	"google.golang.org/protobuf/proto"
-	"github.com/layasugar/laya/grpc"
+	"github.com/golang/protobuf/proto"
+	pbrpc "github.com/layasugar/laya/grpcx/pbrpc"
 	"strings"
 	"testing"
 )
 
 func TestPropertySetAndGet(t *testing.T) {
-
-	if true {
-		return
-	}
-
 	var serviceName string = "ThisAServiceName"
 	var methodName string = "ThisAMethodName"
-	var logId int64 = 1
+	var logId string = "ksadfhksjadhfkjsdhf"
 
-	request := grpc.RpcRequestMeta{
-		ServiceName: &serviceName,
-		MethodName:  &methodName,
-		LogId:       &logId,
+	request := pbrpc.Request{
+		ServiceName: serviceName,
+		MethodName:  methodName,
+		TraceId:     logId,
 	}
 
 	if !strings.EqualFold(serviceName, request.GetServiceName()) {
@@ -31,8 +26,8 @@ func TestPropertySetAndGet(t *testing.T) {
 		t.Errorf("set methodName value is '%s', but get value is '%s' ", methodName, request.GetMethodName())
 	}
 
-	if logId != request.GetLogId() {
-		t.Errorf("set logId value is '%d', but get value is '%d' ", logId, request.GetLogId())
+	if logId != request.GetTraceId() {
+		t.Errorf("set logId value is '%s', but get value is '%s' ", logId, request.GetTraceId())
 	}
 
 	data, err := proto.Marshal(&request)
@@ -40,7 +35,7 @@ func TestPropertySetAndGet(t *testing.T) {
 		t.Errorf("marshaling error: %s", err.Error())
 	}
 
-	request2 := new(grpc.RpcRequestMeta)
+	request2 := new(pbrpc.Request)
 	err = proto.Unmarshal(data, request2)
 	if err != nil {
 		t.Errorf("marshaling error: %s", err.Error())

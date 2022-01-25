@@ -26,12 +26,12 @@ func connRdb(db, poolSize, maxRetries, idleTimeout int, addr, pwd string) *redis
 	Rdb := redis.NewClient(&options)
 	_, err := Rdb.Ping(context.Background()).Result()
 	if err == redis.Nil {
-		log.Printf("[gstore_redis] Nil reply returned by Rdb when key does not exist.")
+		log.Printf("[gstore] Nil reply returned by Rdb when key does not exist.")
 	} else if err != nil {
-		log.Printf("[gstore_redis] redis fail, err=%s", err)
+		log.Printf("[gstore] redis fail, err=%s", err)
 		panic(err)
 	} else {
-		log.Printf("[gstore_redis] redis success")
+		log.Printf("[gstore] redis success")
 	}
 	return Rdb
 }

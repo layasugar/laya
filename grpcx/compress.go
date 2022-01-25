@@ -1,4 +1,4 @@
-package grpc
+package pbrpc
 
 import (
 	"bytes"

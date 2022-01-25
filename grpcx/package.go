@@ -1,4 +1,12 @@
-package grpc
+/*
+ * Copyright 2020 The xthktech. All rights reserved.
+ * @Author: zhanglei
+ * @Date: 2018-09-19
+ *
+ * PbRPC协议数据包格式处理
+ */
+
+package pbrpc
 
 import (
 	"bytes"
@@ -8,11 +16,11 @@ import (
 	"io"
 	"log"
 
-	"google.golang.org/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 	"github.com/golang/snappy"
 )
 
-// error logger info definition
+// error log info definition
 var ERR_IGNORE_ERR = errors.New("[marshal-001]Ingore error")
 var ERR_NO_SNAPPY = errors.New("[marshal-002]Snappy compress not support yet.")
 var ERR_META = errors.New("[marshal-003]Get nil value from Meta struct after marshal")
@@ -64,9 +72,9 @@ messsage ChunkInfo {
 4. <Attachment> attachment body data message
 */
 type Package struct {
-	Header Header
-	Meta   RpcMeta
-	Data   []byte
+	Header     Header
+	Meta       RpcMeta
+	Data       []byte
 	Attachment []byte
 }
 

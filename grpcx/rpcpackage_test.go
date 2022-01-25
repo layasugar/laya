@@ -1,11 +1,11 @@
-package grpc_test
+package grpcx_test
 
 import (
 	"bytes"
 	"errors"
 	"fmt"
-	"google.golang.org/protobuf/proto"
-	"github.com/layasugar/laya/grpc"
+	"github.com/golang/protobuf/proto"
+	"github.com/layasugar/laya/grpcx"
 	"strings"
 	"testing"
 )
@@ -29,21 +29,21 @@ func (m *DataMessage) GetName() string {
 var sericeName = "thisIsAServiceName"
 var methodName = "thisIsAMethodName"
 var magicCode = "PRPC"
-var logId int64 = 1001
+var logId string = "1001"
 var correlationId int64 = 20001
 var data []byte = []byte{1, 2, 3, 1, 2, 3, 1, 1, 2, 2, 20}
 var attachment []byte = []byte{2, 2, 2, 2, 2, 1, 1, 1, 1}
 
-func initRpcDataPackage() *grpc.Package {
+func initRpcDataPackage() *grpcx.Package {
 
-	rpcDataPackage := grpc.NewPackage()
+	rpcDataPackage := grpcx.NewPackage()
 
 	rpcDataPackage.SetMagicCode([]byte(magicCode))
 	rpcDataPackage.SetData(data)
 	rpcDataPackage.SetServiceName(sericeName)
 	rpcDataPackage.SetMethodName(methodName)
 
-	rpcDataPackage.SetLogId(logId)
+	rpcDataPackage.SetTraceId(logId)
 	rpcDataPackage.SetCorrelationId(correlationId)
 
 	rpcDataPackage.SetAttachment(attachment)
@@ -51,22 +51,22 @@ func initRpcDataPackage() *grpc.Package {
 	return rpcDataPackage
 }
 
-func equalRpcDataPackage(r grpc.Package) error {
+func equalRpcDataPackage(r grpcx.Package) error {
 
-	if !strings.EqualFold(sericeName, *r.Meta.Request.ServiceName) {
-		return errors.New(fmt.Sprintf("expect serice name '%s' but actual is '%s'", sericeName, *r.Meta.Request.ServiceName))
+	if !strings.EqualFold(sericeName, r.Meta.Request.ServiceName) {
+		return errors.New(fmt.Sprintf("expect serice name '%s' but actual is '%s'", sericeName, r.Meta.Request.ServiceName))
 	}
 
-	if !strings.EqualFold(methodName, *r.Meta.Request.MethodName) {
-		return errors.New(fmt.Sprintf("expect method name '%s' but actual is '%s'", methodName, *r.Meta.Request.MethodName))
+	if !strings.EqualFold(methodName, r.Meta.Request.MethodName) {
+		return errors.New(fmt.Sprintf("expect method name '%s' but actual is '%s'", methodName, r.Meta.Request.MethodName))
 	}
 
 	if !strings.EqualFold(magicCode, r.GetMagicCode()) {
 		return errors.New(fmt.Sprintf("expect magic code '%s' but actual is '%s'", magicCode, r.GetMagicCode()))
 	}
 
-	if *r.Meta.Request.LogId != logId {
-		return errors.New(fmt.Sprintf("expect logId is '%d' but actual is '%d'", logId, *r.Meta.Request.LogId))
+	if r.Meta.Request.TraceId != logId {
+		return errors.New(fmt.Sprintf("expect logId is '%s' but actual is '%s'", logId, r.Meta.Request.TraceId))
 	}
 
 	if *r.Meta.CorrelationId != correlationId {
@@ -84,7 +84,7 @@ func equalRpcDataPackage(r grpc.Package) error {
 	return nil
 }
 
-func validateRpcDataPackage(t *testing.T, r2 grpc.Package) {
+func validateRpcDataPackage(t *testing.T, r2 grpcx.Package) {
 
 	if !strings.EqualFold(magicCode, r2.GetMagicCode()) {
 		t.Errorf("expect magic code '%s' but actual is '%s'", magicCode, r2.GetMagicCode())
@@ -109,7 +109,7 @@ func TestWriteReaderWithMockData(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	r2 := grpc.Package{}
+	r2 := grpcx.Package{}
 
 	err = r2.Load(b)
 	if err != nil {
@@ -120,7 +120,7 @@ func TestWriteReaderWithMockData(t *testing.T) {
 
 }
 
-func WriteReaderWithRealData(rpcDataPackage *grpc.Package,
+func WriteReaderWithRealData(rpcDataPackage *grpcx.Package,
 	compressType int32, t *testing.T) {
 	dataMessage := DataMessage{}
 	name := "hello, this is repeated string aaaaaaaaaaaaaaaaaaaaaa"
@@ -137,7 +137,7 @@ func WriteReaderWithRealData(rpcDataPackage *grpc.Package,
 		t.Error(err.Error())
 	}
 
-	r2 := grpc.Package{}
+	r2 := grpcx.Package{}
 	r2.SetCompressType(compressType)
 
 	err = r2.Load(b)
@@ -158,16 +158,16 @@ func WriteReaderWithRealData(rpcDataPackage *grpc.Package,
 func TestWriteReaderWithRealData(t *testing.T) {
 
 	rpcDataPackage := initRpcDataPackage()
-	WriteReaderWithRealData(rpcDataPackage, grpc.COMPRESS_NO, t)
+	WriteReaderWithRealData(rpcDataPackage, grpcx.COMPRESS_NO, t)
 }
 
 func TestWriteReaderWithGZIP(t *testing.T) {
 
 	rpcDataPackage := initRpcDataPackage()
 
-	rpcDataPackage.SetCompressType(grpc.COMPRESS_GZIP)
+	rpcDataPackage.SetCompressType(grpcx.COMPRESS_GZIP)
 
-	WriteReaderWithRealData(rpcDataPackage, grpc.COMPRESS_GZIP, t)
+	WriteReaderWithRealData(rpcDataPackage, grpcx.COMPRESS_GZIP, t)
 
 }
 
@@ -175,8 +175,8 @@ func TestWriteReaderWithSNAPPY(t *testing.T) {
 
 	rpcDataPackage := initRpcDataPackage()
 
-	rpcDataPackage.SetCompressType(grpc.COMPRESS_SNAPPY)
+	rpcDataPackage.SetCompressType(grpcx.COMPRESS_SNAPPY)
 
-	WriteReaderWithRealData(rpcDataPackage, grpc.COMPRESS_SNAPPY, t)
+	WriteReaderWithRealData(rpcDataPackage, grpcx.COMPRESS_SNAPPY, t)
 
 }

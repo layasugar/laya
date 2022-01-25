@@ -22,7 +22,7 @@ func connMdb(minPoolSize, maxPoolSize uint64, dsn string) *mongo.Client {
 		SetMinPoolSize(maxPoolSize)
 	Mdb, err := mongo.NewClient(MdbOptions)
 	if err != nil {
-		log.Printf("[gstore_mongodb] mongo fail, err=%s", err)
+		log.Printf("[gstore] mongo fail, err=%s", err)
 		panic(err)
 	}
 
@@ -30,10 +30,10 @@ func connMdb(minPoolSize, maxPoolSize uint64, dsn string) *mongo.Client {
 	defer cancel()
 	err = Mdb.Connect(ctx)
 	if err != nil {
-		log.Printf("[gstore_mongodb] mongo fail, err=%s", err)
+		log.Printf("[gstore] mongo fail, err=%s", err)
 		panic(err)
 	}
-	log.Printf("[gstore_mongodb] mongo success")
+	log.Printf("[gstore] mongo success")
 
 	return Mdb
 }

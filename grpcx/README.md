@@ -15,7 +15,7 @@ pbrpc是一种基于TCP协议的二进制高性能RPC通信协议实现。它以
 
 1. ##### golang-protobuf 针对golang开发支持google protocol  buffer库, 获取方式如下
 
-   ##### go get google.golang.org/protobuf
+   ##### go get github.com/golang/protobuf
 
 2. Snappy压缩类库，获取方式如下
 
@@ -33,7 +33,7 @@ pbrpc是一种基于TCP协议的二进制高性能RPC通信协议实现。它以
    	   RPC service call back method.
    	   message : parameter in from RPC client or 'nil' if has no parameter
    	   attachment : attachment content from RPC client or 'nil' if has no attachment
-   	   logId : with a int64 type logger sequence id from client or 'nil if has no logId
+   	   logId : with a int64 type log sequence id from client or 'nil if has no logId
    	   return:
    	   [0] message return back to RPC client or 'nil' if need not return method response
    	   [1] attachment return back to RPC client or 'nil' if need not return attachemnt

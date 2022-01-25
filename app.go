@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/layasugar/glogs"
+	"github.com/layasugar/laya/gcal"
 	"github.com/layasugar/laya/gconf"
 	"github.com/layasugar/laya/genv"
 	"log"
@@ -53,10 +54,6 @@ func (app *App) initWithConfig() *App {
 	// 注册env
 	app.registerEnv()
 
-	// 初始化数据库连接
-
-	// 初始化调用cal
-
 	// 是否初始化web或者rpc
 	if genv.HttpListen() != "" {
 		app.webServer = NewWebServer(genv.RunMode())
@@ -89,7 +86,7 @@ func (app *App) RunWebServer() {
 	}
 
 	// 启动web服务
-	log.Printf("%s %s %s starting at %q\n", genv.AppName(), genv.RunMode(), genv.AppUrl(), genv.HttpListen())
+	log.Printf("[app] Listening and serving %s on %s\n", "HTTP", genv.HttpListen())
 	err := app.webServer.Run(genv.HttpListen())
 	if err != nil {
 		fmt.Printf("Can't RunWebServer: %s\n", err.Error())
@@ -115,7 +112,9 @@ func (app *App) Use(fc ...func()) {
 func (app *App) registerEnv() {
 	genv.SetAppUrl(gconf.V.GetString("app.url"))
 	genv.SetAppName(gconf.V.GetString("app.name"))
+	log.Printf("[app] app.name %s\n", genv.AppName())
 	genv.SetRunMode(gconf.V.GetString("app.run_mode"))
+	log.Printf("[app] app.run_mode %s\n", genv.RunMode())
 	genv.SetHttpListen(gconf.V.GetString("app.http_listen"))
 	genv.SetPbRpcListen(gconf.V.GetString("app.pbrpc_liten"))
 
@@ -124,18 +123,44 @@ func (app *App) registerEnv() {
 	} else {
 		genv.SetParamLog(true)
 	}
-	genv.SetAppVersion(gconf.V.GetString("app.version"))
+	genv.SetAppVersion(gconf.V.GetString("app.gversion"))
 
 	// 日志
 	genv.SetLogPath(gconf.V.GetString("app.logger.path"))
 	genv.SetLogType(gconf.V.GetString("app.logger.type"))
 	genv.SetLogMaxAge(gconf.V.GetInt("app.logger.max_age"))
 	genv.SetLogMaxCount(gconf.V.GetInt("app.logger.max_count"))
+
+	// 初始化调用gcal
+	var services []map[string]interface{}
+	s := gconf.V.Get("services")
+	switch s.(type) {
+	case []interface{}:
+		si := s.([]interface{})
+		for _, item := range si {
+			if sim, ok := item.(map[string]interface{}); ok {
+				services = append(services, sim)
+			}
+		}
+	default:
+		log.Printf("[app] init config error: services config")
+	}
+	if len(services) > 0 {
+		err := gcal.LoadService(services)
+		if err != nil {
+			log.Printf("[app] init load services error: %s", err.Error())
+		}
+	}
 }
 
 // WebServer 获取WebServer的指针
 func (app *App) WebServer() *WebServer {
 	return app.webServer
+}
+
+// PbRPCServer 获取PbRPCServer的指针
+func (app *App) PbRPCServer() *PbRPCServer {
+	return app.pbRpcServer
 }
 
 // DefaultWebServerMiddlewares 默认的Http Server中间件

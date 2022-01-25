@@ -104,7 +104,7 @@ func (t Time) MarshalText() ([]byte, error) {
 
 // UnmarshalText implements encoding.TextUnmarshaler.
 // It has backwards compatibility with v3 in that the string "null" is considered equivalent to an empty string
-// and unMarshaling will succeed. This may be removed in a future version.
+// and unMarshaling will succeed. This may be removed in a future gversion.
 func (t *Time) UnmarshalText(text []byte) error {
 	str := string(text)
 	// allowing "null" is for backwards compatibility with v3

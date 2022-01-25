@@ -1,9 +1,9 @@
 package laya
 
 import (
-	"github.com/DeanThompson/ginpprof"
 	"github.com/gin-gonic/gin"
-	"github.com/goaltools/contrib/servers/grace"
+	"github.com/layasugar/laya/ginpprof"
+	"github.com/layasugar/laya/grace"
 	"net/http"
 	"runtime"
 	"time"

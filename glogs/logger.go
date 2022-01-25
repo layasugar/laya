@@ -4,7 +4,7 @@ package glogs
 
 import (
 	"fmt"
-	rl "github.com/layasugar/glogs/log"
+	rl "github.com/layasugar/laya/glogs/logger"
 	"github.com/layasugar/laya/genv"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"

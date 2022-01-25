@@ -5,7 +5,6 @@ package laya
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/layasugar/glogs"
 	"github.com/layasugar/laya/gcal"
 	"github.com/layasugar/laya/gconf"
 	"github.com/layasugar/laya/genv"
@@ -79,12 +78,6 @@ func (app *App) initWithConfig() *App {
 
 // RunWebServer 运行Web服务
 func (app *App) RunWebServer() {
-	// 是否需要重定向gin日志输出
-	if genv.RunMode() == gin.ReleaseMode {
-		ginLogFile := genv.LogPath() + "/" + genv.AppName() + "/gin/%Y-%m-%d.logger"
-		gin.DefaultWriter = glogs.GetWriter(ginLogFile, glogs.DefaultConfig)
-	}
-
 	// 启动web服务
 	log.Printf("[app] Listening and serving %s on %s\n", "HTTP", genv.HttpListen())
 	err := app.webServer.Run(genv.HttpListen())

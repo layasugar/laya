@@ -2,8 +2,7 @@ package logger
 
 import (
 	"time"
-
-	"github.com/layasugar/glogs/log/option"
+	"github.com/layasugar/laya/glogs/logger/option"
 )
 
 const (

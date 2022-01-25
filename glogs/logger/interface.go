@@ -1,11 +1,10 @@
 package logger
 
 import (
-	"github.com/layasugar/glogs/log/fileutil"
+	"github.com/layasugar/laya/glogs/logger/fileutil"
+	"github.com/layasugar/laya/glogs/logger/strftime"
 	"sync"
 	"time"
-
-	"github.com/layasugar/glogs/log/strftime"
 )
 
 type Handler interface {

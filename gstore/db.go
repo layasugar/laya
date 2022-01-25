@@ -1,7 +1,7 @@
 package gstore
 
 import (
-	"github.com/layasugar/glogs"
+	"github.com/layasugar/laya/glogs"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

@@ -1,4 +1,4 @@
-// package rotatelogs is a port of File-RotateLogs from Perl
+// Package logger is a port of File-RotateLogs from Perl
 // (https://metacpan.org/release/File-RotateLogs), and it allows
 // you to automatically rotate output files when you write to them
 // according to the filename pattern that you can specify.
@@ -6,8 +6,8 @@ package logger
 
 import (
 	"fmt"
-	"github.com/layasugar/glogs/log/fileutil"
-	"github.com/layasugar/glogs/log/strftime"
+	"github.com/layasugar/laya/glogs/logger/fileutil"
+	"github.com/layasugar/laya/glogs/logger/strftime"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"

@@ -3,7 +3,7 @@ package fileutil
 import (
 	"time"
 
-	"github.com/layasugar/glogs/log/strftime"
+	"github.com/layasugar/laya/glogs/logger/strftime"
 )
 
 type IOWriter interface {

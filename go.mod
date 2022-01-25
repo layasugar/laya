@@ -10,7 +10,6 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/golang/snappy v0.0.4
 	github.com/json-iterator/go v1.1.12
-	github.com/layasugar/glogs v0.0.4
 	github.com/olivere/elastic/v7 v7.0.28
 	github.com/openzipkin/zipkin-go v0.4.0
 	github.com/oschwald/geoip2-golang v1.5.0

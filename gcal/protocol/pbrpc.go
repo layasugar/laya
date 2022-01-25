@@ -2,35 +2,31 @@ package protocol
 
 import (
 	"fmt"
+	"github.com/layasugar/laya/gcal/context"
+	"github.com/layasugar/laya/gcal/service"
+	"github.com/layasugar/laya/gcal/tcpool"
+	"github.com/layasugar/laya/grpcx"
+	pbrpc "github.com/layasugar/laya/grpcx/pbrpc"
+	"github.com/layasugar/laya/gutils"
 	"net"
-	"strconv"
 	"sync"
-
-	"gitlab.xthktech.cn/bs/gxe/cal/context"
-	"gitlab.xthktech.cn/bs/gxe/cal/service"
-	"gitlab.xthktech.cn/bs/gxe/rpc/pbrpc"
-	"gitlab.xthktech.cn/bs/gxe/utils/produce"
-	
-	"github.com/two/tcpool"
 )
 
-var pbTc = &tcpool.Pool{
-}
+var pbTc = &tcpool.Pool{}
 var pbMu sync.Mutex
 
 // PbRPCRequest PbRpc 请求
 type PbRPCRequest struct {
-	CustomHost string
-	CustomPort int
-	Data       *pbrpc.Package
-	LogID      string
+	CustomAddr string
+	Data       *grpcx.Package
+	TraceId    string
 
 	Ctx context.RequestContext
 }
 
 // PbRPCHead PbRPC头
 type PbRPCHead struct {
-	Header     pbrpc.Header
+	Header     grpcx.Header
 	Meta       pbrpc.RpcMeta
 	Attachment []byte
 }
@@ -40,7 +36,7 @@ type PbRPCProtocol struct {
 	serv       service.Service
 	originReq  *PbRPCRequest
 	curConnKey tcpool.Key
-	logID      int64
+	traceId    string
 }
 
 // NewPbRPCProtocol 创建 PbRPC协议
@@ -48,33 +44,33 @@ func NewPbRPCProtocol(ctx *context.Context, serv service.Service, req *PbRPCRequ
 	hp = &PbRPCProtocol{
 		serv:      serv,
 		originReq: req,
-		logID:     req.Data.GetLogId(),
+		traceId:   req.Data.GetTraceId(),
 	}
 	ctx.ReqContext = req.Ctx
 
-	hp.initLogID(ctx)
+	hp.initTraceId(ctx)
 	return
 }
 
-func (hp *PbRPCProtocol) initLogID(ctx *context.Context) {
-	logID := hp.logID
+func (hp *PbRPCProtocol) initTraceId(ctx *context.Context) {
+	traceId := hp.traceId
 
-	if logID == 0 {
+	if traceId == "" {
 		if ctx.ReqContext != nil {
-			logID, _ = strconv.ParseInt(ctx.ReqContext.GetLogID(), 10, 64)
+			traceId = ctx.ReqContext.GetTraceId()
 		}
 	}
 
-	if logID == 0 {
-		logID = produce.NewLogIDInt()
+	if traceId == "" {
+		traceId = gutils.GenerateTraceId()
 	}
 
-	hp.logID, ctx.LogID = logID, logID
-	hp.originReq.Data.SetLogId(logID)
+	hp.traceId, ctx.TraceID = traceId, traceId
+	hp.originReq.Data.SetTraceId(traceId)
 }
 
 // Do 执行
-func (hp *PbRPCProtocol) Do(ctx *context.Context, addr *service.Addr) (rsp *Response, err error) {
+func (hp *PbRPCProtocol) Do(ctx *context.Context, addr string) (rsp *Response, err error) {
 	conn, err := hp.getClient(ctx, addr)
 	if err != nil {
 		return nil, err
@@ -83,7 +79,7 @@ func (hp *PbRPCProtocol) Do(ctx *context.Context, addr *service.Addr) (rsp *Resp
 		c := tcpool.Func{
 			Factory: func() (interface{}, error) {
 				d := net.Dialer{Timeout: hp.serv.GetConnTimeout()}
-				return d.Dial("tcp", addr.String())
+				return d.Dial("tcp", addr)
 			},
 			Close: func(v interface{}) error { return v.(net.Conn).Close() },
 		}
@@ -97,7 +93,7 @@ func (hp *PbRPCProtocol) Do(ctx *context.Context, addr *service.Addr) (rsp *Resp
 	if err != nil {
 		return nil, err
 	}
-	originRsp := pbrpc.NewPackage()
+	originRsp := grpcx.NewPackage()
 	if err := originRsp.ReadIO(conn); err != nil {
 		return nil, err
 	}
@@ -115,16 +111,14 @@ func (hp *PbRPCProtocol) Do(ctx *context.Context, addr *service.Addr) (rsp *Resp
 	return
 }
 
-func (hp *PbRPCProtocol) getClient(ctx *context.Context, addr *service.Addr) (conn net.Conn, err error) {
+func (hp *PbRPCProtocol) getClient(ctx *context.Context, addr string) (conn net.Conn, err error) {
 	url := ""
-	if hp.originReq.CustomHost != "" {
-		url = fmt.Sprintf("%s:%d", hp.originReq.CustomHost, hp.originReq.CustomPort)
-		ctx.CurRecord().IDC = "custom"
+	if hp.originReq.CustomAddr != "" {
+		url = fmt.Sprintf("%s", hp.originReq.CustomAddr)
 		ctx.CurRecord().Host = url
 	} else {
-		url = addr.String()
-		ctx.CurRecord().IDC = addr.IDC
-		ctx.CurRecord().Host = addr.GetHostName()
+		url = addr
+		ctx.CurRecord().Host = addr
 	}
 
 	ctx.CurRecord().IPPort = url

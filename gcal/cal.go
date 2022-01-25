@@ -1,20 +1,17 @@
-// Package cal 提供了一个支持多种交互协议和打包格式的扩展包。RAL规定了
+// Package gcal 提供了一个支持多种交互协议和打包格式的扩展包。RAL规定了
 // 一套高度抽象的交互过程规范，将整个后端交互过程分成了交互协议和数据打
 // 包/解包两大块，可以支持一些常用的后端交互协议，标准化协议扩充的开发过程，
-// 促进代码复用。
-//
-package cal
+// 促进代码复用
+package gcal
 
 import (
 	"fmt"
+	"github.com/layasugar/laya/gcal/context"
+	"github.com/layasugar/laya/gcal/converter"
+	"github.com/layasugar/laya/gcal/protocol"
+	"github.com/layasugar/laya/gcal/service"
 	"reflect"
 	"strings"
-
-	"gitlab.xthktech.cn/bs/gxe/cal/balance"
-	"gitlab.xthktech.cn/bs/gxe/cal/context"
-	"gitlab.xthktech.cn/bs/gxe/cal/converter"
-	"gitlab.xthktech.cn/bs/gxe/cal/protocol"
-	"gitlab.xthktech.cn/bs/gxe/cal/service"
 )
 
 // Cal 发送网络请求，并对象化返回数据
@@ -29,12 +26,9 @@ import (
 func Cal(serviceName string, request interface{}, response interface{}, converterType ConverterType) (err error) {
 	ctx := context.NewContext()
 	ctx.ServiceName = serviceName
-	ctx.Caller = "CAL"
+	ctx.Caller = "GCAL"
 	serv, _ := service.GetService(serviceName)
 	if serv == nil {
-		err := fmt.Errorf("can't find service %s, may be load failed", serviceName)
-		ctx.CurRecord().Error = err
-		ctx.FlushLog()
 		return err
 	}
 
@@ -43,17 +37,8 @@ func Cal(serviceName string, request interface{}, response interface{}, converte
 
 // calWithService 跳过service查找过程
 func calWithService(ctx *context.Context, serv service.Service, request interface{}, response interface{}, converterType ConverterType) (err error) {
-	defer ctx.FlushLog()
 	ctx.TimeStatisStart("cost")
 	ctx.ServiceName = serv.GetName()
-	bala, _ := balance.GetBalance(serv.GetStrategy())
-	if bala == nil {
-		err = fmt.Errorf("can't find balance %s, use default strategy", serv.GetStrategy())
-		ctx.CurRecord().Error = err
-		bala = balance.GetDefaultBalance()
-	}
-
-	ctx.BalanceName = bala.Name()
 
 	retry := serv.GetRetry()
 	if retry < 0 {
@@ -62,7 +47,6 @@ func calWithService(ctx *context.Context, serv service.Service, request interfac
 
 	ctx.MaxTry = retry
 
-	var addr *service.Addr
 	var rsp *protocol.Response
 	for i := 0; i < retry+1; i++ {
 		proto, err := protocol.NewProtocol(ctx, serv, request)
@@ -76,15 +60,8 @@ func calWithService(ctx *context.Context, serv service.Service, request interfac
 			ctx.TimeStatisStart("cost")
 		}
 		ctx.CurRecord().RecordTimePoint("req_start_time")
-		addr, err = bala.FetchServer(serv)
-		if err != nil {
-			ctx.CurRecord().Error = err
-			ctx.TimeStatisStop("cost")
-			return err
-		}
-
 		ctx.CurRecord().RecordTimePoint("talk_start_time")
-		rsp, err = proto.Do(ctx, addr)
+		rsp, err = proto.Do(ctx, serv.GetAddr())
 		ctx.TimeStatisStop("cost")
 		if err == nil {
 			break
@@ -93,7 +70,6 @@ func calWithService(ctx *context.Context, serv service.Service, request interfac
 		ctx.NextRecord()
 	}
 
-	// 请求失败了
 	if err != nil {
 		return
 	}

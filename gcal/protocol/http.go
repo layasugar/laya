@@ -2,6 +2,12 @@ package protocol
 
 import (
 	"fmt"
+	"github.com/layasugar/laya/gcal/context"
+	"github.com/layasugar/laya/gcal/converter"
+	"github.com/layasugar/laya/gcal/service"
+	"github.com/layasugar/laya/glogs"
+	"github.com/layasugar/laya/gutils"
+	"github.com/layasugar/laya/gversion"
 	"io"
 	"io/ioutil"
 	"net"
@@ -11,42 +17,31 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"gitlab.xthktech.cn/bs/gxe/cal/context"
-	"gitlab.xthktech.cn/bs/gxe/cal/converter"
-	"gitlab.xthktech.cn/bs/gxe/cal/service"
-	"gitlab.xthktech.cn/bs/gxe/utils/produce"
-	"gitlab.xthktech.cn/bs/gxe/version"
 )
 
-// UA just a flag
-const UA = "CAL/" + version.VERSION + " (gxe cal http client)"
+const UA = "GCAL/" + gversion.VERSION + " (laya gcal http client)"
 const HttpClientAlive time.Duration = 5 * time.Minute
 
-// HTTPRequest http requst 对象，cal.Cal 函数必须传递这个类型的变量
+// HTTPRequest http requst 对象，gcal.Cal 函数必须传递这个类型的变量
 type HTTPRequest struct {
-	CustomHost string
-	CustomPort int
+	CustomAddr string
 
-	// TODO http.Header
 	Header      map[string][]string
 	Method      string
 	Body        interface{}
 	Path        string
 	QueryParams url.Values
-	LogID       string
+	TraceId     string
 
 	Converter converter.ConverterType
-
-	Ctx context.RequestContext
+	Ctx       context.RequestContext
 }
 
 // HTTPHead HTTPResponse，兼容历史
 type HTTPHead struct {
-	Status     string
-	StatusCode int
-	Proto      string
-	// TODO http.Header
+	Status        string
+	StatusCode    int
+	Proto         string
 	Header        map[string][]string
 	ContentLength int64
 }
@@ -55,7 +50,7 @@ type HTTPHead struct {
 type HTTPProtocol struct {
 	protocol string
 	serv     service.Service
-	logID    string
+	traceId  string
 
 	originReq *HTTPRequest
 	RawReq    *http.Request
@@ -69,20 +64,19 @@ func (hp *HTTPProtocol) Protocol() string {
 
 // initLogID 生成logID
 func (hp *HTTPProtocol) initLogID(ctx *context.Context) {
-	logID := hp.originReq.LogID
+	traceId := hp.originReq.TraceId
 
-	if logID == "" {
+	if traceId == "" {
 		if ctx.ReqContext != nil {
-			logID = ctx.ReqContext.GetLogID()
+			traceId = ctx.ReqContext.GetTraceId()
 		}
 	}
 
-	if logID == "" {
-		//直接随机生成
-		logID = produce.NewLogID()
+	if traceId == "" {
+		traceId = gutils.GenerateTraceId()
 	}
 
-	hp.logID, ctx.LogID = logID, logID
+	hp.traceId, ctx.TraceID = traceId, traceId
 }
 
 // NewHTTPProtocol 创建一个 Http Protocol
@@ -149,8 +143,8 @@ func NewHTTPProtocol(ctx *context.Context, serv service.Service, req *HTTPReques
 		return nil, err
 	}
 
-	hp.RawReq.Header.Set(commonHeaders[service.HeaderLogIDKey], hp.logID)
-	delete(commonHeaders, service.HeaderLogIDKey)
+	hp.RawReq.Header.Set(commonHeaders[glogs.RequestIDName], hp.traceId)
+	delete(commonHeaders, glogs.RequestIDName)
 
 	// 优先使用用户配置 Host
 	if hosts := req.Header["Host"]; len(hosts) > 0 {
@@ -171,30 +165,27 @@ func NewHTTPProtocol(ctx *context.Context, serv service.Service, req *HTTPReques
 }
 
 // Do 发送请求
-func (hp *HTTPProtocol) Do(ctx *context.Context, addr *service.Addr) (rsp *Response, err error) {
+func (hp *HTTPProtocol) Do(ctx *context.Context, addr string) (rsp *Response, err error) {
 	var host string
-	if hp.originReq.CustomHost != "" {
-		host = fmt.Sprintf("%s:%d", hp.originReq.CustomHost, hp.originReq.CustomPort)
-		ctx.CurRecord().IDC = "custom"
+	if hp.originReq.CustomAddr != "" {
+		host = fmt.Sprintf("%s", hp.originReq.CustomAddr)
 	} else {
-		host = addr.String()
-		ctx.CurRecord().IDC = addr.IDC
+		host = addr
 	}
 	ctx.CurRecord().IPPort = host
 
 	path := hp.originReq.Path
-	// 天路
-	if path == "" {
-		path = addr.Path
-	}
-
 	if len(hp.originReq.QueryParams) > 0 {
-		// 不接受又是path有参数又设置get参数的行为
 		path += "?"
 		path += hp.originReq.QueryParams.Encode()
 	}
+	var fullPath string
+	if path == "" {
+		fullPath = fmt.Sprintf("%s://%s", hp.Protocol(), addr)
+	} else {
+		fullPath = fmt.Sprintf("%s://%s/%s", hp.Protocol(), addr, path)
+	}
 
-	fullPath := fmt.Sprintf("%s://%s/%s", hp.Protocol(), host, path)
 	u, err := url.Parse(fullPath)
 	if err != nil {
 		return nil, err
@@ -204,25 +195,11 @@ func (hp *HTTPProtocol) Do(ctx *context.Context, addr *service.Addr) (rsp *Respo
 
 	hp.RawReq.URL = u
 	if hp.RawReq.Host == "" {
-		hp.RawReq.Host = u.Host // BNS或者用户没有设置
+		hp.RawReq.Host = u.Host
 	}
 
 	ctx.CurRecord().Host = hp.RawReq.Host
 
-	//GetConn为从域名解析开始算起，connectStart为对目标地址的ip发起连接请求，
-	//write时间计算方法为连接建立完毕到wirte request结束，这个不太准确
-	//其中部分行为可能会执行多次，这里只记录最后一次的
-
-	// +---------+-----------+----------+---------------+--------------+----------+----------------+---------------+-----------------------+---------------------+--------------+
-	// |         |           |          |               |              |          |                |               |                       |                     |              |
-	// | GetConn |  DNSStart |  DNSDone |  ConnectStart |  ConnectDone |  GotConn |  WroteHeaders  |  WroteRequest |  GotFirstResponseByte |  GotAllResponseByte | CloseConnect |
-	// |         |           |          |               |              |          |                |               |                       |                     |              |
-	// +---------+-----------+----------+---------------+--------------+----------+----------------+---------------+-----------------------+---------------------+--------------+
-	// |<-----------------------------connect------------------------------------>|
-	// 																		      |<-------------write------------>|
-	// 																											   |<---------------------read------------------>|
-	// |<--------------------------------------------------------------------------talk------------------------------------------------------------------------->|
-	// |<--------------------------------------------------------------------------------cost---------------------------------------------------------------------------------->|
 	trace := &httptrace.ClientTrace{
 		GetConn: func(hostport string) {
 			ctx.TimeStatisStart("connect")
@@ -332,24 +309,9 @@ func (hp *HTTPProtocol) getClient(ctx *context.Context) (client *http.Client, er
 // DefaultHTTPClientFactory 默认的 http client factory
 var DefaultHTTPClientFactory = func(serv service.Service) (cli *http.Client, err error) {
 	var proxyURL *url.URL
-	var proxy string
-
-	if serv.GetHTTPProxy() != "" {
-		proxy = serv.GetHTTPProxy()
-	} else if serv.GetHTTPSProxy() != "" {
-		proxy = serv.GetHTTPSProxy()
-	}
-	if proxy != "" {
-		proxyURL, err = url.Parse(proxy)
-		if err != nil {
-			return nil, err
-		}
-	}
 
 	perHost := -1
 	if serv.GetReuse() {
-		// 如果不加这个，每发一个请求会产生一个gorouter，85秒后回收
-		// 见 $GOROOT/src/net/http/transport.goa line :765
 		perHost = 2
 	}
 
@@ -359,7 +321,6 @@ var DefaultHTTPClientFactory = func(serv service.Service) (cli *http.Client, err
 			DialContext: (&net.Dialer{
 				Timeout:   serv.GetConnTimeout(), //连接超时时间
 				KeepAlive: 30 * time.Second,
-				DualStack: true,
 			}).DialContext,
 			MaxIdleConnsPerHost:   perHost,
 			TLSHandshakeTimeout:   10 * time.Second,

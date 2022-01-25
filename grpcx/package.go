@@ -1,18 +1,11 @@
-/*
- * Copyright 2020 The xthktech. All rights reserved.
- * @Author: zhanglei
- * @Date: 2018-09-19
- *
- * PbRPC协议数据包格式处理
- */
-
-package pbrpc
+package grpcx
 
 import (
 	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
+	pbrpc "github.com/layasugar/laya/grpcx/pbrpc"
 	"io"
 	"log"
 
@@ -73,27 +66,27 @@ messsage ChunkInfo {
 */
 type Package struct {
 	Header     Header
-	Meta       RpcMeta
+	Meta       pbrpc.RpcMeta
 	Data       []byte
 	Attachment []byte
 }
 
 func NewPackage() *Package {
 	pkg := &Package{}
-	pkg.Meta.Request = &RpcRequestMeta{}
-	pkg.Meta.Response = &RpcResponseMeta{}
+	pkg.Meta.Request = &pbrpc.Request{}
+	pkg.Meta.Response = &pbrpc.Response{}
 	return pkg
 }
 
 func NewRequestPackage() *Package {
 	pkg := &Package{}
-	pkg.Meta.Request = &RpcRequestMeta{}
+	pkg.Meta.Request = &pbrpc.Request{}
 	return pkg
 }
 
 func NewResponsePackage() *Package {
 	pkg := &Package{}
-	pkg.Meta.Response = &RpcResponseMeta{}
+	pkg.Meta.Response = &pbrpc.Response{}
 	return pkg
 }
 
@@ -117,22 +110,22 @@ func (r *Package) SetAttachment(Attachment []byte) *Package {
 }
 
 func (r *Package) SetServiceName(serviceName string) *Package {
-	r.Meta.Request.ServiceName = proto.String(serviceName)
+	r.Meta.Request.ServiceName = *proto.String(serviceName)
 	return r
 }
 
 func (r *Package) SetMethodName(methodName string) *Package {
-	r.Meta.Request.MethodName = proto.String(methodName)
+	r.Meta.Request.MethodName = *proto.String(methodName)
 	return r
 }
 
-func (r *Package) SetLogId(logId int64) *Package {
-	r.Meta.Request.LogId = proto.Int64(logId)
+func (r *Package) SetTraceId(traceId string) *Package {
+	r.Meta.Request.TraceId = *proto.String(traceId)
 	return r
 }
 
-func (r *Package) GetLogId() int64 {
-	return r.Meta.Request.GetLogId()
+func (r *Package) GetTraceId() string {
+	return r.Meta.Request.GetTraceId()
 }
 
 func (r *Package) SetCorrelationId(correlationId int64) *Package {
@@ -156,14 +149,14 @@ func (r *Package) SetErrorCode(errorCode int32) *Package {
 }
 
 func (r *Package) SetErrorText(errorText string) *Package {
-	r.Meta.Response.ErrorText = proto.String(errorText)
+	r.Meta.Response.ErrorMsg = proto.String(errorText)
 	return r
 }
 
 func (r *Package) SetChunkInfo(streamId int64, chunkId int64) *Package {
-	r.Meta.ChunkInfo = &ChunkInfo{
-		StreamId: proto.Int64(streamId),
-		ChunkId:  proto.Int64(chunkId),
+	r.Meta.ChunkInfo = &pbrpc.ChunkInfo{
+		StreamId: *proto.Int64(streamId),
+		ChunkId:  *proto.Int64(chunkId),
 	}
 	return r
 }

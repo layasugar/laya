@@ -4,18 +4,15 @@ package protocol
 import (
 	"fmt"
 
-	"gitlab.xthktech.cn/bs/gxe/cal/context"
-	"gitlab.xthktech.cn/bs/gxe/cal/service"
+	"github.com/layasugar/laya/gcal/context"
+	"github.com/layasugar/laya/gcal/service"
 )
 
 // Protocoler 协议的接口
 // 协议本身只完成数据请求
 type Protocoler interface {
-	Do(ctx *context.Context, addr *service.Addr) (*Response, error)
+	Do(ctx *context.Context, addr string) (*Response, error)
 	Protocol() string
-
-	//NewContext(service.Service, CalRequst) (*Context, error)
-	//DoRequest(service.Service, interface{}, *context.Context) (Response, error)
 }
 
 var (

@@ -1,19 +1,10 @@
-/**
-* @file client.go
-* @desc
-* @author chenxiaonan01 (zhanglei)
-* @version 1.0
-* @date 2018-09-03
- */
-
-package cal
+package gcal
 
 import (
 	"fmt"
+	"github.com/layasugar/laya/gcal/context"
+	"github.com/layasugar/laya/gcal/service"
 	"time"
-
-	"gitlab.xthktech.cn/bs/gxe/cal/context"
-	"gitlab.xthktech.cn/bs/gxe/cal/service"
 )
 
 type client struct {
@@ -42,18 +33,10 @@ func (c *client) Do(request interface{}, response interface{}, converterType Con
 		return c.err
 	}
 	ctx := context.NewContext()
-	ctx.Caller = "CAL"
+	ctx.Caller = "GCAL"
 
 	c.err = calWithService(ctx, c.serv, request, response, converterType)
 	return c.err
-}
-
-// GetIDC 得到IDC
-func (c *client) GetIDC() string {
-	if c.err != nil {
-		return ""
-	}
-	return c.serv.GetIDC()
 }
 
 func (c *client) setPrepare() {
@@ -63,24 +46,12 @@ func (c *client) setPrepare() {
 	}
 }
 
-// SetIDC 设置IDC
-func (c *client) SetIDC(idc string) *client {
-	if c.err != nil {
-		return c
-	}
-
-	c.setPrepare()
-
-	c.err = c.serv.SetIDC(idc)
-	return c
-}
-
 // GetProtocol 得到 protocol
 func (c *client) GetProtocol() string {
 	if c.err != nil {
 		return ""
 	}
-	return c.serv.GetCalConf().Protocol
+	return c.serv.GetConf().Protocol
 }
 
 // SetProtocol 设置 Protocol
@@ -89,25 +60,7 @@ func (c *client) SetProtocol(p string) *client {
 		return c
 	}
 	c.setPrepare()
-	c.serv.GetCalConf().Protocol = p
-	return c
-}
-
-// GetStrategy 得到 strategy
-func (c *client) GetStrategy() string {
-	if c.err != nil {
-		return ""
-	}
-	return c.serv.GetCalConf().Strategy
-}
-
-// SetStrategy 设置 strategy
-func (c *client) SetStrategy(s string) *client {
-	if c.err != nil {
-		return c
-	}
-	c.setPrepare()
-	c.serv.GetCalConf().Strategy = s
+	c.serv.GetConf().Protocol = p
 	return c
 }
 
@@ -116,7 +69,7 @@ func (c *client) GetRetry() int {
 	if c.err != nil {
 		return 0
 	}
-	return c.serv.GetCalConf().GetRetry()
+	return c.serv.GetConf().GetRetry()
 }
 
 // SetRetry 设置 retry
@@ -125,7 +78,7 @@ func (c *client) SetRetry(retry int) *client {
 		return c
 	}
 	c.setPrepare()
-	c.serv.GetCalConf().Retry = retry
+	c.serv.GetConf().Retry = retry
 	return c
 }
 
@@ -134,7 +87,7 @@ func (c *client) GetReuse() bool {
 	if c.err != nil {
 		return false
 	}
-	return c.serv.GetCalConf().Reuse
+	return c.serv.GetConf().Reuse
 }
 
 // SetReuse 设置 是否复用连接
@@ -143,7 +96,7 @@ func (c *client) SetReuse(doReuse bool) *client {
 		return c
 	}
 	c.setPrepare()
-	c.serv.GetCalConf().Reuse = doReuse
+	c.serv.GetConf().Reuse = doReuse
 	return c
 }
 
@@ -152,7 +105,7 @@ func (c *client) GetConnTimeOut() time.Duration {
 	if c.err != nil {
 		return 0
 	}
-	return c.serv.GetCalConf().ConnTimeOut
+	return c.serv.GetConf().ConnTimeOut
 }
 
 // SetConnTimeOut 设置连接超时
@@ -161,7 +114,7 @@ func (c *client) SetConnTimeOut(ct time.Duration) *client {
 		return c
 	}
 	c.setPrepare()
-	c.serv.GetCalConf().ConnTimeOut = ct
+	c.serv.GetConf().ConnTimeOut = ct
 
 	return c
 }
@@ -171,7 +124,7 @@ func (c *client) GetReadTimeOut() time.Duration {
 	if c.err != nil {
 		return 0
 	}
-	return c.serv.GetCalConf().ReadTimeOut
+	return c.serv.GetConf().ReadTimeOut
 }
 
 // SetReadTimeOut 设置读超时
@@ -180,7 +133,7 @@ func (c *client) SetReadTimeOut(ct time.Duration) *client {
 		return c
 	}
 	c.setPrepare()
-	c.serv.GetCalConf().ReadTimeOut = ct
+	c.serv.GetConf().ReadTimeOut = ct
 
 	return c
 }
@@ -190,7 +143,7 @@ func (c *client) GetWriteTimeOut() time.Duration {
 	if c.err != nil {
 		return 0
 	}
-	return c.serv.GetCalConf().WriteTimeOut
+	return c.serv.GetConf().WriteTimeOut
 }
 
 // SetWriteTimeOut 设置写超时
@@ -199,7 +152,7 @@ func (c *client) SetWriteTimeOut(ct time.Duration) *client {
 		return c
 	}
 	c.setPrepare()
-	c.serv.GetCalConf().WriteTimeOut = ct
+	c.serv.GetConf().WriteTimeOut = ct
 
 	return c
 }

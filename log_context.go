@@ -7,9 +7,9 @@ import (
 
 // LoggerContext 包含链路, 日志, 告警
 type LoggerContext interface {
-	Info(template string, args ...interface{})
-	Warn(template string, args ...interface{})
-	Error(template string, args ...interface{})
+	Infof(template string, args ...interface{})
+	Warnf(template string, args ...interface{})
+	Errorf(template string, args ...interface{})
 
 	// Alarm 告警
 	Alarm(msg interface{})
@@ -20,15 +20,15 @@ type LoggerContext interface {
 	StartSpanParent()
 }
 
-func (ctx *LogContext) Info(template string, args ...interface{}) {
+func (ctx *LogContext) Infof(template string, args ...interface{}) {
 	glogs.Info(ctx.req, template, args...)
 }
 
-func (ctx *LogContext) Warn(template string, args ...interface{}) {
+func (ctx *LogContext) Warnf(template string, args ...interface{}) {
 	glogs.Warn(ctx.req, template, args...)
 }
 
-func (ctx *LogContext) Error(template string, args ...interface{}) {
+func (ctx *LogContext) Errorf(template string, args ...interface{}) {
 	glogs.Error(ctx.req, template, args...)
 }
 

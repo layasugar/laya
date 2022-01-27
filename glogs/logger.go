@@ -4,8 +4,8 @@ package glogs
 
 import (
 	"fmt"
-	rl "github.com/layasugar/laya/glogs/logger"
 	"github.com/layasugar/laya/genv"
+	rl "github.com/layasugar/laya/glogs/logger"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"io"
@@ -16,10 +16,9 @@ import (
 )
 
 const (
-	DefaultChildPath    = "glogs/%Y-%m-%d.logger" // 默认子目录
-	DefaultRotationSize = 128 * 1024 * 1024       // 默认大小为128M
-	DefaultRotationTime = 24 * time.Hour          // 默认每天轮转一次
-	DefaultNoBuffWrite  = false                   // 默认不开启无缓冲写入
+	DefaultChildPath    = "glogs/%Y-%m-%d.log" // 默认子目录
+	DefaultRotationSize = 128 * 1024 * 1024    // 默认大小为128M
+	DefaultRotationTime = 24 * time.Hour       // 默认每天轮转一次
 
 	LevelInfo  = "info"
 	LevelWarn  = "warn"
@@ -29,10 +28,9 @@ const (
 var (
 	Sugar *zap.Logger
 
-	RequestIDName    = "x-b3-traceid"
+	RequestIDName    = "request_id"
 	HeaderAppName    = "app-name"
 	KeyPath          = "path"
-	KeyTitle         = "title"
 	KeyOriginAppName = "origin_app_name"
 )
 
@@ -44,7 +42,6 @@ type Config struct {
 	childPath     string        // 日志子路径+文件名
 	RotationSize  int64         // 单个文件大小
 	RotationCount uint          // 可以保留的文件个数
-	NoBuffWrite   bool          // 设置无缓冲日志写入
 	RotationTime  time.Duration // 日志分割的时间
 	MaxAge        time.Duration // 日志最大保留的天数
 }
@@ -59,7 +56,6 @@ func getSugar() *zap.Logger {
 			childPath:     DefaultChildPath,
 			RotationSize:  DefaultRotationSize,
 			RotationCount: genv.LogMaxCount(),
-			NoBuffWrite:   DefaultNoBuffWrite,
 			RotationTime:  DefaultRotationTime,
 			MaxAge:        genv.LogMaxAge(),
 		}
@@ -105,17 +101,17 @@ func InitSugar(lc *Config) *zap.Logger {
 
 func Info(r *http.Request, template string, args ...interface{}) {
 	msg, fields := dealWithArgs(template, args...)
-	writer(r, LevelInfo, msg, LevelInfo, fields...)
+	writer(r, LevelInfo, msg, fields...)
 }
 
 func Warn(r *http.Request, template string, args ...interface{}) {
 	msg, fields := dealWithArgs(template, args...)
-	writer(r, LevelWarn, msg, LevelWarn, fields...)
+	writer(r, LevelWarn, msg, fields...)
 }
 
 func Error(r *http.Request, template string, args ...interface{}) {
 	msg, fields := dealWithArgs(template, args...)
-	writer(r, LevelError, msg, LevelError, fields...)
+	writer(r, LevelError, msg, fields...)
 }
 
 func dealWithArgs(tmp string, args ...interface{}) (msg string, f []zap.Field) {
@@ -131,9 +127,8 @@ func dealWithArgs(tmp string, args ...interface{}) (msg string, f []zap.Field) {
 	return
 }
 
-func writer(r *http.Request, level, msg string, title string, fields ...zap.Field) {
+func writer(r *http.Request, level, msg string, fields ...zap.Field) {
 	if r == nil {
-		fields = append(fields, zap.String(KeyTitle, title))
 		switch level {
 		case LevelInfo:
 			getSugar().Info(msg, fields...)
@@ -150,7 +145,6 @@ func writer(r *http.Request, level, msg string, title string, fields ...zap.Fiel
 	path := r.RequestURI
 	fields = append(fields, zap.String(KeyPath, path),
 		zap.String(RequestIDName, requestID),
-		zap.String(KeyTitle, title),
 		zap.String(KeyOriginAppName, originAppName))
 
 	switch level {
@@ -190,15 +184,11 @@ func GetWriter(filename string, lc *Config) io.Writer {
 	// demo.log是指向最新日志的连接
 	// 保存7天内的日志，每1小时(整点)分割一第二天志
 	var options []rl.Option
-	if lc.NoBuffWrite {
-		options = append(options, rl.WithNoBuffer())
-	}
 	options = append(options,
 		rl.WithRotationSize(lc.RotationSize),
 		rl.WithRotationCount(lc.RotationCount),
 		rl.WithRotationTime(lc.RotationTime),
-		rl.WithMaxAge(lc.MaxAge),
-		rl.ForceNewFile())
+		rl.WithMaxAge(lc.MaxAge))
 
 	hook, err := rl.New(
 		filename,
@@ -210,6 +200,8 @@ func GetWriter(filename string, lc *Config) io.Writer {
 	}
 	return hook
 }
+
+type Field = zap.Field
 
 func String(key string, value interface{}) zap.Field {
 	v := fmt.Sprintf("%v", value)

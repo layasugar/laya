@@ -1,8 +1,8 @@
 package logger
 
 import (
-	"time"
 	"github.com/layasugar/laya/glogs/logger/option"
+	"time"
 )
 
 const (
@@ -14,7 +14,6 @@ const (
 	optkeyRotationSize  = "rotation-size"
 	optkeyRotationCount = "rotation-count"
 	optkeyForceNewFile  = "force-new-file"
-	optkeyNoBufferWrite = "no-buffer-write"
 )
 
 // WithClock creates a new Option that sets a clock
@@ -79,10 +78,6 @@ func WithRotationCount(n uint) Option {
 // Currently `FileRotated` event is supported
 func WithHandler(h Handler) Option {
 	return option.New(optkeyHandler, h)
-}
-
-func WithNoBuffer() Option {
-	return option.New(optkeyNoBufferWrite, true)
 }
 
 // ForceNewFile ensures a new file is created every time New()

@@ -146,6 +146,27 @@ func (app *App) registerEnv() {
 	}
 }
 
+// SetNoLogParams 设置不需要打印的路由
+func (app *App) SetNoLogParams(path ...string) {
+	for _, v := range path {
+		noLogParamsRules.NoLogParams[v] = v
+	}
+}
+
+// SetNoLogParamsPrefix 设置不需要打印入参和出参的路由前缀
+func (app *App) SetNoLogParamsPrefix(path ...string) {
+	for _, v := range path {
+		noLogParamsRules.NoLogParamsPrefix = append(noLogParamsRules.NoLogParamsPrefix, v)
+	}
+}
+
+// SetNoLogParamsSuffix 设置不需要打印的入参和出参的路由后缀
+func (app *App) SetNoLogParamsSuffix(path ...string) {
+	for _, v := range path {
+		noLogParamsRules.NoLogParamsSuffix = append(noLogParamsRules.NoLogParamsSuffix, v)
+	}
+}
+
 // WebServer 获取WebServer的指针
 func (app *App) WebServer() *WebServer {
 	return app.webServer
@@ -159,6 +180,8 @@ func (app *App) PbRPCServer() *PbRPCServer {
 // DefaultWebServerMiddlewares 默认的Http Server中间件
 // 其实应该保证TowerLogware 不panic，但是无法保证，多一个recovery来保证业务日志崩溃后依旧有访问日志
 var DefaultWebServerMiddlewares = []WebHandlerFunc{
+	LogParams,
+	SetTrace,
 	ginHandler2WebHandler(gin.Recovery()),
 	recovery,
 }

@@ -11,13 +11,11 @@ import (
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 )
 
@@ -46,7 +44,6 @@ func New(p string, options ...Option) (*RotateLogs, error) {
 	var maxAge time.Duration
 	var handler Handler
 	var forceNewFile bool
-	var noBuffer bool
 
 	for _, o := range options {
 		switch o.Name() {
@@ -75,8 +72,6 @@ func New(p string, options ...Option) (*RotateLogs, error) {
 			handler = o.Value().(Handler)
 		case optkeyForceNewFile:
 			forceNewFile = true
-		case optkeyNoBufferWrite:
-			noBuffer = true
 		}
 	}
 
@@ -120,35 +115,7 @@ func New(p string, options ...Option) (*RotateLogs, error) {
 		rotationCount: rotationCount,
 		forceNewFile:  forceNewFile,
 	}
-	if noBuffer {
-		rl.outFh = fileutil.GenerateDirectIO()
-
-		// 无缓冲需要定时30s刷新sync
-		ticker := time.NewTicker(30 * time.Second)
-		go func() {
-			for {
-				select {
-				case <-ticker.C:
-					rl.tickerSync()
-				}
-			}
-		}()
-
-		// 无缓冲需要信号处理
-		quit := make(chan os.Signal)
-		signal.Notify(quit, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-		go func() {
-			switch <-quit {
-			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGHUP:
-				ticker.Stop()
-				_ = rl.Close()
-				return
-			}
-		}()
-	} else {
-		rl.outFh = fileutil.GenerateBuffIO()
-	}
-
+	rl.outFh = fileutil.GenerateBuffIO()
 	return rl, nil
 }
 
@@ -214,13 +181,13 @@ func (rl *RotateLogs) getWriterNolock(bailOnRotateFail, useGenerationalNames boo
 				name = filename
 				rl.rotationFirst = true
 			} else {
-				if strings.HasSuffix(filename, ".logger") {
+				if strings.HasSuffix(filename, ".log") {
 					if !rl.rotationFirst {
 						generation++
 						rl.rotationFirst = true
 					}
 					tmpName := filename[:len(filename)-4]
-					newFileName := fmt.Sprintf("%s.%d.logger", tmpName, generation)
+					newFileName := fmt.Sprintf("%s.%d.log", tmpName, generation)
 					rl.outFh.Close()
 					err := os.Rename(filename, newFileName)
 					if err != nil {

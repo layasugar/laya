@@ -12,6 +12,10 @@ import (
 	"time"
 )
 
+const (
+	ZipkinHeaderKey = "x-b3-traceid"
+)
+
 // Tracer 引擎
 var Tracer *zipkin.Tracer
 

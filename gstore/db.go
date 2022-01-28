@@ -56,11 +56,11 @@ func InitDB(dsn string, logLevel string, DbCfgFunc ...DbConnFunc) *gorm.DB {
 
 	if cfg.gormCfg == nil {
 		cfg.gormCfg = &gorm.Config{
-			Logger: glogs.Default(glogs.Sugar, level),
+			Logger: glogs.Default(glogs.GetSugar(), level),
 		}
 	} else {
 		if cfg.gormCfg.Logger == nil {
-			cfg.gormCfg.Logger = glogs.Default(glogs.Sugar, level)
+			cfg.gormCfg.Logger = glogs.Default(glogs.GetSugar(), level)
 		}
 	}
 

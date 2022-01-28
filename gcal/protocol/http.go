@@ -143,8 +143,8 @@ func NewHTTPProtocol(ctx *context.Context, serv service.Service, req *HTTPReques
 		return nil, err
 	}
 
-	hp.RawReq.Header.Set(commonHeaders[glogs.RequestIDName], hp.traceId)
-	delete(commonHeaders, glogs.RequestIDName)
+	hp.RawReq.Header.Set(commonHeaders[glogs.RequestIdKey], hp.traceId)
+	delete(commonHeaders, glogs.RequestIdKey)
 
 	// 优先使用用户配置 Host
 	if hosts := req.Header["Host"]; len(hosts) > 0 {

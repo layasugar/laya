@@ -40,7 +40,7 @@ func (pbs *PbRPCServer) AddHandler(handlers ...PbRPCHandlerFunc) {
 func (pbs *PbRPCServer) connHandle(conn net.Conn) {
 	context := pbs.contextPool.Get().(*PbRPCContext)
 	context.conn = conn
-	context.LogContext = NewLogContext(context.req)
+	context.LogContext = NewLogContext(context.req, context.traceId)
 	for int(context.index) < len(pbs.handlers) {
 		pbs.handlers[context.index](context)
 		context.index++

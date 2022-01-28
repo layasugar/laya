@@ -55,3 +55,10 @@ func OnConfigCharge() {
 func RegisterConfigCharge(f ...func()) {
 	configChargeHandleFunc = append(configChargeHandleFunc, f...)
 }
+
+// LoadErrMsg 根据code加载提示信息
+func LoadErrMsg(code uint32) string {
+	key := fmt.Sprintf("err_code.%d", code)
+	s := V.GetString(key)
+	return s
+}

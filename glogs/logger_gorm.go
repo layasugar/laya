@@ -150,15 +150,15 @@ func gormWriter(ctx context.Context, level, msg string, fields ...zap.Field) {
 	}
 
 	requestID := c.String()
-	fields = append(fields, zap.String(RequestIDName, requestID), zap.String("title", sqlTitle))
+	fields = append(fields, zap.String(RequestIdKey, requestID), zap.String("title", sqlTitle))
 
 	switch level {
 	case LevelInfo:
-		getSugar().Info(msg, fields...)
+		GetSugar().Info(msg, fields...)
 	case LevelWarn:
-		getSugar().Warn(msg, fields...)
+		GetSugar().Warn(msg, fields...)
 	case LevelError:
-		getSugar().Error(msg, fields...)
+		GetSugar().Error(msg, fields...)
 	}
 
 	return

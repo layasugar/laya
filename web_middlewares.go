@@ -6,7 +6,6 @@ import (
 	"github.com/layasugar/laya/genv"
 	"github.com/layasugar/laya/glogs"
 	"github.com/layasugar/laya/gutils"
-	uuid "github.com/satori/go.uuid"
 	"io/ioutil"
 	"strings"
 )
@@ -85,17 +84,7 @@ func LogParams(ctx *WebContext) {
 
 // SetTrace 注入链路追踪 优先级 request_id > trace_id
 func SetTrace(ctx *WebContext) {
-	ctx.Header("Content-Type", "application/json; charset=utf-8")
-	requestID := ctx.GetHeader(glogs.RequestIDName)
-	if requestID == "" {
-		ctx.Request.Header.Set(glogs.RequestIDName, gutils.Md5(uuid.NewV4().String()))
-	}
+	span := glogs.StartSpanR(ctx.Request, ctx.Request.RequestURI)
 	ctx.Next()
-	//span := glogs.StartSpanR(ctx.Request, ctx.Request.RequestURI)
-	//if span != nil {
-	//	span.Tag(glogs.RequestIDName, ctx.GetHeader(glogs.RequestIDName))
-	//	_ = glogs.Inject(context.WithValue(context.Background(), glogs.GetSpanContextKey(), span.Context()), ctx.Request)
-	//	ctx.Next()
-	//	span.Finish()
-	//}
+	glogs.StopSpan(span)
 }

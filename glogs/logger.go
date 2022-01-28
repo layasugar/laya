@@ -16,22 +16,23 @@ import (
 )
 
 const (
-	DefaultChildPath    = "glogs/%Y-%m-%d.log" // 默认子目录
-	DefaultRotationSize = 128 * 1024 * 1024    // 默认大小为128M
-	DefaultRotationTime = 24 * time.Hour       // 默认每天轮转一次
+	defaultChildPath    = "glogs/%Y-%m-%d.log" // 默认子目录
+	defaultRotationSize = 128 * 1024 * 1024    // 默认大小为128M
+	defaultRotationTime = 24 * time.Hour       // 默认每天轮转一次
 
 	LevelInfo  = "info"
 	LevelWarn  = "warn"
 	LevelError = "error"
+
+	appNameKey       = "app-name"
+	pathKey          = "path"
+	originAppNameKey = "origin_app_name"
 )
 
 var (
-	Sugar *zap.Logger
+	sugar *zap.Logger
 
-	RequestIDName    = "request_id"
-	HeaderAppName    = "app-name"
-	KeyPath          = "path"
-	KeyOriginAppName = "origin_app_name"
+	RequestIdKey = "request_id"
 )
 
 type Config struct {
@@ -46,24 +47,24 @@ type Config struct {
 	MaxAge        time.Duration // 日志最大保留的天数
 }
 
-func getSugar() *zap.Logger {
-	if Sugar == nil {
+func GetSugar() *zap.Logger {
+	if sugar == nil {
 		cfg := Config{
 			appName:       genv.AppName(),
 			appMode:       genv.RunMode(),
 			logType:       genv.LogType(),
 			logPath:       genv.LogPath(),
-			childPath:     DefaultChildPath,
-			RotationSize:  DefaultRotationSize,
+			childPath:     defaultChildPath,
+			RotationSize:  defaultRotationSize,
 			RotationCount: genv.LogMaxCount(),
-			RotationTime:  DefaultRotationTime,
+			RotationTime:  defaultRotationTime,
 			MaxAge:        genv.LogMaxAge(),
 		}
 
-		Sugar = InitSugar(&cfg)
+		sugar = InitSugar(&cfg)
 	}
 
-	return Sugar
+	return sugar
 }
 
 func InitSugar(lc *Config) *zap.Logger {
@@ -131,29 +132,29 @@ func writer(r *http.Request, level, msg string, fields ...zap.Field) {
 	if r == nil {
 		switch level {
 		case LevelInfo:
-			getSugar().Info(msg, fields...)
+			GetSugar().Info(msg, fields...)
 		case LevelWarn:
-			getSugar().Warn(msg, fields...)
+			GetSugar().Warn(msg, fields...)
 		case LevelError:
-			getSugar().Error(msg, fields...)
+			GetSugar().Error(msg, fields...)
 		}
 		return
 	}
 
-	requestID := r.Header.Get(RequestIDName)
-	originAppName := r.Header.Get(HeaderAppName)
+	requestID := r.Header.Get(RequestIdKey)
+	originAppName := r.Header.Get(appNameKey)
 	path := r.RequestURI
-	fields = append(fields, zap.String(KeyPath, path),
-		zap.String(RequestIDName, requestID),
-		zap.String(KeyOriginAppName, originAppName))
+	fields = append(fields, zap.String(pathKey, path),
+		zap.String(RequestIdKey, requestID),
+		zap.String(originAppNameKey, originAppName))
 
 	switch level {
 	case LevelInfo:
-		getSugar().Info(msg, fields...)
+		GetSugar().Info(msg, fields...)
 	case LevelWarn:
-		getSugar().Warn(msg, fields...)
+		GetSugar().Warn(msg, fields...)
 	case LevelError:
-		getSugar().Error(msg, fields...)
+		GetSugar().Error(msg, fields...)
 	}
 	return
 }

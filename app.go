@@ -124,6 +124,11 @@ func (app *App) registerEnv() {
 	genv.SetLogMaxAge(gconf.V.GetInt("app.logger.max_age"))
 	genv.SetLogMaxCount(gconf.V.GetInt("app.logger.max_count"))
 
+	// trace
+	genv.SetTraceType(gconf.V.GetString("app.trace.type"))
+	genv.SetTraceAddr(gconf.V.GetString("app.trace.addr"))
+	genv.SetTraceMod(gconf.V.GetFloat64("app.trace.mod"))
+
 	// 初始化调用gcal
 	var services []map[string]interface{}
 	s := gconf.V.Get("services")

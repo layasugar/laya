@@ -1,19 +1,26 @@
 package genv
 
-import "time"
+import (
+	"github.com/layasugar/laya/gutils"
+	"time"
+)
 
 var (
-	envAppName          = "default-app"
-	envRunMode          = "debug"
-	envAppVersion       = "1.0.0"
-	envHttpListen       = "0.0.0.0:80"
-	envPbRpcListen      = "0.0.0.0:10082"
-	envAppUrl           = "http://127.0.0.1:80"
-	envParamLog         = true
-	envLogPath          = "/home/logs/app"
-	envLogType          = "console"
-	envLogMaxAge        = 7 * 24 * time.Hour
-	envLogMaxCount uint = 30
+	envAppName             = "default-app"
+	envRunMode             = "debug"
+	envAppVersion          = "1.0.0"
+	envHttpListen          = "0.0.0.0:80"
+	envPbRpcListen         = "0.0.0.0:10082"
+	envAppUrl              = "http://127.0.0.1:80"
+	envParamLog            = true
+	envLogPath             = "/home/logs/app"
+	envLogType             = "console"
+	envLogMaxAge           = 7 * 24 * time.Hour
+	envLogMaxCount uint    = 30
+	envTraceType           = ""
+	envTraceAddr           = ""
+	envTraceMod    float64 = 0
+	envLocalIP             = ""
 )
 
 // SetAppName 设置app名称
@@ -144,4 +151,41 @@ func SetLogMaxCount(count int) {
 // LogMaxCount 返回日志默认限制为30个
 func LogMaxCount() uint {
 	return envLogMaxCount
+}
+
+func SetTraceType(v string) {
+	envTraceType = v
+}
+
+func TraceType() string {
+	return envTraceType
+}
+
+func SetTraceAddr(v string) {
+	envTraceAddr = v
+}
+
+func TraceAddr() string {
+	return envTraceAddr
+}
+
+func SetTraceMod(v float64) {
+	envTraceMod = v
+}
+
+func TraceMod() float64 {
+	return envTraceMod
+}
+
+func LocalIP() string {
+	if envLocalIP == "" {
+		ips := gutils.GetLocalIPs()
+		if len(ips) > 0 {
+			envLocalIP = ips[0] + ":80"
+		} else {
+			envLocalIP = envHttpListen
+		}
+	}
+
+	return envLocalIP
 }

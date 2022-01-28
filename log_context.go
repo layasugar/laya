@@ -1,6 +1,7 @@
 package laya
 
 import (
+	"github.com/layasugar/laya/genv"
 	"github.com/layasugar/laya/glogs"
 	"net/http"
 )
@@ -15,10 +16,11 @@ type LoggerContext interface {
 	// Alarm 告警
 	Alarm(msg interface{})
 
-	// StopSpan StartSpan StartSpanParent 开启关闭链路子span
-	StopSpan()
-	StartSpan()
-	StartSpanParent()
+	// StartSpan StopSpan StartSpanP StartSpanR 开启,关闭,通过上级span开启span, 通过request开启span
+	StartSpan() glogs.Span
+	StopSpan(span glogs.Span)
+	StartSpanP(span glogs.Span, name string) glogs.Span
+	StartSpanR(name string) glogs.Span
 }
 
 func (ctx *LogContext) InfoF(template string, args ...interface{}) {
@@ -40,10 +42,13 @@ func (ctx *LogContext) Field(key string, value interface{}) glogs.Field {
 // Alarm 通知
 func (ctx *LogContext) Alarm(msg interface{}) {}
 
-// StopSpan StartSpan StartSpanParent 开启关闭链路子span
-func (ctx *LogContext) StopSpan()        {}
-func (ctx *LogContext) StartSpan()       {}
-func (ctx *LogContext) StartSpanParent() {}
+// StartSpan StopSpan StartSpanP StartSpanR 开启,关闭,通过上级span开启span, 通过request开启span
+func (ctx *LogContext) StartSpan() glogs.Span    { return glogs.StartSpan(genv.AppName()) }
+func (ctx *LogContext) StopSpan(span glogs.Span) { glogs.StopSpan(span) }
+func (ctx *LogContext) StartSpanP(span glogs.Span, name string) glogs.Span {
+	return glogs.StartSpanP(span.Context(), name)
+}
+func (ctx *LogContext) StartSpanR(name string) glogs.Span { return glogs.StartSpanR(ctx.req, name) }
 
 // LogContext logger
 type LogContext struct {
@@ -57,9 +62,11 @@ type LogContext struct {
 var _ LoggerContext = &LogContext{}
 
 // NewLogContext new obj
-func NewLogContext(req *http.Request) *LogContext {
+func NewLogContext(req *http.Request, traceId string) *LogContext {
 	ctx := &LogContext{
-		req: req,
+		req:      req,
+		traceId:  traceId,
+		clientIP: genv.LocalIP(),
 	}
 	return ctx
 }

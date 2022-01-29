@@ -62,8 +62,8 @@ func (hp *HTTPProtocol) Protocol() string {
 	return hp.protocol
 }
 
-// initLogID 生成logID
-func (hp *HTTPProtocol) initLogID(ctx *context.Context) {
+// initTraceID 生成logID
+func (hp *HTTPProtocol) initTraceID(ctx *context.Context) {
 	traceId := hp.originReq.TraceId
 
 	if traceId == "" {
@@ -91,7 +91,7 @@ func NewHTTPProtocol(ctx *context.Context, serv service.Service, req *HTTPReques
 	}
 
 	ctx.ReqContext = req.Ctx
-	hp.initLogID(ctx)
+	hp.initTraceID(ctx)
 	ctx.Method = strings.ToLower(req.Method)
 
 	hp.RawReq = &http.Request{
@@ -102,8 +102,6 @@ func NewHTTPProtocol(ctx *context.Context, serv service.Service, req *HTTPReques
 		Header:     req.Header,
 		Body:       http.NoBody,
 		GetBody:    func() (io.ReadCloser, error) { return http.NoBody, nil },
-		// URL:        u,
-		// Host:       u.Host,
 	}
 	if hp.RawReq.Header == nil {
 		hp.RawReq.Header = make(http.Header)
@@ -137,29 +135,15 @@ func NewHTTPProtocol(ctx *context.Context, serv service.Service, req *HTTPReques
 	}
 
 	ctx.ReqLen = hp.RawReq.ContentLength
-
-	commonHeaders, err := serv.HeaderInfo()
-	if err != nil {
-		return nil, err
-	}
-
-	hp.RawReq.Header.Set(commonHeaders[glogs.RequestIdKey], hp.traceId)
-	delete(commonHeaders, glogs.RequestIdKey)
-
-	// 优先使用用户配置 Host
-	if hosts := req.Header["Host"]; len(hosts) > 0 {
-		hp.RawReq.Host = hosts[0]
-	} else if host, ok := commonHeaders["Host"]; ok {
-		// 使用BNS的 Host
-		hp.RawReq.Host = host
-		// TODO context log
-		delete(commonHeaders, "Host")
-	}
+	hp.RawReq.Header.Set(glogs.RequestIdKey, hp.traceId)
 
 	// If the user doesn't set User-Agent, set the default User-Agent
 	if hp.RawReq.Header.Get("User-Agent") == "" {
 		hp.RawReq.Header.Set("User-Agent", UA)
 	}
+
+	// 注入链路
+	ctx.
 
 	return
 }

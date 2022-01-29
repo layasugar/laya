@@ -118,11 +118,6 @@ func (rc *Config) GetConf() *Config {
 	return rc
 }
 
-// HeaderInfo 头信息
-func (rc *Config) HeaderInfo(extra ...interface{}) (map[string]string, error) {
-	return map[string]string{}, nil
-}
-
 type Service interface {
 	GetConf() *Config
 	Clone() *Config
@@ -136,5 +131,4 @@ type Service interface {
 	GetProtocol() string
 	GetRetry() int
 	GetReuse() bool
-	HeaderInfo(extra ...interface{}) (map[string]string, error)
 }

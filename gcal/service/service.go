@@ -47,7 +47,7 @@ func LoadService(cfg []map[string]interface{}) error {
 	for _, item := range cfg {
 		var addr string
 		var protocol string
-		as := strings.Split(item["addr"].(string), "//")
+		as := strings.Split(item["addr"].(string), "://")
 		if len(as) == 2 {
 			protocol = as[0]
 			addr = as[1]

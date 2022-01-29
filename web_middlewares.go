@@ -82,9 +82,9 @@ func LogParams(ctx *WebContext) {
 	}
 }
 
-// SetTrace 注入链路追踪 优先级 request_id > trace_id
+// SetTrace 开启链路追踪
 func SetTrace(ctx *WebContext) {
-	span := glogs.StartSpanR(ctx.Request, ctx.Request.RequestURI)
+	span := ctx.SpanStartByRequest(ctx.Request, ctx.Request.RequestURI)
 	ctx.Next()
-	glogs.StopSpan(span)
+	ctx.SpanFinish(span)
 }

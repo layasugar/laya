@@ -3,6 +3,7 @@ package protocol
 
 import (
 	"fmt"
+	"github.com/layasugar/laya/gcal/converter"
 
 	"github.com/layasugar/laya/gcal/context"
 	"github.com/layasugar/laya/gcal/service"
@@ -28,6 +29,9 @@ func NewProtocol(ctx *context.Context, serv service.Service, req interface{}) (p
 		tmp, ok := req.(HTTPRequest)
 		if !ok {
 			return nil, fmt.Errorf("%s: bad request type: %T", protocolName, req)
+		}
+		if tmp.Converter == "" {
+			tmp.Converter = converter.JSON
 		}
 		return NewHTTPProtocol(ctx, serv, &tmp, protocolName == "https")
 	}

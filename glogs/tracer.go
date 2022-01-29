@@ -47,13 +47,8 @@ func getTracer() (Tracer, error) {
 	return tracer, nil
 }
 
-func StopSpan(span Span) {
-	if span == nil {
-		return
-	}
-	span.Finish()
-}
-func StartSpan(name string) Span {
+// SpanStart 开启第一个span
+func SpanStart(name string) Span {
 	t, err := getTracer()
 	if err != nil {
 		return nil
@@ -64,7 +59,17 @@ func StartSpan(name string) Span {
 	}
 	return t.StartSpan(name)
 }
-func StartSpanP(ctx SpanContext, name string) Span {
+
+// SpanFinish span结束
+func SpanFinish(span Span) {
+	if span == nil {
+		return
+	}
+	span.Finish()
+}
+
+// SpanStartByParent 通过上级span创建span
+func SpanStartByParent(ctx SpanContext, name string) Span {
 	t, err := getTracer()
 	if err != nil {
 		return nil
@@ -75,7 +80,9 @@ func StartSpanP(ctx SpanContext, name string) Span {
 	}
 	return t.StartSpan(name, opentracing.FollowsFrom(ctx))
 }
-func StartSpanR(r *http.Request, name string) Span {
+
+// SpanStartByRequest 通过请求头创建span
+func SpanStartByRequest(r *http.Request, name string) Span {
 	t, err := getTracer()
 	if err != nil {
 		return nil
@@ -86,7 +93,17 @@ func StartSpanR(r *http.Request, name string) Span {
 	}
 	spanCtx, err := tracer.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(r.Header))
 	if err != nil {
-		log.Println(err.Error())
+		return SpanStart(name)
 	}
 	return tracer.StartSpan(name, ext.RPCServerOption(spanCtx))
+}
+
+// SpanInject 将span信息注入请求头
+func SpanInject(r *http.Request, span Span) {
+	if tracer != nil {
+		err := tracer.Inject(span.Context(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(r.Header))
+		if err != nil {
+			log.Printf("inject header err: %s", err.Error())
+		}
+	}
 }

@@ -13,14 +13,11 @@ type LoggerContext interface {
 	ErrorF(template string, args ...interface{})
 	Field(key string, value interface{}) glogs.Field
 
-	// Alarm 告警
-	Alarm(msg interface{})
-
-	// StartSpan StopSpan StartSpanP StartSpanR 开启,关闭,通过上级span开启span, 通过request开启span
-	StartSpan() glogs.Span
-	StopSpan(span glogs.Span)
-	StartSpanP(span glogs.Span, name string) glogs.Span
-	StartSpanR(name string) glogs.Span
+	// SpanStart StopSpan StartSpanP StartSpanR 开启,关闭,通过上级span开启span, 通过request开启span
+	SpanStart(name string) glogs.Span
+	SpanFinish(span glogs.Span)
+	SpanStartByParent(span glogs.Span, name string) glogs.Span
+	SpanStartByRequest(req *http.Request, name string) glogs.Span
 }
 
 func (ctx *LogContext) InfoF(template string, args ...interface{}) {
@@ -42,13 +39,15 @@ func (ctx *LogContext) Field(key string, value interface{}) glogs.Field {
 // Alarm 通知
 func (ctx *LogContext) Alarm(msg interface{}) {}
 
-// StartSpan StopSpan StartSpanP StartSpanR 开启,关闭,通过上级span开启span, 通过request开启span
-func (ctx *LogContext) StartSpan() glogs.Span    { return glogs.StartSpan(genv.AppName()) }
-func (ctx *LogContext) StopSpan(span glogs.Span) { glogs.StopSpan(span) }
-func (ctx *LogContext) StartSpanP(span glogs.Span, name string) glogs.Span {
-	return glogs.StartSpanP(span.Context(), name)
+// SpanStart SpanFinish SpanStartByParent SpanStartByRequest 开启,关闭,通过上级span开启span, 通过request开启span
+func (ctx *LogContext) SpanStart(name string) glogs.Span { return glogs.SpanStart(name) }
+func (ctx *LogContext) SpanFinish(span glogs.Span)       { glogs.SpanFinish(span) }
+func (ctx *LogContext) SpanStartByParent(span glogs.Span, name string) glogs.Span {
+	return glogs.SpanStartByParent(span.Context(), name)
 }
-func (ctx *LogContext) StartSpanR(name string) glogs.Span { return glogs.StartSpanR(ctx.req, name) }
+func (ctx *LogContext) SpanStartByRequest(req *http.Request, name string) glogs.Span {
+	return glogs.SpanStartByRequest(req, name)
+}
 
 // LogContext logger
 type LogContext struct {

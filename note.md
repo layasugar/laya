@@ -7,3 +7,6 @@
 ## 工具代办
  - 一键初始化目录结构到当前目录
  - 一键生成db.model
+
+改回logid
+移走requestIDkey保证logger里面的东西不能直接调用

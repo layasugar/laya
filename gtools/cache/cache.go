@@ -1,6 +1,6 @@
 // https://github.com/patrickmn/go-cache
 
-package gcache
+package cache
 
 import (
 	"encoding/gob"

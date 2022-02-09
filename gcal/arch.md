@@ -3,7 +3,7 @@
 - convert: 请求数据的序列化和返回数据的格式化 (form, json, mcpack2, raw)
 	- Pack(interface{}, *context.Context) ([]byte, error)
 	- UnPack(interface{}, interface{}, *context.Context) error
-- protocol: 请求发送的对象 （http, nshead, pbrpc）
+- protocol: 请求发送的对象 (http, nshead, pbrpc)
  	- CreateProtocolContext(service.Service, interface{}, *context.Context) (interface{}, error)
 	- DoRequest(service.Service, interface{}, *context.Context) (Response, error)
 - balance： 负载均衡策略
@@ -13,7 +13,7 @@
 ### 基本流程
 
 ```
-func Cal(serviceName string, request interface{}, response interface{}, converterType ConverterType) error
+func Do(serviceName string, request interface{}, response interface{}, converterType ConverterType) error
 ```
 
 - 根据 serviceName 得到 service 对象 S

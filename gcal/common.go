@@ -4,10 +4,11 @@ import (
 	"github.com/layasugar/laya/gcal/converter"
 	"github.com/layasugar/laya/gcal/protocol"
 	"github.com/layasugar/laya/gcal/service"
+	"github.com/layasugar/laya/gcal/pool"
 )
 
-// PbRPCRequest 别名
-type PbRPCRequest = protocol.PbRPCRequest
+// grpc连接池
+var pbTc = &pool.Pool{}
 
 // HTTPRequest 别名
 type HTTPRequest = protocol.HTTPRequest
@@ -30,4 +31,8 @@ var RAWConverter = converter.RAW
 // LoadService load one service from struct
 func LoadService(configs []map[string]interface{}) error {
 	return service.LoadService(configs)
+}
+
+func GetRpcConn(serverName string) {
+
 }

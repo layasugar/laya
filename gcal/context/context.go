@@ -3,7 +3,8 @@ package context
 
 import (
 	"fmt"
-	"github.com/layasugar/laya/gutils"
+	"github.com/layasugar/laya/gtools"
+	"net/http"
 	"strconv"
 	"strings"
 	"sync"
@@ -12,8 +13,9 @@ import (
 
 // RequestContext Web请求的上下文
 type RequestContext interface {
-	GetTraceId() string
+	GetLogId() string
 	GetClientIP() string
+	SpanInject(r *http.Request)
 }
 
 // Context 用作日志记录
@@ -25,7 +27,7 @@ type Context struct {
 	ReqLen      int64
 	RspLen      int64
 	Method      string
-	TraceID     interface{}
+	LogId       interface{}
 	Protocol    string
 	BalanceName string
 
@@ -42,7 +44,7 @@ type Context struct {
 func NewContext() (ctx *Context) {
 	return &Context{
 		PackStatis: &StatisItem{},
-		TraceID:    gutils.GenerateTraceId(),
+		LogId:      gtools.GenerateLogId(),
 		lock:       new(sync.RWMutex),
 	}
 }

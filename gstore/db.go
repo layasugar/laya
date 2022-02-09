@@ -1,7 +1,7 @@
 package gstore
 
 import (
-	"github.com/layasugar/laya/glogs"
+	"github.com/layasugar/laya/core/logx"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -56,11 +56,11 @@ func InitDB(dsn string, logLevel string, DbCfgFunc ...DbConnFunc) *gorm.DB {
 
 	if cfg.gormCfg == nil {
 		cfg.gormCfg = &gorm.Config{
-			Logger: glogs.Default(glogs.GetSugar(), level),
+			Logger: logx.Default(logx.GetSugar(), level),
 		}
 	} else {
 		if cfg.gormCfg.Logger == nil {
-			cfg.gormCfg.Logger = glogs.Default(glogs.GetSugar(), level)
+			cfg.gormCfg.Logger = logx.Default(logx.GetSugar(), level)
 		}
 	}
 
@@ -96,7 +96,7 @@ func DbSurvive(db *gorm.DB) error {
 	return nil
 }
 
-// SetPoolConfig set pool config
+// SetPoolConfig set poolx config
 func SetPoolConfig(cfg DbPoolCfg) DbConnFunc {
 	return func(c *dbConfig) {
 		c.poolCfg = &cfg

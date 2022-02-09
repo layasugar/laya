@@ -1,7 +1,7 @@
 package genv
 
 import (
-	"github.com/layasugar/laya/gutils"
+	"github.com/layasugar/laya/gtools"
 	"time"
 )
 
@@ -179,7 +179,7 @@ func TraceMod() float64 {
 
 func LocalIP() string {
 	if envLocalIP == "" {
-		ips := gutils.GetLocalIPs()
+		ips := gtools.GetLocalIPs()
 		if len(ips) > 0 {
 			envLocalIP = ips[0] + ":80"
 		} else {

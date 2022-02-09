@@ -4,27 +4,38 @@ package laya
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
+	"github.com/layasugar/laya/core/grpcx"
+	"github.com/layasugar/laya/core/httpx"
 	"github.com/layasugar/laya/gcal"
 	"github.com/layasugar/laya/gconf"
 	"github.com/layasugar/laya/genv"
 	"log"
 )
 
-type App struct {
-	// webEngine 目前web引擎使用gin
-	webServer *WebServer
+type (
+	WebContext     = httpx.WebContext
+	WebServer      = httpx.WebServer
+	WebHandlerFunc = httpx.WebHandlerFunc
+	PbRPCContext   = grpcx.PbRPCContext
+	PbRPCServer    = grpcx.PbRPCServer
+)
 
-	// PbRPCServer
-	pbRpcServer *PbRPCServer
-}
+type (
+	App struct {
+		// webEngine 目前web引擎使用gin
+		webServer *httpx.WebServer
 
-type AppConfig struct {
-	// HttpListen  Web web 服务监听的地址
-	HTTPListen string
-	// PbPRCListen PbRPC服务监听的地址
-	PbRPCListen string
-}
+		// PbRPCServer
+		pbRpcServer *grpcx.PbRPCServer
+	}
+
+	AppConfig struct {
+		// HttpListen Web web 服务监听的地址
+		HTTPListen string
+		// PbPRCListen PbRPC服务监听的地址
+		PbRPCListen string
+	}
+)
 
 // DefaultApp 提供基础的日志服务, ginLog, webServer
 func DefaultApp() *App {
@@ -55,14 +66,14 @@ func (app *App) initWithConfig() *App {
 
 	// 是否初始化web或者rpc
 	if genv.HttpListen() != "" {
-		app.webServer = NewWebServer(genv.RunMode())
-		if len(DefaultWebServerMiddlewares) > 0 {
-			app.webServer.Use(DefaultWebServerMiddlewares...)
+		app.webServer = httpx.NewWebServer(genv.RunMode())
+		if len(httpx.DefaultWebServerMiddlewares) > 0 {
+			app.webServer.Use(httpx.DefaultWebServerMiddlewares...)
 		}
 	}
 
 	if genv.PbRpcListen() != "" {
-		app.pbRpcServer = NewPbRPCServer()
+		app.pbRpcServer = grpcx.NewPbRPCServer()
 	}
 
 	// 注册pprof监听函数和params监听函数和重载env函数
@@ -124,7 +135,7 @@ func (app *App) registerEnv() {
 	genv.SetLogMaxAge(gconf.V.GetInt("app.logger.max_age"))
 	genv.SetLogMaxCount(gconf.V.GetInt("app.logger.max_count"))
 
-	// trace
+	// tracex
 	genv.SetTraceType(gconf.V.GetString("app.trace.type"))
 	genv.SetTraceAddr(gconf.V.GetString("app.trace.addr"))
 	genv.SetTraceMod(gconf.V.GetFloat64("app.trace.mod"))
@@ -154,50 +165,30 @@ func (app *App) registerEnv() {
 // SetNoLogParams 设置不需要打印的路由
 func (app *App) SetNoLogParams(path ...string) {
 	for _, v := range path {
-		noLogParamsRules.NoLogParams[v] = v
+		httpx.NoLogParamsRules.NoLogParams[v] = v
 	}
 }
 
 // SetNoLogParamsPrefix 设置不需要打印入参和出参的路由前缀
 func (app *App) SetNoLogParamsPrefix(path ...string) {
 	for _, v := range path {
-		noLogParamsRules.NoLogParamsPrefix = append(noLogParamsRules.NoLogParamsPrefix, v)
+		httpx.NoLogParamsRules.NoLogParamsPrefix = append(httpx.NoLogParamsRules.NoLogParamsPrefix, v)
 	}
 }
 
 // SetNoLogParamsSuffix 设置不需要打印的入参和出参的路由后缀
 func (app *App) SetNoLogParamsSuffix(path ...string) {
 	for _, v := range path {
-		noLogParamsRules.NoLogParamsSuffix = append(noLogParamsRules.NoLogParamsSuffix, v)
+		httpx.NoLogParamsRules.NoLogParamsSuffix = append(httpx.NoLogParamsRules.NoLogParamsSuffix, v)
 	}
 }
 
 // WebServer 获取WebServer的指针
-func (app *App) WebServer() *WebServer {
+func (app *App) WebServer() *httpx.WebServer {
 	return app.webServer
 }
 
 // PbRPCServer 获取PbRPCServer的指针
-func (app *App) PbRPCServer() *PbRPCServer {
+func (app *App) PbRPCServer() *grpcx.PbRPCServer {
 	return app.pbRpcServer
-}
-
-// DefaultWebServerMiddlewares 默认的Http Server中间件
-// 其实应该保证TowerLogware 不panic，但是无法保证，多一个recovery来保证业务日志崩溃后依旧有访问日志
-var DefaultWebServerMiddlewares = []WebHandlerFunc{
-	LogParams,
-	SetTrace,
-	ginHandler2WebHandler(gin.Recovery()),
-	recovery,
-}
-
-func recovery(ctx *WebContext) {
-	defer func() {
-		if err := recover(); err != nil {
-			ctx.RspHTTPStatusCode = 500
-			ctx.ErrMsg = fmt.Sprintf("%s", err)
-			panic(err)
-		}
-	}()
-	ctx.Next()
 }

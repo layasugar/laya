@@ -5,9 +5,8 @@ import (
 	"github.com/layasugar/laya/gcal/context"
 	"github.com/layasugar/laya/gcal/converter"
 	"github.com/layasugar/laya/gcal/service"
-	"github.com/layasugar/laya/glogs"
-	"github.com/layasugar/laya/gutils"
-	"github.com/layasugar/laya/gversion"
+	"github.com/layasugar/laya/genv"
+	"github.com/layasugar/laya/gtools"
 	"io"
 	"io/ioutil"
 	"net"
@@ -19,10 +18,10 @@ import (
 	"time"
 )
 
-const UA = "GCAL/" + gversion.VERSION + " (laya gcal http client)"
-const HttpClientAlive time.Duration = 5 * time.Minute
+const UA = "GCAL/" + genv.VERSION + " (laya gcal http client)"
+const HttpClientAlive = 5 * time.Minute
 
-// HTTPRequest http requst 对象，gcal.Cal 函数必须传递这个类型的变量
+// HTTPRequest http request 对象
 type HTTPRequest struct {
 	CustomAddr string
 
@@ -31,13 +30,13 @@ type HTTPRequest struct {
 	Body        interface{}
 	Path        string
 	QueryParams url.Values
-	TraceId     string
+	RequestId   string
 
 	Converter converter.ConverterType
 	Ctx       context.RequestContext
 }
 
-// HTTPHead HTTPResponse，兼容历史
+// HTTPHead HTTPResponse, 兼容历史
 type HTTPHead struct {
 	Status        string
 	StatusCode    int
@@ -48,9 +47,9 @@ type HTTPHead struct {
 
 // HTTPProtocol http 协议
 type HTTPProtocol struct {
-	protocol string
-	serv     service.Service
-	traceId  string
+	protocol  string
+	serv      service.Service
+	requestId string
 
 	originReq *HTTPRequest
 	RawReq    *http.Request
@@ -62,21 +61,21 @@ func (hp *HTTPProtocol) Protocol() string {
 	return hp.protocol
 }
 
-// initTraceID 生成logID
-func (hp *HTTPProtocol) initTraceID(ctx *context.Context) {
-	traceId := hp.originReq.TraceId
+// initRequestId 生成requestId
+func (hp *HTTPProtocol) initRequestId(ctx *context.Context) {
+	requestId := hp.originReq.RequestId
 
-	if traceId == "" {
+	if requestId == "" {
 		if ctx.ReqContext != nil {
-			traceId = ctx.ReqContext.GetTraceId()
+			requestId = ctx.ReqContext.GetLogId()
 		}
 	}
 
-	if traceId == "" {
-		traceId = gutils.GenerateTraceId()
+	if requestId == "" {
+		requestId = gtools.GenerateLogId()
 	}
 
-	hp.traceId, ctx.TraceID = traceId, traceId
+	hp.requestId, ctx.LogId = requestId, requestId
 }
 
 // NewHTTPProtocol 创建一个 Http Protocol
@@ -91,7 +90,7 @@ func NewHTTPProtocol(ctx *context.Context, serv service.Service, req *HTTPReques
 	}
 
 	ctx.ReqContext = req.Ctx
-	hp.initTraceID(ctx)
+	hp.initRequestId(ctx)
 	ctx.Method = strings.ToLower(req.Method)
 
 	hp.RawReq = &http.Request{
@@ -135,15 +134,15 @@ func NewHTTPProtocol(ctx *context.Context, serv service.Service, req *HTTPReques
 	}
 
 	ctx.ReqLen = hp.RawReq.ContentLength
-	hp.RawReq.Header.Set(glogs.RequestIdKey, hp.traceId)
+
+	// set logId and reject tracex
+	hp.RawReq.Header.Set(gtools.RequestIdKey, hp.requestId)
+	req.Ctx.SpanInject(hp.RawReq)
 
 	// If the user doesn't set User-Agent, set the default User-Agent
 	if hp.RawReq.Header.Get("User-Agent") == "" {
 		hp.RawReq.Header.Set("User-Agent", UA)
 	}
-
-	// 注入链路
-	ctx.
 
 	return
 }
@@ -301,16 +300,15 @@ var DefaultHTTPClientFactory = func(serv service.Service) (cli *http.Client, err
 
 	return &http.Client{
 		Transport: &http.Transport{
-			Proxy: http.ProxyURL(proxyURL), //代理设置
+			Proxy: http.ProxyURL(proxyURL),
 			DialContext: (&net.Dialer{
-				Timeout:   serv.GetConnTimeout(), //连接超时时间
+				Timeout:   serv.GetConnTimeout(),
 				KeepAlive: 30 * time.Second,
 			}).DialContext,
 			MaxIdleConnsPerHost:   perHost,
 			TLSHandshakeTimeout:   10 * time.Second,
 			ExpectContinueTimeout: 1 * time.Second,
 		},
-		//总的超时时间
 		Timeout: serv.GetTotalTimeout(),
 	}, nil
 }

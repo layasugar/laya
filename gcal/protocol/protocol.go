@@ -18,7 +18,6 @@ type Protocoler interface {
 
 var (
 	_ Protocoler = &HTTPProtocol{}
-	_ Protocoler = &PbRPCProtocol{}
 )
 
 // NewProtocol 创建协议
@@ -36,20 +35,11 @@ func NewProtocol(ctx *context.Context, serv service.Service, req interface{}) (p
 		return NewHTTPProtocol(ctx, serv, &tmp, protocolName == "https")
 	}
 
-	if protocolName == "pbrpc" {
-		tmp, ok := req.(PbRPCRequest)
-		if !ok {
-			return nil, fmt.Errorf("%s: bad request type: %T", protocolName, req)
-		}
-		return NewPbRPCProtocol(ctx, serv, &tmp)
-	}
-
 	return nil, fmt.Errorf("unknow protocol: %s ", protocolName)
 }
 
 // Response 通用的返回
 type Response struct {
-	// Raw []byte
 	Body      interface{}
 	Head      interface{}
 	Request   interface{}

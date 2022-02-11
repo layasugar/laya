@@ -13,7 +13,7 @@ func (hdlr WebHandlerFunc) toGinHandlerFunc() gin.HandlerFunc {
 	}
 }
 
-func ginHandler2WebHandler(ginHandler gin.HandlerFunc) WebHandlerFunc {
+func ginWebHandler(ginHandler gin.HandlerFunc) WebHandlerFunc {
 	return func(ctx *WebContext) {
 		ginHandler(ctx.Context)
 	}

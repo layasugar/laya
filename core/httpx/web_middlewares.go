@@ -2,7 +2,6 @@ package httpx
 
 import (
 	"bytes"
-	"encoding/json"
 	"github.com/layasugar/laya/genv"
 	"github.com/layasugar/laya/gtools"
 	"io/ioutil"
@@ -48,39 +47,22 @@ func CheckNoLogParams(origin string) bool {
 	return false
 }
 
-// LogParams 记录框架出入参, 开启链路追踪
-func LogParams(ctx *WebContext) {
+// ginInterceptor 记录框架出入参, 开启链路追踪
+func ginInterceptor(ctx *WebContext) {
 	w := &responseBodyWriter{body: &bytes.Buffer{}, ResponseWriter: ctx.Writer}
 	ctx.Writer = w
-
 	if genv.ParamLog() && !CheckNoLogParams(ctx.Request.RequestURI) {
 		requestData, _ := ctx.GetRawData()
 		ctx.Request.Body = ioutil.NopCloser(bytes.NewBuffer(requestData))
-		ct := ctx.GetHeader("Content-Type")
-		sct := strings.Split(ct, ";")
-		switch sct[0] {
-		case "application/json":
-			var in map[string]interface{}
-			_ = json.NewDecoder(bytes.NewBuffer(requestData)).Decode(&in)
-			inJson, _ := json.Marshal(&in)
-			ctx.InfoF("%s", string(inJson),
-				ctx.Field("header", gtools.GetString(ctx.Request.Header)),
-				ctx.Field("path", ctx.Request.RequestURI),
-				ctx.Field("title", "入参"))
-		case "application/x-www-form-urlencoded", "multipart/form-data":
-			ctx.InfoF("%s", string(requestData),
-				ctx.Field("header", gtools.GetString(ctx.Request.Header)),
-				ctx.Field("path", ctx.Request.RequestURI),
-				ctx.Field("title", "入参"))
-		default:
-			ctx.InfoF("%s", string(requestData),
-				ctx.Field("header", gtools.GetString(ctx.Request.Header)),
-				ctx.Field("path", ctx.Request.RequestURI),
-				ctx.Field("title", "入参"))
-		}
+		ctx.InfoF("%s", string(requestData),
+			ctx.Field("header", gtools.GetString(ctx.Request.Header)),
+			ctx.Field("path", ctx.Request.RequestURI),
+			ctx.Field("protocol", protocol),
+			ctx.Field("title", "入参"))
 	}
 
 	ctx.Next()
+
 	if genv.ParamLog() && !CheckNoLogParams(ctx.Request.RequestURI) {
 		ctx.InfoF("%s", w.body.String(), ctx.Field("title", "出参"))
 	}

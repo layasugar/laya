@@ -66,7 +66,7 @@ func InitDB(dsn string, logLevel string, DbCfgFunc ...DbConnFunc) *gorm.DB {
 
 	Db, err := gorm.Open(mysql.Open(dsn), cfg.gormCfg)
 	if err != nil {
-		log.Printf("[gstore] mysql open fail, err=%s", err)
+		log.Printf("[app.gstore] mysql open fail, err=%s", err)
 		panic(err)
 	}
 
@@ -74,11 +74,11 @@ func InitDB(dsn string, logLevel string, DbCfgFunc ...DbConnFunc) *gorm.DB {
 
 	err = DbSurvive(Db)
 	if err != nil {
-		log.Printf("[gstore] mysql survive fail, err=%s", err)
+		log.Printf("[app.gstore] mysql survive fail, err=%s", err)
 		panic(err)
 	}
 
-	log.Printf("[gstore] mysql success")
+	log.Printf("[app.gstore] mysql success")
 	return Db
 }
 
@@ -113,7 +113,7 @@ func SetGormConfig(cfg *gorm.Config) DbConnFunc {
 func (c *dbConfig) setDefaultPoolConfig(db *gorm.DB) {
 	d, err := db.DB()
 	if err != nil {
-		log.Printf("[gstore] mysql db fail, err=%s", err)
+		log.Printf("[app.gstore] mysql db fail, err=%s", err)
 		panic(err)
 	}
 	var cfg = c.poolCfg

@@ -2,7 +2,8 @@ package protocol
 
 import (
 	"fmt"
-	"github.com/layasugar/laya/gcal/context"
+	"github.com/layasugar/laya/core/metautils"
+	"github.com/layasugar/laya/gcal/contextx"
 	"github.com/layasugar/laya/gcal/converter"
 	"github.com/layasugar/laya/gcal/service"
 	"github.com/layasugar/laya/genv"
@@ -33,7 +34,7 @@ type HTTPRequest struct {
 	RequestId   string
 
 	Converter converter.ConverterType
-	Ctx       context.RequestContext
+	Ctx       contextx.RequestContext
 }
 
 // HTTPHead HTTPResponse, 兼容历史
@@ -62,7 +63,7 @@ func (hp *HTTPProtocol) Protocol() string {
 }
 
 // initRequestId 生成requestId
-func (hp *HTTPProtocol) initRequestId(ctx *context.Context) {
+func (hp *HTTPProtocol) initRequestId(ctx *contextx.Context) {
 	requestId := hp.originReq.RequestId
 
 	if requestId == "" {
@@ -79,7 +80,7 @@ func (hp *HTTPProtocol) initRequestId(ctx *context.Context) {
 }
 
 // NewHTTPProtocol 创建一个 Http Protocol
-func NewHTTPProtocol(ctx *context.Context, serv service.Service, req *HTTPRequest, isHTTPS bool) (hp *HTTPProtocol, err error) {
+func NewHTTPProtocol(ctx *contextx.Context, serv service.Service, req *HTTPRequest, isHTTPS bool) (hp *HTTPProtocol, err error) {
 	hp = &HTTPProtocol{
 		serv:      serv,
 		originReq: req,
@@ -137,7 +138,7 @@ func NewHTTPProtocol(ctx *context.Context, serv service.Service, req *HTTPReques
 
 	// set logId and reject tracex
 	hp.RawReq.Header.Set(gtools.RequestIdKey, hp.requestId)
-	req.Ctx.SpanInject(hp.RawReq)
+	req.Ctx.SpanInject(metautils.NiceMD(hp.RawReq.Header))
 
 	// If the user doesn't set User-Agent, set the default User-Agent
 	if hp.RawReq.Header.Get("User-Agent") == "" {
@@ -148,7 +149,7 @@ func NewHTTPProtocol(ctx *context.Context, serv service.Service, req *HTTPReques
 }
 
 // Do 发送请求
-func (hp *HTTPProtocol) Do(ctx *context.Context, addr string) (rsp *Response, err error) {
+func (hp *HTTPProtocol) Do(ctx *contextx.Context, addr string) (rsp *Response, err error) {
 	var host string
 	if hp.originReq.CustomAddr != "" {
 		host = fmt.Sprintf("%s", hp.originReq.CustomAddr)
@@ -264,7 +265,7 @@ func (hp *HTTPProtocol) tryReuseClient(cli *http.Client) {
 var service2httpClientMap sync.Map
 var lock sync.Mutex
 
-func (hp *HTTPProtocol) getClient(ctx *context.Context) (client *http.Client, err error) {
+func (hp *HTTPProtocol) getClient(ctx *contextx.Context) (client *http.Client, err error) {
 	if !hp.serv.GetReuse() {
 		return DefaultHTTPClientFactory(hp.serv)
 	}

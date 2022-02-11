@@ -1,5 +1,5 @@
 // Package logx
-// glogs: this is extend package, use https://github.com/uber-go/zap
+// logx: this is extend package, use https://github.com/uber-go/zap
 package logx
 
 import (
@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	defaultChildPath    = "glogs/%Y-%m-%d.log" // 默认子目录
+	defaultChildPath    = "logx/%Y-%m-%d.log" // 默认子目录
 	defaultRotationSize = 128 * 1024 * 1024    // 默认大小为128M
 	defaultRotationTime = 24 * time.Hour       // 默认每天轮转一次
 
@@ -80,12 +80,12 @@ func InitSugar(lc *Config) *zap.Logger {
 			w,
 			defaultLogLevel,
 		)
-		log.Printf("[glogs_sugar] logger success")
+		log.Printf("[app] logger success")
 	} else {
 		// 打印在控制台
 		consoleEncoder := zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig())
 		core = zapcore.NewCore(consoleEncoder, zapcore.Lock(os.Stdout), defaultLogLevel)
-		log.Printf("[glogs_sugar] logger success")
+		log.Printf("[app] logger success")
 	}
 
 	filed := zap.Fields(zap.String("app_name", lc.appName), zap.String("app_mode", lc.appMode))

@@ -10,7 +10,7 @@ var (
 	envRunMode             = "debug"
 	envAppVersion          = "1.0.0"
 	envHttpListen          = "0.0.0.0:80"
-	envPbRpcListen         = "0.0.0.0:10082"
+	envGrpcListen          = "0.0.0.0:10082"
 	envAppUrl              = "http://127.0.0.1:80"
 	envParamLog            = true
 	envLogPath             = "/home/logs/app"
@@ -71,16 +71,16 @@ func HttpListen() string {
 	return envHttpListen
 }
 
-// SetPbRpcListen 设置rpc监听地址
-func SetPbRpcListen(pbRpcListen string) {
-	if pbRpcListen != "" {
-		envPbRpcListen = pbRpcListen
+// SetGrpcListen 设置rpc监听地址
+func SetGrpcListen(grpcListen string) {
+	if grpcListen != "" {
+		envGrpcListen = grpcListen
 	}
 }
 
-// PbRpcListen 返回rpc监听地址
-func PbRpcListen() string {
-	return envPbRpcListen
+// GrpcListen 返回rpc监听地址
+func GrpcListen() string {
+	return envGrpcListen
 }
 
 // SetAppUrl 设置app_url

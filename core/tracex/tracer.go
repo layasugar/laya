@@ -5,6 +5,7 @@ package tracex
 import (
 	"github.com/layasugar/laya/genv"
 	"github.com/opentracing/opentracing-go"
+	"log"
 )
 
 const (
@@ -26,11 +27,13 @@ func getTracer() (opentracing.Tracer, error) {
 				if err != nil {
 					return nil, err
 				}
+				log.Printf("[app] tracer success")
 			case TraceTypeJaeger:
 				tracer = newJTracer(genv.AppName(), genv.TraceAddr(), genv.TraceMod())
 				if err != nil {
 					return nil, err
 				}
+				log.Printf("[app] tracer success")
 			}
 		}
 	}

@@ -22,11 +22,14 @@ type (
 
 type (
 	App struct {
-		// webEngine 目前web引擎使用gin
+		// webServer 目前web引擎使用gin
 		webServer *httpx.WebServer
 
-		// PbRPCServer
+		// pbRpcServer
 		pbRpcServer *grpcx.PbRPCServer
+
+		// scene 是web还是grpc
+		scene int
 	}
 
 	AppConfig struct {
@@ -37,24 +40,31 @@ type (
 	}
 )
 
-// DefaultApp 提供基础的日志服务, ginLog, webServer
-func DefaultApp() *App {
+const (
+	webApp = iota
+	grpcApp
+)
+
+// WebApp web app
+func WebApp() *App {
 	app := new(App)
 
-	app.initWithConfig()
+	app.initWithConfig(webApp)
 	return app
 }
 
-func NewApp() *App {
-	app := &App{}
-	app.initWithConfig()
+// GrpcApp grpc app
+func GrpcApp() *App {
+	app := new(App)
+
+	app.initWithConfig(grpcApp)
 	return app
 }
-
-type AppOption func(app *App)
 
 // 初始化app
-func (app *App) initWithConfig() *App {
+func (app *App) initWithConfig(scene int) *App {
+	app.scene = scene
+
 	// 初始化配置
 	err := gconf.InitConfig()
 	if err != nil {
@@ -64,16 +74,25 @@ func (app *App) initWithConfig() *App {
 	// 注册env
 	app.registerEnv()
 
-	// 是否初始化web或者rpc
-	if genv.HttpListen() != "" {
+	switch scene {
+	case webApp:
+		if genv.HttpListen() == "" {
+			panic("app.http_listen is null")
+		}
 		app.webServer = httpx.NewWebServer(genv.RunMode())
 		if len(httpx.DefaultWebServerMiddlewares) > 0 {
 			app.webServer.Use(httpx.DefaultWebServerMiddlewares...)
 		}
-	}
-
-	if genv.PbRpcListen() != "" {
+	case grpcApp:
+		if genv.GrpcListen() == "" {
+			panic("app.http_listen is null")
+		}
 		app.pbRpcServer = grpcx.NewPbRPCServer()
+	}
+	if scene == webApp {
+		if genv.HttpListen() == "" {
+			panic("app.http_listen is null")
+		}
 	}
 
 	// 注册pprof监听函数和params监听函数和重载env函数
@@ -87,21 +106,21 @@ func (app *App) initWithConfig() *App {
 	return app
 }
 
-// RunWebServer 运行Web服务
-func (app *App) RunWebServer() {
-	// 启动web服务
-	log.Printf("[app] Listening and serving %s on %s\n", "HTTP", genv.HttpListen())
-	err := app.webServer.Run(genv.HttpListen())
-	if err != nil {
-		fmt.Printf("Can't RunWebServer: %s\n", err.Error())
-	}
-}
-
-// RunPbRPCServer 运行PbRPC服务
-func (app *App) RunPbRPCServer() {
-	err := app.pbRpcServer.Run(genv.PbRpcListen())
-	if err != nil {
-		log.Fatalf("Can't RunPbRPCServer, PbRPCListen=%s, err=%s", genv.PbRpcListen(), err.Error())
+// RunServer 运行Web服务
+func (app *App) RunServer() {
+	switch app.scene {
+	case webApp:
+		// 启动web服务
+		log.Printf("[app] Listening and serving %s on %s\n", "HTTP", genv.HttpListen())
+		err := app.webServer.Run(genv.HttpListen())
+		if err != nil {
+			fmt.Printf("Can't RunWebServer: %s\n", err.Error())
+		}
+	case grpcApp:
+		err := app.pbRpcServer.Run(genv.GrpcListen())
+		if err != nil {
+			log.Fatalf("Can't RunPbRPCServer, PbRPCListen=%s, err=%s", genv.GrpcListen(), err.Error())
+		}
 	}
 }
 
@@ -120,7 +139,7 @@ func (app *App) registerEnv() {
 	genv.SetRunMode(gconf.V.GetString("app.run_mode"))
 	log.Printf("[app] app.run_mode %s\n", genv.RunMode())
 	genv.SetHttpListen(gconf.V.GetString("app.http_listen"))
-	genv.SetPbRpcListen(gconf.V.GetString("app.pbrpc_liten"))
+	genv.SetGrpcListen(gconf.V.GetString("app.grpc_listen"))
 
 	if gconf.V.IsSet("app.params") {
 		genv.SetParamLog(gconf.V.GetBool("app.params"))

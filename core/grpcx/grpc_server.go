@@ -2,6 +2,7 @@ package grpcx
 
 import (
 	"github.com/layasugar/laya/core/logx"
+	"google.golang.org/grpc"
 	"net"
 	"runtime"
 	"sync"
@@ -9,7 +10,7 @@ import (
 
 // PbRPCServer struct
 type PbRPCServer struct {
-	Server
+	grpc.Server
 	contextPool sync.Pool
 	handlers    []PbRPCHandlerFunc
 }
@@ -31,6 +32,10 @@ func NewPbRPCServer() *PbRPCServer {
 	server.SetWriteTimeout(1500)
 
 	return server
+}
+
+func RegisterServer(ss interface{}) {
+
 }
 
 // AddHandler 添加处理函数

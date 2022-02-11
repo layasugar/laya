@@ -1,10 +1,10 @@
 package tracex
 
 import (
+	"github.com/layasugar/laya/core/metautils"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"log"
-	"net/http"
 )
 
 // TracerContext 链路
@@ -15,7 +15,7 @@ type TracerContext interface {
 	SpanStart(name string) opentracing.Span
 
 	// SpanInject 注入请求
-	SpanInject(r *http.Request)
+	SpanInject(md metautils.NiceMD)
 }
 
 func (ctx *TraceContext) SpanFinish(span opentracing.Span) {
@@ -34,10 +34,10 @@ func (ctx *TraceContext) SpanStart(name string) opentracing.Span {
 }
 
 // SpanInject 将span注入到request
-func (ctx *TraceContext) SpanInject(r *http.Request) {
+func (ctx *TraceContext) SpanInject(md metautils.NiceMD) {
 	if t, err := getTracer(); err == nil {
 		if t != nil {
-			err = t.Inject(ctx.TopSpan.Context(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(r.Header))
+			err = t.Inject(ctx.TopSpan.Context(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(md))
 			if err != nil {
 				log.Printf("SpanInject, err: %s", err.Error())
 			}
@@ -52,17 +52,17 @@ type TraceContext struct {
 
 var _ TracerContext = &TraceContext{}
 
-// NewLogContext new obj
-func NewLogContext(r *http.Request) *TraceContext {
+// NewTraceContext new traceCtx
+func NewTraceContext(name string, headers map[string][]string) *TraceContext {
 	ctx := &TraceContext{}
 
 	if t, err := getTracer(); err == nil {
 		if t != nil {
-			spanCtx, errno := t.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(r.Header))
+			spanCtx, errno := t.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(headers))
 			if errno != nil {
-				ctx.TopSpan = t.StartSpan(r.RequestURI)
+				ctx.TopSpan = t.StartSpan(name)
 			} else {
-				ctx.TopSpan = t.StartSpan(r.RequestURI, ext.RPCServerOption(spanCtx))
+				ctx.TopSpan = t.StartSpan(name, ext.RPCServerOption(spanCtx))
 			}
 		}
 	}

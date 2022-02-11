@@ -3,8 +3,8 @@ package context
 
 import (
 	"fmt"
+	"github.com/layasugar/laya/core/metautils"
 	"github.com/layasugar/laya/gtools"
-	"net/http"
 	"strconv"
 	"strings"
 	"sync"
@@ -15,7 +15,7 @@ import (
 type RequestContext interface {
 	GetLogId() string
 	GetClientIP() string
-	SpanInject(r *http.Request)
+	SpanInject(md metautils.NiceMD)
 }
 
 // Context 用作日志记录

@@ -45,7 +45,7 @@ type RouterRegister func(*WebServer)
 // type RouterRegister func(WebRouter)
 
 // RegisterRouter 注册路由
-func (webServer *WebServer) RegisterRouter(rr RouterRegister) {
+func (webServer *WebServer) Register(rr RouterRegister) {
 	rr(webServer)
 }
 
@@ -90,7 +90,7 @@ func (webServer *WebServer) SecureJsonPrefix(prefix string) *WebServer {
 	return webServer
 }
 
-// HandleContext re-enter a context that has been rewritten.
+// HandleContext re-enter a contextx that has been rewritten.
 // This can be done by setting c.Request.URL.Path to your new target.
 // Disclaimer: You can loop yourself to death with this, use wisely.
 func (webServer *WebServer) HandleContext(wc *WebContext) {

@@ -2,7 +2,7 @@ package gcal
 
 import (
 	"fmt"
-	"github.com/layasugar/laya/gcal/context"
+	"github.com/layasugar/laya/gcal/contextx"
 	"github.com/layasugar/laya/gcal/service"
 	"time"
 )
@@ -32,7 +32,7 @@ func (c *client) Do(request interface{}, response interface{}, converterType Con
 	if c.err != nil {
 		return c.err
 	}
-	ctx := context.NewContext()
+	ctx := contextx.NewContext()
 	ctx.Caller = "GCAL"
 
 	c.err = calWithService(ctx, c.serv, request, response, converterType)

@@ -4,11 +4,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	protocol = "http"
+)
+
 // DefaultWebServerMiddlewares 默认的Http Server中间件
 // 其实应该保证TowerLogware 不panic，但是无法保证，多一个recovery来保证业务日志崩溃后依旧有访问日志
 var DefaultWebServerMiddlewares = []WebHandlerFunc{
-	LogParams,
-	ginHandler2WebHandler(gin.Recovery()),
+	ginInterceptor,
+	ginWebHandler(gin.Recovery()),
 	recovery,
 }
 

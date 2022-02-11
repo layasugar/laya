@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// DataContext interface the extend of context.Context.Value(key string) (value interface{})
+// DataContext interface the extend of contextx.Context.Value(key string) (value interface{})
 type DataContext interface {
 	Set(key string, value interface{})
 	Get(key string) (value interface{}, exists bool)
@@ -40,7 +40,7 @@ func NewMemoryContext() *MemoryContext {
 	}
 }
 
-// Set is used to gstore a new key/value pair exclusively for this context.
+// Set is used to gstore a new key/value pair exclusively for this contextx.
 // It also lazy initializes  c.data if it was not used previously.
 func (c *MemoryContext) Set(key string, value interface{}) {
 	if c.data == nil {

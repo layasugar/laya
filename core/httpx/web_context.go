@@ -23,7 +23,7 @@ type WebContext struct {
 
 const ginFlag = "__gin__gin"
 
-// NewWebContext 创建 http context
+// NewWebContext 创建 http contextx
 func NewWebContext(ginContext *gin.Context) *WebContext {
 	obj, existed := ginContext.Get(ginFlag)
 	if existed {
@@ -40,7 +40,7 @@ func NewWebContext(ginContext *gin.Context) *WebContext {
 	tmp := &WebContext{
 		Context:      ginContext,
 		LogContext:   logx.NewLogContext(logId),
-		TraceContext: tracex.NewLogContext(ginContext.Request),
+		TraceContext: tracex.NewTraceContext(ginContext.Request.RequestURI, ginContext.Request.Header),
 	}
 	ginContext.Set(ginFlag, tmp)
 

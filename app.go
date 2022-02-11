@@ -16,8 +16,9 @@ type (
 	WebContext     = httpx.WebContext
 	WebServer      = httpx.WebServer
 	WebHandlerFunc = httpx.WebHandlerFunc
-	PbRPCContext   = grpcx.PbRPCContext
-	PbRPCServer    = grpcx.PbRPCServer
+
+	GrpcContext = grpcx.GrpcContext
+	GrpcServer  = grpcx.GrpcServer
 )
 
 type (
@@ -25,8 +26,8 @@ type (
 		// webServer 目前web引擎使用gin
 		webServer *httpx.WebServer
 
-		// pbRpcServer
-		pbRpcServer *grpcx.PbRPCServer
+		// grpcServer
+		grpcServer *grpcx.GrpcServer
 
 		// scene 是web还是grpc
 		scene int
@@ -87,7 +88,7 @@ func (app *App) initWithConfig(scene int) *App {
 		if genv.GrpcListen() == "" {
 			panic("app.http_listen is null")
 		}
-		app.pbRpcServer = grpcx.NewPbRPCServer()
+		app.grpcServer = grpcx.NewGrpcServer()
 	}
 	if scene == webApp {
 		if genv.HttpListen() == "" {
@@ -117,9 +118,11 @@ func (app *App) RunServer() {
 			fmt.Printf("Can't RunWebServer: %s\n", err.Error())
 		}
 	case grpcApp:
-		err := app.pbRpcServer.Run(genv.GrpcListen())
+		// 启动grpc服务
+		log.Printf("[app] Listening and serving %s on %s\n", "GRPC", genv.GrpcListen())
+		err := app.grpcServer.Run(genv.GrpcListen())
 		if err != nil {
-			log.Fatalf("Can't RunPbRPCServer, PbRPCListen=%s, err=%s", genv.GrpcListen(), err.Error())
+			log.Fatalf("Can't RunGrpcServer, GrpcListen: %s, err: %s", genv.GrpcListen(), err.Error())
 		}
 	}
 }
@@ -207,7 +210,7 @@ func (app *App) WebServer() *httpx.WebServer {
 	return app.webServer
 }
 
-// PbRPCServer 获取PbRPCServer的指针
-func (app *App) PbRPCServer() *grpcx.PbRPCServer {
-	return app.pbRpcServer
+// GrpcServer 获取PbRPCServer的指针
+func (app *App) GrpcServer() *grpcx.GrpcServer {
+	return app.grpcServer
 }

@@ -1,47 +1,59 @@
 package grpcx
 
 import (
+	"github.com/layasugar/laya/core/alarmx"
 	"github.com/layasugar/laya/core/logx"
-	"net"
+	"github.com/layasugar/laya/core/metautils"
+	"github.com/layasugar/laya/core/tracex"
+	"github.com/layasugar/laya/gtools"
+	uuid "github.com/satori/go.uuid"
 	"time"
 )
 
 var (
-	_ Context = &PbRPCContext{}
+	_ Context = &GrpcContext{}
 )
 
-// PbRPCHandlerFunc handler for PbRPC
-type PbRPCHandlerFunc func(*PbRPCContext)
+// GrpcHandlerFunc handler for PbRPC
+type GrpcHandlerFunc func(*GrpcContext)
 
-// PbRPCContext pbrpc context
-type PbRPCContext struct {
-	server *PbRPCServer
-	conn   net.Conn
-	index  int8
+// GrpcContext pbrpc contextx
+type GrpcContext struct {
+	server *GrpcServer
 
 	*logx.LogContext
 	*MemoryContext
+	*tracex.TraceContext
+	*alarmx.AlarmContext
 }
 
-// NewPbRPCContext new
-func NewPbRPCContext() *PbRPCContext {
-	return &PbRPCContext{
-		LogContext:    nil,
+// NewGrpcContext newCtx
+func NewGrpcContext(name string, md metautils.NiceMD) *GrpcContext {
+	logId := md.Get(gtools.RequestIdKey)
+	if logId == "" {
+		logId = gtools.Md5(uuid.NewV4().String())
+	}
+
+	ctx := &GrpcContext{
+		LogContext:    logx.NewLogContext(logId),
+		TraceContext:  tracex.NewTraceContext(name, md),
 		MemoryContext: NewMemoryContext(),
 	}
+	ctx.Set(gtools.RequestIdKey, logId)
+	return ctx
 }
 
-// Deadline returns the time when work done on behalf of this context
+// Deadline returns the time when work done on behalf of this contextx
 // should be canceled. Deadline returns ok==false when no deadline is
 // set. Successive calls to Deadline return the same results.
-func (c *PbRPCContext) Deadline() (deadline time.Time, ok bool) {
+func (c *GrpcContext) Deadline() (deadline time.Time, ok bool) {
 	return
 }
 
 // Done returns a channel that's closed when work done on behalf of this
-// context should be canceled. Done may return nil if this context can
+// contextx should be canceled. Done may return nil if this contextx can
 // never be canceled. Successive calls to Done return the same value.
-func (c *PbRPCContext) Done() <-chan struct{} {
+func (c *GrpcContext) Done() <-chan struct{} {
 	return nil
 }
 
@@ -49,27 +61,19 @@ func (c *PbRPCContext) Done() <-chan struct{} {
 // successive calls to Err return the same error.
 // If Done is not yet closed, Err returns nil.
 // If Done is closed, Err returns a non-nil error explaining why:
-// Canceled if the context was canceled
-// or DeadlineExceeded if the context's deadline passed.
-func (c *PbRPCContext) Err() error {
+// Canceled if the contextx was canceled
+// or DeadlineExceeded if the contextx's deadline passed.
+func (c *GrpcContext) Err() error {
 	return nil
 }
 
-// Value returns the value associated with this context for key, or nil
+// Value returns the value associated with this contextx for key, or nil
 // if no value is associated with key. Successive calls to Value with
 // the same key returns the same result.
-func (c *PbRPCContext) Value(key interface{}) interface{} {
+func (c *GrpcContext) Value(key interface{}) interface{} {
 	if keyAsString, ok := key.(string); ok {
 		val, _ := c.Get(keyAsString)
 		return val
 	}
 	return nil
-}
-
-// Next Goto next handler
-func (c *PbRPCContext) Next() {
-	if int(c.index+1) < len(c.server.handlers) {
-		c.index++
-		c.server.handlers[c.index](c)
-	}
 }

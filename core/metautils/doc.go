@@ -9,7 +9,7 @@ While the upstream grpc-go package contains decent functionality (see https://gi
 they are hard to use.
 
 The majority of functions center around the NiceMD, which is a convenience wrapper around metadata.MD. For example
-the following code allows you to easily extract incoming metadata (server handler) and put it into a new client context
+the following code allows you to easily extract incoming metadata (server handler) and put it into a new client contextx
 metadata.
 
   nmd := metautils.ExtractIncoming(serverCtx).Clone(":authorization", ":custom")

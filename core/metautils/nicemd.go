@@ -13,9 +13,9 @@ import (
 // NiceMD is a convenience wrapper definiting extra functions on the metadata.
 type NiceMD metadata.MD
 
-// ExtractIncoming extracts an inbound metadata from the server-side context.
+// ExtractIncoming extracts an inbound metadata from the server-side contextx.
 //
-// This function always returns a NiceMD wrapper of the metadata.MD, in case the context doesn't have metadata it returns
+// This function always returns a NiceMD wrapper of the metadata.MD, in case the contextx doesn't have metadata it returns
 // a new empty NiceMD.
 func ExtractIncoming(ctx context.Context) NiceMD {
 	md, ok := metadata.FromIncomingContext(ctx)
@@ -25,9 +25,9 @@ func ExtractIncoming(ctx context.Context) NiceMD {
 	return NiceMD(md)
 }
 
-// ExtractOutgoing extracts an outbound metadata from the client-side context.
+// ExtractOutgoing extracts an outbound metadata from the client-side contextx.
 //
-// This function always returns a NiceMD wrapper of the metadata.MD, in case the context doesn't have metadata it returns
+// This function always returns a NiceMD wrapper of the metadata.MD, in case the contextx doesn't have metadata it returns
 // a new empty NiceMD.
 func ExtractOutgoing(ctx context.Context) NiceMD {
 	md, ok := metadata.FromOutgoingContext(ctx)
@@ -64,12 +64,12 @@ func (m NiceMD) Clone(copiedKeys ...string) NiceMD {
 	return NiceMD(newMd)
 }
 
-// ToOutgoing sets the given NiceMD as a client-side context for dispatching.
+// ToOutgoing sets the given NiceMD as a client-side contextx for dispatching.
 func (m NiceMD) ToOutgoing(ctx context.Context) context.Context {
 	return metadata.NewOutgoingContext(ctx, metadata.MD(m))
 }
 
-// ToIncoming sets the given NiceMD as a server-side context for dispatching.
+// ToIncoming sets the given NiceMD as a server-side contextx for dispatching.
 //
 // This is mostly useful in ServerInterceptors..
 func (m NiceMD) ToIncoming(ctx context.Context) context.Context {

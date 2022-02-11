@@ -19,7 +19,7 @@ var (
 
 func assertRetainsParentContext(t *testing.T, ctx context.Context) {
 	x := ctx.Value("parentKey")
-	assert.EqualValues(t, "parentValue", x, "context must contain parentCtx")
+	assert.EqualValues(t, "parentValue", x, "contextx must contain parentCtx")
 }
 
 func TestNiceMD_Get(t *testing.T) {

@@ -1,58 +1,56 @@
 package grpcx
 
 import (
-	"github.com/layasugar/laya/core/logx"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+	"log"
 	"net"
-	"runtime"
 	"sync"
 )
 
-// PbRPCServer struct
-type PbRPCServer struct {
-	grpc.Server
+// GrpcServer struct
+type GrpcServer struct {
+	*grpc.Server
 	contextPool sync.Pool
-	handlers    []PbRPCHandlerFunc
 }
 
-// NewPbRPCServer create new PbRPCServer with default configuration
-func NewPbRPCServer() *PbRPCServer {
-	server := &PbRPCServer{}
+// NewGrpcServer create new GrpcServer with default configuration
+func NewGrpcServer() *GrpcServer {
+	opts := []grpc.ServerOption{
+		grpc.UnaryInterceptor(serverInterceptor),
+	}
+
+	server := &GrpcServer{
+		Server: grpc.NewServer(opts...),
+	}
 
 	server.contextPool = sync.Pool{
 		New: func() interface{} {
-			return &PbRPCContext{
+			return &GrpcContext{
 				server: server,
 			}
 		},
 	}
-	server.RequestHandler = server.connHandle
-	server.MaxWorker = uint32(runtime.NumCPU() * 64)
-	server.SetReadTimeout(1500)
-	server.SetWriteTimeout(1500)
 
 	return server
 }
 
-func RegisterServer(ss interface{}) {
-
+func (gs *GrpcServer) Register(f func(s *GrpcServer)) {
+	f(gs)
 }
 
-// AddHandler 添加处理函数
-func (pbs *PbRPCServer) AddHandler(handlers ...PbRPCHandlerFunc) {
-	pbs.handlers = append(pbs.handlers, handlers...)
-}
-
-func (pbs *PbRPCServer) connHandle(conn net.Conn) {
-	context := pbs.contextPool.Get().(*PbRPCContext)
-	context.conn = conn
-	context.LogContext = logx.NewLogContext("-1")
-	for int(context.index) < len(pbs.handlers) {
-		pbs.handlers[context.index](context)
-		context.index++
+func (gs *GrpcServer) Run(addr string) (err error) {
+	lis, err := net.Listen("tcp", addr)
+	if err != nil {
+		log.Printf("failed to listen: %v", err)
+		return
 	}
-	context.conn = nil
-	context.index = 0
-	context.LogContext = nil
-	pbs.contextPool.Put(context)
+
+	// 在给定的gRPC服务器上注册服务器反射服务
+	reflection.Register(gs.Server)
+
+	// Serve方法在lis上接受传入连接，为每个连接创建一个ServerTransport和server的goroutine。
+	// 该goroutine读取gRPC请求，然后调用已注册的处理程序来响应它们
+	err = gs.Server.Serve(lis)
+	return
 }

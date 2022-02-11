@@ -1,12 +1,11 @@
-// Package context 提供每次 RAL 请求的上下文对象，主要用来输出日志。
-package context
+// Package contextx 提供每次 RAL 请求的上下文对象，主要用来输出日志。
+package contextx
 
 import (
 	"fmt"
 	"github.com/layasugar/laya/core/metautils"
 	"github.com/layasugar/laya/gtools"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -112,63 +111,6 @@ func (ctx *Context) TimeStatisStop(topic string) {
 	}
 	tmp.StopPoint = time.Now()
 }
-
-// Err2ErrorHandler 错误转换为错误码
-// protocol 请求协议 当前有 http, nshead, pbrpc, mysql, redis
-type Err2ErrorHandler func(protocol string, errMsg string) (errno string, dealSucc bool)
-
-const (
-	ErrnoHTTPEmptyBody               = "700"
-	ErrnoHTTPAwaitingHeadersExceeded = "701"
-	ErrnoHTTPIOTimeout               = "702"
-	ErrnoUnKnown                     = "999"
-)
-
-// Err2ErrorHandlers 错误转换处理者
-var Err2ErrorHandlers = []Err2ErrorHandler{
-	// http: ContentLength=562 with Body length 0
-	func(protocol string, errMsg string) (errno string, dealSucc bool) {
-		if protocol != "http" {
-			return
-		}
-
-		if strings.HasSuffix(errMsg, "with Body length 0") {
-			return ErrnoHTTPEmptyBody, true
-		}
-
-		return
-	},
-
-	// net/http: request canceled (Client.Timeout exceeded while awaiting headers)
-	func(protocol string, errMsg string) (errno string, dealSucc bool) {
-		if protocol != "http" {
-			return
-		}
-
-		if strings.HasSuffix(errMsg, "net/http: request canceled (Client.Timeout exceeded while awaiting headers)") {
-			return ErrnoHTTPAwaitingHeadersExceeded, true
-		}
-
-		return
-	},
-
-	// dial tcp 10.26.7.174:8000: i/o timeout
-	func(protocol string, errMsg string) (errno string, dealSucc bool) {
-		if protocol != "http" {
-			return
-		}
-
-		if strings.HasSuffix(errMsg, "i/o timeout") {
-			return ErrnoHTTPEmptyBody, true
-		}
-
-		return
-	},
-}
-
-var defaultRecords = []*InvokeRecord{&InvokeRecord{
-	lock: new(sync.RWMutex),
-}}
 
 // InvokeRecord 访问日志，因为重试可能有多条
 type InvokeRecord struct {

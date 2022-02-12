@@ -1,11 +1,10 @@
 package grpc_tpl
 
-const AppTomlTpl = `## 应用名称, 运行模式, http端口, grpc端口, 应用外网地址, 是否开启入参出参打印, 应用版本号
+const ConfigAppTomlTpl = `## 应用名称, 运行模式, grpc端口, 应用外网地址, 是否开启入参出参打印, 应用版本号
 [app]
 url = "http://127.0.0.1:80"
 name = "{{.projectName}}"
 run_mode = "debug"
-http_listen = "0.0.0.0:80"
 grpc_listen = "0.0.0.0:81"
 params = true
 version = "1.0.0"

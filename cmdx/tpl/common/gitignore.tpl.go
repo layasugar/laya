@@ -1,6 +1,6 @@
 package tpl
 
-var gitignore = `# Binaries for programs and plugins
+const gitignoreTpl = `# Binaries for programs and plugins
 *.exe
 *.exe~
 *.dll

@@ -3,6 +3,7 @@ package template
 import (
 	"fmt"
 	"github.com/layasugar/laya/cmdx/tpl"
+	"github.com/layasugar/laya/cmdx/tpl/common"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
@@ -12,11 +13,29 @@ import (
 
 var projectName = ""
 var goModName = ""
+var tagName = "`"
 
 func GenHttpTemplates(ctx *cli.Context) error {
 	name := ctx.String("name")
 	projectName, goModName = parseName(name)
 	log.Printf("start, project_name: %s, go_mod_name: %s", projectName, goModName)
+
+	pwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	absPwd, err := filepath.Abs(pwd + "/" + projectName)
+	if err != nil {
+		return err
+	}
+
+	err = os.Mkdir(absPwd, 0664)
+	if err != nil {
+		return err
+	}
+
+	recursion(absPwd, tpl.PH)
 
 	return nil
 }
@@ -46,7 +65,7 @@ func GenGrpcTemplates(ctx *cli.Context) error {
 	return nil
 }
 
-func recursion(cp string, p tpl.P) {
+func recursion(cp string, p common.P) {
 	var currentPath string
 	if p.Name == "/" {
 		currentPath = cp
@@ -76,6 +95,7 @@ func recursion(cp string, p tpl.P) {
 		v := map[string]string{
 			"projectName": projectName,
 			"goModName":   goModName,
+			"tagName":     tagName,
 		}
 		_ = tt.Execute(file, v)
 		_ = file.Close()

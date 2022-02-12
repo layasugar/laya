@@ -4,7 +4,8 @@ const MainTpl = `package main
 
 import (
 	"github.com/layasugar/laya"
-	"{{.goModName}}/models/dao"
+
+	"{{.goModName}}/middlewares"
 	"{{.goModName}}/routes"
 )
 
@@ -13,7 +14,10 @@ func grpcAppSetup() *laya.App {
 	app := laya.GrpcApp()
 
 	// open db connection and global do before something
-	app.Use(dao.Init)
+	//app.Use(dao.Init)
+
+	// 服务拦截器
+	app.GrpcServer().Use(middlewares.TestInterceptor)
 
 	// rpc 路由
 	app.GrpcServer().Register(routes.RegisterRpcRoutes)

@@ -1,4 +1,4 @@
-package tpl
+package common
 
 type P struct {
 	Name  string

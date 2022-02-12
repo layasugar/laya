@@ -1,58 +1,129 @@
 package tpl
 
-import "github.com/layasugar/laya/cmdx/tpl/grpc_tpl"
+import (
+	"github.com/layasugar/laya/cmdx/tpl/common"
+	"github.com/layasugar/laya/cmdx/tpl/grpc_tpl"
+)
 
-var PG = P{
+var PG = common.P{
 	Name: "/",
-	Files: []F{
-		{Name: ".gitignore", Content: gitignore},
+	Files: []common.F{
+		{Name: ".gitignore", Content: common.GitignoreTpl},
 		{Name: "go.mod", Content: grpc_tpl.GoModTpl},
 		{Name: "main.go", Content: grpc_tpl.MainTpl},
-		{Name: "README.md", Content: readmeTpl},
+		{Name: "README.md", Content: common.ReadmeTpl},
 	},
-	Child: []P{
+	Child: []common.P{
 		{
 			Name: "config",
-			Files: []F{
-				{Name: "app.toml", Content: grpc_tpl.AppTomlTpl},
+			Files: []common.F{
+				{Name: "app.toml", Content: grpc_tpl.ConfigAppTomlTpl},
 			},
 		},
 		{
 			Name: "controllers",
-			Files: []F{
-				{Name: "base.go", Content: grpc_tpl.BaseTpl},
-			},
-			Child: []P{
+			Child: []common.P{
 				{
 					Name: "test",
-					Files: []F{
-						{Name: "base.go", Content: grpc_tpl.BaseTpl},
-						{Name: "test.go", Content: grpc_tpl.BaseTpl},
+					Files: []common.F{
+						{Name: "base.go", Content: grpc_tpl.ControllersTestBaseTpl},
+						{Name: "test.go", Content: grpc_tpl.ControllersTestTestTpl},
 					},
 				},
 			},
 		},
-		{Name: "global", Child: []P{
-			{Name: "errno"},
-			{Name: "page"},
-		}},
-		{Name: "middlewares"},
-		{Name: "models", Child: []P{
-			{Name: "dao", Child: []P{
-				{Name: "cal", Child: []P{
-					{Name: "rpc_test"},
-				}},
-				{Name: "db"},
-			}},
-			{Name: "data", Child: []P{
-				{Name: "test"},
-			}},
-			{Name: "page", Child: []P{
-				{Name: "test"},
-			}},
-		}},
-		{Name: "pb"},
-		{Name: "routes"},
-		{Name: "utils"},
+		{
+			Name: "global",
+			Child: []common.P{
+				{
+					Name: "page",
+					Files: []common.F{
+						{Name: "page.go", Content: grpc_tpl.GlobalPagePageTpl},
+					},
+				},
+			},
+		},
+		{
+			Name: "middlewares",
+			Files: []common.F{
+				{Name: "grpc_test_interceptor.go", Content: grpc_tpl.MiddlewaresGrpcTestTpl},
+			},
+		},
+		{
+			Name: "models",
+			Child: []common.P{
+				{
+					Name: "dao",
+					Files: []common.F{
+						{Name: "base.go", Content: grpc_tpl.ModelsDaoBaseTpl},
+					},
+					Child: []common.P{
+						{
+							Name: "cal",
+							Child: []common.P{
+								{
+									Name: "rpc_test",
+									Files: []common.F{
+										{Name: "trace.go", Content: grpc_tpl.ModelsDaoCalRpcTestTraceTpl},
+									},
+								},
+							},
+							Files: []common.F{
+								{Name: "service_test.go", Content: grpc_tpl.ModelsDaoCalRpcTestServiceTestTpl},
+							},
+						},
+						{
+							Name: "db",
+							Files: []common.F{
+								{Name: "user.go", Content: grpc_tpl.ModelsDaoDbUserTpl},
+							},
+						},
+					},
+				},
+				{
+					Name: "data",
+					Child: []common.P{
+						{
+							Name: "test",
+							Files: []common.F{
+								{Name: "trace.go", Content: grpc_tpl.ModelsDataTestTestTraceTpl},
+								{Name: "types.go", Content: grpc_tpl.ModelsDataTestTypesTpl},
+							},
+						},
+					},
+				},
+				{
+					Name: "page",
+					Child: []common.P{
+						{
+							Name: "test",
+							Files: []common.F{
+								{Name: "trace.go", Content: grpc_tpl.ModelsPageTestTraceTpl},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			Name: "pb",
+			Files: []common.F{
+				{Name: "trace.proto", Content: grpc_tpl.PbTraceTpl},
+				{Name: "trace.pb.go", Content: grpc_tpl.PbTracePbTpl},
+			},
+		},
+		{
+			Name: "routes",
+			Files: []common.F{
+				{Name: "test.go", Content: grpc_tpl.RoutesTestTpl},
+			},
+		},
+		{
+			Name: "utils",
+			Files: []common.F{
+				{Name: "functions.go", Content: common.UtilsFunctionsTpl},
+				{Name: "types.go", Content: common.UtilsTypesTpl},
+			},
+		},
 	},
 }

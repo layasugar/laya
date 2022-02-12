@@ -1,6 +1,6 @@
-package tpl
+package common
 
-var readmeTpl = `# {{.projectName}}
+const ReadmeTpl = `# {{.projectName}}
 
 ## 约定
 

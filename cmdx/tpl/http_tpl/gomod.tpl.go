@@ -1,4 +1,4 @@
-package grpc_tpl
+package http_tpl
 
 const GoModTpl = `module {{.goModName}}
 
@@ -9,8 +9,6 @@ require (
 	github.com/layasugar/laya v0.3.1
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
-	google.golang.org/grpc v1.44.0
-	google.golang.org/protobuf v1.27.1
 	gorm.io/gorm v1.22.5
 )
 `

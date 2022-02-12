@@ -36,7 +36,7 @@ func GenGrpcTemplates(ctx *cli.Context) error {
 		return err
 	}
 
-	err = os.Mkdir(absPwd, os.ModePerm)
+	err = os.Mkdir(absPwd, 0664)
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func recursion(cp string, p tpl.P) {
 		currentPath = cp
 	} else {
 		currentPath = cp + "/" + p.Name
-		err := os.Mkdir(currentPath, os.ModePerm)
+		err := os.Mkdir(currentPath, 0664)
 		if err != nil {
 			log.Print(err.Error())
 		}

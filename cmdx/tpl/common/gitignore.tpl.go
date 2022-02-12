@@ -1,6 +1,6 @@
-package tpl
+package common
 
-const gitignoreTpl = `# Binaries for programs and plugins
+const GitignoreTpl = `# Binaries for programs and plugins
 *.exe
 *.exe~
 *.dll

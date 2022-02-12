@@ -1,4 +1,4 @@
-module github.com/layasugar/laya/cmdx
+module github.com/layasugar/laya/laya
 
 go 1.17
 

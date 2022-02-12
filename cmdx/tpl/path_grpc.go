@@ -1,8 +1,8 @@
 package tpl
 
 import (
-	"github.com/layasugar/laya/cmdx/tpl/common"
-	"github.com/layasugar/laya/cmdx/tpl/grpc_tpl"
+	"github.com/layasugar/laya/laya/tpl/common"
+	"github.com/layasugar/laya/laya/tpl/grpc_tpl"
 )
 
 var PG = common.P{

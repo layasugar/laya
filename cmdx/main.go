@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/layasugar/laya/cmdx/model"
-	"github.com/layasugar/laya/cmdx/template"
+	"github.com/layasugar/laya/laya/model"
+	"github.com/layasugar/laya/laya/template"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"

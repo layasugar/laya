@@ -2,8 +2,8 @@ package template
 
 import (
 	"fmt"
-	"github.com/layasugar/laya/cmdx/tpl"
-	"github.com/layasugar/laya/cmdx/tpl/common"
+	"github.com/layasugar/laya/laya/tpl"
+	"github.com/layasugar/laya/laya/tpl/common"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"

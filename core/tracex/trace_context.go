@@ -58,11 +58,15 @@ func NewTraceContext(name string, headers map[string][]string) *TraceContext {
 
 	if t, err := getTracer(); err == nil {
 		if t != nil {
-			spanCtx, errno := t.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(headers))
-			if errno != nil {
+			if len(headers) == 0 {
 				ctx.TopSpan = t.StartSpan(name)
 			} else {
-				ctx.TopSpan = t.StartSpan(name, ext.RPCServerOption(spanCtx))
+				spanCtx, errno := t.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(headers))
+				if errno != nil {
+					ctx.TopSpan = t.StartSpan(name)
+				} else {
+					ctx.TopSpan = t.StartSpan(name, ext.RPCServerOption(spanCtx))
+				}
 			}
 		}
 	}

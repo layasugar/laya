@@ -48,6 +48,17 @@ var commands = []*cli.Command{
 		Usage: "生成框架模板",
 		Subcommands: []*cli.Command{
 			{
+				Name:  "init",
+				Usage: "初始化一个默认程序模板",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:  "name",
+						Usage: "指定gomod名称",
+					},
+				},
+				Action: template.GenHttpTemplates,
+			},
+			{
 				Name:  "init-http",
 				Usage: "初始化一个http模板",
 				Flags: []cli.Flag{

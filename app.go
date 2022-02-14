@@ -4,6 +4,7 @@ package laya
 
 import (
 	"fmt"
+	"github.com/layasugar/laya/core/appx"
 	"github.com/layasugar/laya/core/grpcx"
 	"github.com/layasugar/laya/core/httpx"
 	"github.com/layasugar/laya/gcal"
@@ -13,15 +14,15 @@ import (
 )
 
 type (
+	Context = appx.Context
+
 	WebContext     = httpx.WebContext
 	WebServer      = httpx.WebServer
 	WebHandlerFunc = httpx.WebHandlerFunc
 
 	GrpcContext = grpcx.GrpcContext
 	GrpcServer  = grpcx.GrpcServer
-)
 
-type (
 	App struct {
 		// webServer 目前web引擎使用gin
 		webServer *httpx.WebServer
@@ -44,7 +45,16 @@ type (
 const (
 	webApp = iota
 	grpcApp
+	defaultApp
 )
+
+// DefaultApp 默认应用不带有web或者grpc, 可作为服务使用
+func DefaultApp() *App {
+	app := new(App)
+
+	app.initWithConfig(-1)
+	return app
+}
 
 // WebApp web app
 func WebApp() *App {
@@ -90,11 +100,6 @@ func (app *App) initWithConfig(scene int) *App {
 		}
 		app.grpcServer = grpcx.NewGrpcServer()
 	}
-	if scene == webApp {
-		if genv.HttpListen() == "" {
-			panic("app.http_listen is null")
-		}
-	}
 
 	// 注册pprof监听函数和params监听函数和重载env函数
 	gconf.RegisterConfigCharge(func() {
@@ -124,6 +129,7 @@ func (app *App) RunServer() {
 		if err != nil {
 			log.Fatalf("Can't RunGrpcServer, GrpcListen: %s, err: %s", genv.GrpcListen(), err.Error())
 		}
+	case defaultApp:
 	}
 }
 
@@ -213,4 +219,9 @@ func (app *App) WebServer() *httpx.WebServer {
 // GrpcServer 获取PbRPCServer的指针
 func (app *App) GrpcServer() *grpcx.GrpcServer {
 	return app.grpcServer
+}
+
+// NewContext 基础服务提供一个NewContext
+func (app *App) NewContext(logId string, spanName string) *appx.Context {
+	return appx.NewDefaultContext(logId, spanName)
 }

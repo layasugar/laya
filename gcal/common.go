@@ -2,6 +2,7 @@ package gcal
 
 import (
 	"context"
+	"github.com/layasugar/laya/core/appx"
 	"github.com/layasugar/laya/core/grpcx"
 	"github.com/layasugar/laya/core/httpx"
 	"github.com/layasugar/laya/core/metautils"
@@ -86,6 +87,11 @@ func clientInterceptor(ctx context.Context, method string, req, reply interface{
 	}
 
 	if oldCtx, ok := ctx.(*grpcx.GrpcContext); ok {
+		x[gtools.RequestIdKey] = []string{oldCtx.GetLogId()}
+		oldCtx.SpanInject(x)
+	}
+
+	if oldCtx, ok := ctx.(*appx.Context); ok {
 		x[gtools.RequestIdKey] = []string{oldCtx.GetLogId()}
 		oldCtx.SpanInject(x)
 	}

@@ -56,7 +56,7 @@ var commands = []*cli.Command{
 						Usage: "指定gomod名称",
 					},
 				},
-				Action: template.GenHttpTemplates,
+				Action: template.GenServerTemplates,
 			},
 			{
 				Name:  "init-http",

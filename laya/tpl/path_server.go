@@ -89,9 +89,10 @@ var PS = common.P{
 			},
 		},
 		{
-			Name: "routes",
+			Name: "pb",
 			Files: []common.F{
-				{Name: "test.go", Content: server_tpl.RoutesTestTpl},
+				{Name: "trace.proto", Content: server_tpl.PbTraceTpl},
+				{Name: "trace.pb.go", Content: server_tpl.PbTracePbTpl},
 			},
 		},
 		{

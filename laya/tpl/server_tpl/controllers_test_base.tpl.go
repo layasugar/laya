@@ -1,14 +1,8 @@
-package http_tpl
+package server_tpl
 
 const ControllersTestBaseTpl = `package test
 
-import (
-	"{{.goModName}}/controllers"
-)
-
 var Ctrl = &controller{}
 
-type controller struct {
-	controllers.BaseCtrl
-}
+type controller struct{}
 `

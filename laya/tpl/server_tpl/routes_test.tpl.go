@@ -1,4 +1,4 @@
-package http_tpl
+package server_tpl
 
 const RoutesTestTpl = `package routes
 

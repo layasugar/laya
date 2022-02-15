@@ -1,4 +1,4 @@
-package http_tpl
+package server_tpl
 
 const ModelsDaoBaseTpl = `//数据库连接基础文件，根据自己需要定制
 

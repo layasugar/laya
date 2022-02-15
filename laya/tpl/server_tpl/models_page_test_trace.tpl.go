@@ -1,4 +1,4 @@
-package http_tpl
+package server_tpl
 
 const ModelsPageTestTraceTpl = `package test
 
@@ -18,11 +18,18 @@ type (
 	}
 )
 
-func HttpTraceTest(ctx *laya.WebContext, pm Req) (*Rsp, error) {
+func TaskTest(ctx *laya.Context, pm Req) (*Rsp, error) {
 	var res Rsp
 	switch pm.Kind {
 	case 1:
-		d, err := test.HttpToHttpTraceTest(ctx)
+		d, err := test.TaskToHttpTest(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		res.Code = d.Code
+	case 2:
+		d, err := test.TaskToRpcTest(ctx)
 		if err != nil {
 			return nil, err
 		}

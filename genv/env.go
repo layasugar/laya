@@ -7,6 +7,7 @@ import (
 
 var (
 	envAppName             = "default-app"
+	envAppMode             = "dev1"
 	envRunMode             = "debug"
 	envAppVersion          = "1.0.0"
 	envHttpListen          = "0.0.0.0:80"
@@ -33,6 +34,18 @@ func SetAppName(appName string) {
 // AppName 返回当前app名称
 func AppName() string {
 	return envAppName
+}
+
+// SetAppMode 设置当前的环境
+func SetAppMode(appMode string) {
+	if appMode != "" {
+		envAppMode = appMode
+	}
+}
+
+// AppMode 返回当前的环境
+func AppMode() string {
+	return envAppMode
 }
 
 // SetRunMode 设置运行模式

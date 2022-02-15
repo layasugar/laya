@@ -1,11 +1,11 @@
-package http_tpl
+package server_tpl
 
 const ConfigAppTomlTpl = `## 应用名称, 运行模式, http端口, 应用外网地址, 是否开启入参出参打印, 应用版本号
 [app]
-url = "http://127.0.0.1:80"
+url = ""
+mod = "dev"
 name = "{{.projectName}}"
 run_mode = "debug"
-http_listen = "0.0.0.0:80"
 params = true
 version = "1.0.0"
 
@@ -43,9 +43,4 @@ pwd = "123456"
 
 ## extra其他配置
 [extra]
-
-## 错误码配置
-[err_code]
-"400" = "system error"
-"4002" = "surprise"
 `

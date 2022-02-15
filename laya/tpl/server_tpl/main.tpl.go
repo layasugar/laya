@@ -1,36 +1,35 @@
-package http_tpl
+package server_tpl
 
 const MainTpl = `package main
 
 import (
 	"github.com/layasugar/laya"
+	"time"
 
-	"{{.goModName}}/middlewares"
-	"{{.goModName}}/routes"
+	"{{.goModName}}/controllers/test"
 )
 
-// webAppSetup 初始化服务设置
-func webAppSetup() *laya.App {
-	app := laya.WebApp()
+// defaultAppSetup 初始化基本服务器
+func defaultAppSetup() *laya.App {
+	app := laya.DefaultApp()
 
-	// open db connection and global do before something
+	// 加载全局方法
 	//app.Use(dao.Init)
-
-	// register global middlewares
-	app.WebServer().Use(middlewares.TestMiddleware())
-
-	// register routes
-	app.WebServer().Register(routes.RegisterHttpTest)
-
-	// 屏蔽不需要打印出入参路由分组
-	//app.SetNoLogParamsPrefix("/admin")
 
 	return app
 }
 
 func main() {
-	app := webAppSetup()
+	app := defaultAppSetup()
 
-	app.RunServer()
+	// 模拟2次任务调度
+	for i := 1; i < 3; i++ {
+		// 生成一个ctx全局传递
+		ctx := app.NewContext("", "xiaosss")
+
+		test.Ctrl.Task(ctx, uint8(i))
+	}
+
+	time.Sleep(time.Minute)
 }
 `

@@ -145,6 +145,7 @@ func (app *App) registerEnv() {
 	genv.SetAppUrl(gconf.V.GetString("app.url"))
 	genv.SetAppName(gconf.V.GetString("app.name"))
 	log.Printf("[app] app.name %s\n", genv.AppName())
+	genv.SetAppMode(gconf.V.GetString("app.mode"))
 	genv.SetRunMode(gconf.V.GetString("app.run_mode"))
 	log.Printf("[app] app.run_mode %s\n", genv.RunMode())
 	genv.SetHttpListen(gconf.V.GetString("app.http_listen"))

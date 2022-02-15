@@ -1,4 +1,4 @@
-package http_tpl
+package server_tpl
 
 const ModelsDaoCalHttpTestServiceTestTpl = `// 链路追踪的测试文件
 

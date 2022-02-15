@@ -1,10 +1,11 @@
-package http_tpl
+package server_tpl
 
 const ModelsDaoCalHttpTestTraceTpl = `// 请求测试文件
 
-package http_test
+package task_test
 
 import (
+	"aka-server/pb"
 	"errors"
 	"github.com/layasugar/laya"
 	"github.com/layasugar/laya/gcal"
@@ -35,9 +36,10 @@ type (
 
 var path = "/server-b/fast"
 var serviceName1 = "http_test"
+var serviceName2 = "grpc_test"
 
-// HttpToHttpTraceTest Http测试, body是interface可以发送任何类型的数据
-func HttpToHttpTraceTest(ctx *laya.WebContext) (*Data, error) {
+// TaskToHttpTest Http测试, body是interface可以发送任何类型的数据
+func TaskToHttpTest(ctx *laya.Context) (*Data, error) {
 	ctx.InfoF("开始请求了, %s", "aaaa")
 	req := gcal.HTTPRequest{
 		Method: "POST",
@@ -59,5 +61,23 @@ func HttpToHttpTraceTest(ctx *laya.WebContext) (*Data, error) {
 	}
 	ctx.InfoF("结束请求了, %s", "bbbb")
 	return &response.Body.Data, err
+}
+
+// TaskToGrpcTest grpc测试
+func TaskToGrpcTest(ctx *laya.Context) (*RpcData, error) {
+	conn := gcal.GetRpcConn(serviceName2)
+	if conn == nil {
+		return nil, errors.New("连接不存在")
+	}
+
+	c := pb.NewGreeterClient(conn)
+
+	res, err := c.SayHello(ctx, &pb.HelloRequest{Name: "q1mi"})
+	if err != nil {
+		return nil, err
+	}
+	return &RpcData{
+		Message: res.Message,
+	}, err
 }
 `

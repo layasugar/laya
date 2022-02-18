@@ -13,7 +13,6 @@ const (
 var DefaultWebServerMiddlewares = []WebHandlerFunc{
 	ginInterceptor,
 	ginWebHandler(gin.Recovery()),
-	recovery,
 }
 
 // 拦截到错误后处理span, 记录日志, 然后panic

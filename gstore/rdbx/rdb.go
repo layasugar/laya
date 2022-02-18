@@ -1,4 +1,4 @@
-package gstore
+package rdbx
 
 import (
 	"context"

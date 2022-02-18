@@ -10,6 +10,7 @@ import (
 	"github.com/layasugar/laya/gcal"
 	"github.com/layasugar/laya/gconf"
 	"github.com/layasugar/laya/genv"
+	"github.com/layasugar/laya/gstore/dbx"
 	"log"
 )
 
@@ -84,6 +85,9 @@ func (app *App) initWithConfig(scene int) *App {
 
 	// 注册env
 	app.registerEnv()
+
+	// db init
+	app.initDbConn()
 
 	switch scene {
 	case webApp:
@@ -181,7 +185,7 @@ func (app *App) registerEnv() {
 			}
 		}
 	default:
-		log.Printf("[app] init config error: services config")
+		log.Printf("[app] init config nil: services config")
 	}
 	if len(services) > 0 {
 		err := gcal.LoadService(services)
@@ -189,6 +193,27 @@ func (app *App) registerEnv() {
 			log.Printf("[app] init load services error: %s", err.Error())
 		}
 	}
+}
+
+// 初始化数据库连接
+func (app *App) initDbConn() {
+	var dbs []map[string]interface{}
+	s := gconf.V.Get("mysql")
+
+	switch s.(type) {
+	case []interface{}:
+		si := s.([]interface{})
+		for _, item := range si {
+			if sim, ok := item.(map[string]interface{}); ok {
+				dbs = append(dbs, sim)
+			}
+		}
+	default:
+		log.Printf("[app] init config nil: mysql config")
+	}
+
+	// 解析dbs
+	dbx.InitConn(dbs)
 }
 
 // SetNoLogParams 设置不需要打印的路由

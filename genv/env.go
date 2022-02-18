@@ -22,6 +22,9 @@ var (
 	envTraceAddr           = ""
 	envTraceMod    float64 = 0
 	envLocalIP             = ""
+	envAlarmType           = ""
+	envAlarmKey            = ""
+	envAlarmHost           = ""
 )
 
 // SetAppName 设置app名称
@@ -201,4 +204,28 @@ func LocalIP() string {
 	}
 
 	return envLocalIP
+}
+
+func SetAlarmType(v string) {
+	envAlarmType = v
+}
+
+func AlarmType() string {
+	return envAlarmType
+}
+
+func SetAlarmKey(v string) {
+	envAlarmKey = v
+}
+
+func AlarmKey() string {
+	return envAlarmKey
+}
+
+func SetAlarmHost(v string) {
+	envAlarmHost = v
+}
+
+func AlarmHost() string {
+	return envAlarmHost
 }

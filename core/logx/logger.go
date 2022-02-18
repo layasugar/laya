@@ -17,8 +17,8 @@ import (
 
 const (
 	defaultChildPath    = "logx/%Y-%m-%d.log" // 默认子目录
-	defaultRotationSize = 128 * 1024 * 1024    // 默认大小为128M
-	defaultRotationTime = 24 * time.Hour       // 默认每天轮转一次
+	defaultRotationSize = 128 * 1024 * 1024   // 默认大小为128M
+	defaultRotationTime = 24 * time.Hour      // 默认每天轮转一次
 
 	LevelInfo  = "info"
 	LevelWarn  = "warn"
@@ -108,15 +108,23 @@ func Error(logId, template string, args ...interface{}) {
 }
 
 func dealWithArgs(tmp string, args ...interface{}) (msg string, f []zap.Field) {
-	var tmpArgs []interface{}
-	for _, item := range args {
-		if zapField, ok := item.(zap.Field); ok {
-			f = append(f, zapField)
-		} else {
-			tmpArgs = append(tmpArgs, item)
+	if len(args) > 0 {
+		var tmpArgs []interface{}
+		for _, item := range args {
+			if nil == item {
+				continue
+			}
+			if zapField, ok := item.(zap.Field); ok {
+				f = append(f, zapField)
+			} else {
+				tmpArgs = append(tmpArgs, item)
+			}
+		}
+		if len(tmpArgs) > 0 {
+			msg = fmt.Sprintf(tmp, tmpArgs...)
 		}
 	}
-	msg = fmt.Sprintf(tmp, tmpArgs...)
+	msg = tmp
 	return
 }
 

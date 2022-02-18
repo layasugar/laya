@@ -11,6 +11,7 @@ import (
 	"github.com/layasugar/laya/gconf"
 	"github.com/layasugar/laya/genv"
 	"github.com/layasugar/laya/gstore/dbx"
+	"github.com/layasugar/laya/gstore/rdbx"
 	"log"
 )
 
@@ -47,6 +48,11 @@ const (
 	webApp = iota
 	grpcApp
 	defaultApp
+)
+
+const (
+	mysqlConfKey = "mysql"
+	redisConfKey = "redis"
 )
 
 // DefaultApp 默认应用不带有web或者grpc, 可作为服务使用
@@ -86,7 +92,7 @@ func (app *App) initWithConfig(scene int) *App {
 	// 注册env
 	app.registerEnv()
 
-	// db init
+	// db init and rdb init
 	app.initDbConn()
 
 	switch scene {
@@ -173,6 +179,11 @@ func (app *App) registerEnv() {
 	genv.SetTraceAddr(gconf.V.GetString("app.trace.addr"))
 	genv.SetTraceMod(gconf.V.GetFloat64("app.trace.mod"))
 
+	// alarmx
+	genv.SetAlarmType(gconf.V.GetString("app.alarm.type"))
+	genv.SetAlarmKey(gconf.V.GetString("app.alarm.key"))
+	genv.SetAlarmHost(gconf.V.GetString("app.alarm.addr"))
+
 	// 初始化调用gcal
 	var services []map[string]interface{}
 	s := gconf.V.Get("services")
@@ -195,14 +206,16 @@ func (app *App) registerEnv() {
 	}
 }
 
-// 初始化数据库连接
+// 初始化数据库连接和redis连接
 func (app *App) initDbConn() {
 	var dbs []map[string]interface{}
-	s := gconf.V.Get("mysql")
+	var rdbs []map[string]interface{}
+	sDb := gconf.V.Get(mysqlConfKey)
+	sRdb := gconf.V.Get(redisConfKey)
 
-	switch s.(type) {
+	switch sDb.(type) {
 	case []interface{}:
-		si := s.([]interface{})
+		si := sDb.([]interface{})
 		for _, item := range si {
 			if sim, ok := item.(map[string]interface{}); ok {
 				dbs = append(dbs, sim)
@@ -212,8 +225,22 @@ func (app *App) initDbConn() {
 		log.Printf("[app] init config nil: mysql config")
 	}
 
+	switch sRdb.(type) {
+	case []interface{}:
+		si := sRdb.([]interface{})
+		for _, item := range si {
+			if sim, ok := item.(map[string]interface{}); ok {
+				rdbs = append(rdbs, sim)
+			}
+		}
+	default:
+		log.Printf("[app] init config nil: redis config")
+	}
+
 	// 解析dbs
 	dbx.InitConn(dbs)
+	// 解析rdbs
+	rdbx.InitConn(rdbs)
 }
 
 // SetNoLogParams 设置不需要打印的路由

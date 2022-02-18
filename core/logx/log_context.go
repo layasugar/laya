@@ -1,6 +1,7 @@
 package logx
 
 import (
+	"github.com/layasugar/laya/core/alarmx"
 	"github.com/layasugar/laya/genv"
 )
 
@@ -10,6 +11,8 @@ type LoggerContext interface {
 	WarnF(template string, args ...interface{})
 	ErrorF(template string, args ...interface{})
 	Field(key string, value interface{}) Field
+
+	Alarm(title string, content string, data map[string]interface{})
 }
 
 func (ctx *LogContext) InfoF(template string, args ...interface{}) {
@@ -20,7 +23,12 @@ func (ctx *LogContext) WarnF(template string, args ...interface{}) {
 	Warn(ctx.logId, template, args...)
 }
 
+// ErrorF 打印程序错误日志
 func (ctx *LogContext) ErrorF(template string, args ...interface{}) {
+	msg, _ := dealWithArgs(template, args)
+	ctx.Alarm("程序打印error", "请引起重视", map[string]interface{}{
+		"data": msg,
+	})
 	Error(ctx.logId, template, args...)
 }
 
@@ -28,10 +36,14 @@ func (ctx *LogContext) Field(key string, value interface{}) Field {
 	return String(key, value)
 }
 
+func (ctx *LogContext) Alarm(title string, content string, data map[string]interface{}) {
+	alarmx.Alarm(title, content, data)
+}
+
 // LogContext logger
 type LogContext struct {
-	logId             string
-	clientIP          string
+	logId    string
+	clientIP string
 }
 
 var _ LoggerContext = &LogContext{}

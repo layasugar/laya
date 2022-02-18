@@ -16,38 +16,28 @@ import (
 	"time"
 )
 
-var DingCh = make(chan *AlarmData, 10)
-var robotKey string
-var robotHost string
-
-type AlarmMsg struct {
-	MsgType  string        `json:"msgtype"`
-	Text     AlarmText     `json:"text"`
-	Markdown AlarmMarkdown `json:"markdown"`
-	At       AlarmAt       `json:"at"`
+type dingAlarmMsg struct {
+	MsgType  string            `json:"msgtype"`
+	Text     dingAlarmText     `json:"text"`
+	Markdown dingAlarmMarkdown `json:"markdown"`
+	At       dingAlarmAt       `json:"at"`
 }
 
-type AlarmText struct {
+type dingAlarmText struct {
 	Content string `json:"content"`
 }
 
-type AlarmMarkdown struct {
+type dingAlarmMarkdown struct {
 	Title string `json:"title"`
 	Text  string `json:"text"`
 }
 
-type AlarmAt struct {
+type dingAlarmAt struct {
 	AtMobiles []string `json:"atMobiles"`
 	IsAtAll   bool     `json:"isAtAll"`
 }
 
-type AlarmData struct {
-	Title       string                 //报警标题
-	Description string                 //报警描述
-	Content     map[string]interface{} //kv数据
-}
-
-func (ad *AlarmData) SendAlarm() error {
+func DingAlarm(robotKey, robotHost string, ad AlarmData) {
 	var s string
 	msg := bytes.Buffer{}
 	s += fmt.Sprintf("## %s\r\n#### %s\r\n", ad.Title, ad.Description)
@@ -57,9 +47,8 @@ func (ad *AlarmData) SendAlarm() error {
 	msg.WriteString(s)
 	err := sendToDingTalk(robotKey, robotHost, msg.String())
 	if err != nil {
-		return err
+		log.Printf("dingding 推送失败, err: %s", err.Error())
 	}
-	return nil
 }
 
 func hmacSha256(data string, secret string) string {
@@ -79,9 +68,9 @@ func sendToDingTalk(robotKey, robotHost, msg string) error {
 	sig = strings.Replace(sig, "-", "%2B", -1)
 	sig = strings.Replace(sig, "_", "%2F", -1)
 	requestUrl := robotHost + "&timestamp=" + nowStr + "&sign=" + sig
-	textMsg := &AlarmMsg{}
+	textMsg := &dingAlarmMsg{}
 	textMsg.MsgType = "markdown"
-	textMsg.Markdown = AlarmMarkdown{}
+	textMsg.Markdown = dingAlarmMarkdown{}
 	textMsg.Markdown.Title = "payment post request mq Error"
 	textMsg.Markdown.Text = msg
 	postdata, _ := json.Marshal(textMsg)
@@ -98,30 +87,4 @@ func sendToDingTalk(robotKey, robotHost, msg string) error {
 	responseData, _ := ioutil.ReadAll(resp.Body)
 	log.Printf("钉钉通知请求结果：%s", string(responseData))
 	return nil
-}
-
-func InitDing(key, host string) {
-	robotKey = key
-	robotHost = host
-	go func() {
-		for {
-			d := <-DingCh
-			err := d.SendAlarm()
-			if err != nil {
-				log.Printf("发送钉钉失败：err=%s", err.Error())
-			}
-		}
-	}()
-	log.Printf("[glogs_ding] ding_ding_push success")
-}
-
-func SendDing(d *AlarmData) {
-	if robotKey == "" || robotHost == "" {
-		log.Printf("钉钉推送并未初始化")
-		return
-	}
-	go func(d *AlarmData) {
-		DingCh <- d
-	}(d)
-	return
 }

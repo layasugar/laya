@@ -16,12 +16,13 @@
 - [x] 提供完善的日志功能(包含grpc和http的日志跟踪)
 - [x] http中间件与grpc拦截器完成日志和链路追踪
 - [x] 链路支持zipkin与jaeger(包含http与grpc和基础服务)
-- [ ] 链路追踪包含mysql redis mongo es
-- [ ] 链路追踪支持打印error日志已设置tag(为尾部连贯采样做下基础)
-- [ ] 基础app配置增加环境配置(有用环境做应用隔离的需求)
+- [x] 链路追踪包含mysql
+- [x] 链路追踪包含redis
+- [x] 日志打印error时触发alarm
+- [x] 基础app配置增加环境配置(有用环境做应用隔离的需求)
 
 ## 工具
 
 - [x] 一键初始化目录结构到当前目录
-- [ ] 一键生成db.model
+- [x] 一键生成db.model
 

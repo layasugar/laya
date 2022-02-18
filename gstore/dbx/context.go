@@ -13,7 +13,11 @@ import (
 	"gorm.io/gorm"
 )
 
-const contextKey = "otgorm:context"
+const (
+	contextKey    = "otgorm:context"
+	tSpanName     = "mysql"
+	componentName = "gorm"
+)
 
 func Wrap(ctx context.Context, dbName ...string) *gorm.DB {
 	var db *gorm.DB
@@ -67,11 +71,11 @@ func newBefore(name string) func(*gorm.DB) {
 				}
 			}
 			if traceCtx != nil {
-				span := traceCtx.SpanStart("mysql")
+				span := traceCtx.SpanStart(tSpanName)
 				if nil != span {
 					newCtx := context.Background()
 					keepScene(db, newCtx)
-					ext.Component.Set(span, "gorm")
+					ext.Component.Set(span, componentName)
 					setSpan(db, newCtx, span)
 				}
 			}

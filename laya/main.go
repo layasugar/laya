@@ -14,32 +14,31 @@ var commands = []*cli.Command{
 		Usage: "生成模型代码",
 		Subcommands: []*cli.Command{
 			{
-				Name:  "model",
+				Name:  "init",
 				Usage: `generate model model`,
-				Subcommands: []*cli.Command{
-					{
-						Name:  "ddl",
-						Usage: `generate model model from ddl`,
-						Flags: []cli.Flag{
-							&cli.StringFlag{
-								Name:  "src, s",
-								Usage: "the path or path globbing patterns of the ddl",
-							},
-						},
-						Action: model.DDL,
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:  "table",
+						Usage: `指定表名, 必传`,
 					},
-					{
-						Name:  "datasource",
-						Usage: `generate model from datasource`,
-						Flags: []cli.Flag{
-							&cli.StringFlag{
-								Name:  "url",
-								Usage: `the data source of database,like "root:password@tcp(127.0.0.1:3306)/database"`,
-							},
-						},
-						Action: model.DataSource,
+					&cli.StringFlag{
+						Name:  "package",
+						Usage: `指定包名, 默认库名`,
+					},
+					&cli.StringFlag{
+						Name:  "config",
+						Usage: `指定配置文件, 默认当前路径config/app.toml`,
+					},
+					&cli.StringFlag{
+						Name:  "out",
+						Usage: `指定输出路径, 默认是models/dao/db/package`,
+					},
+					&cli.StringFlag{
+						Name:  "database",
+						Usage: `指定数据库名, 默认是default配置的连接数据库`,
 					},
 				},
+				Action: model.Init,
 			},
 		},
 	},

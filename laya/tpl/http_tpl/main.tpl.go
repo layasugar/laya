@@ -13,9 +13,6 @@ import (
 func webAppSetup() *laya.App {
 	app := laya.WebApp()
 
-	// open db connection and global do before something
-	//app.Use(dao.Init)
-
 	// register global middlewares
 	app.WebServer().Use(middlewares.TestMiddleware())
 

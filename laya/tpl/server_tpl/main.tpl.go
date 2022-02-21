@@ -13,9 +13,6 @@ import (
 func defaultAppSetup() *laya.App {
 	app := laya.DefaultApp()
 
-	// 加载全局方法
-	//app.Use(dao.Init)
-
 	return app
 }
 

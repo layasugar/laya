@@ -5,11 +5,12 @@ const ModelsDaoCalHttpTestTraceTpl = `// 请求测试文件
 package task_test
 
 import (
-	"aka-server/pb"
 	"errors"
 	"github.com/layasugar/laya"
 	"github.com/layasugar/laya/gcal"
 	"net/http"
+
+	"{{.goModName}}/pb"
 )
 
 type (

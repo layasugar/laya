@@ -13,9 +13,6 @@ import (
 func grpcAppSetup() *laya.App {
 	app := laya.GrpcApp()
 
-	// open db connection and global do before something
-	//app.Use(dao.Init)
-
 	// 服务拦截器
 	app.GrpcServer().Use(middlewares.TestInterceptor)
 

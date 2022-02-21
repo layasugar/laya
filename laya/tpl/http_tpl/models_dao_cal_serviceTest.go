@@ -1,19 +1,19 @@
-package grpc_tpl
+package http_tpl
 
-const ModelsDaoCalRpcTestServiceTestTpl = `// 链路追踪的测试文件
+const ModelsDaoCalHttpTestServiceTestTpl = `// 链路追踪的测试文件
 
 package cal_test
 
 import (
 	"context"
 	"fmt"
+	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/uber/jaeger-client-go"
 	jaegerCfg "github.com/uber/jaeger-client-go/config"
 	jaegerLog "github.com/uber/jaeger-client-go/log"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 	"io"
 	"log"
@@ -81,7 +81,7 @@ func (ctrl *sayHello) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.He
 	tracer, closer, _ := NewJaeger("grpc_server")
 	defer closer.Close()
 
-	md, _ := metadata.FromIncomingContext(ctx)
+	md := metautils.ExtractIncoming(ctx)
 	spanCtx, err := tracer.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(md))
 	if err != nil {
 		log.Println(err.Error())

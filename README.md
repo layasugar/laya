@@ -11,7 +11,7 @@
 - [x] 应用初始化, 包含http和grpc应用
 - [x] 配置文件初始化, 配置文件热重载
 - [x] 提供genv, timex, cache, gcal, gstore, gconf, signal 等基础功能
-- [x] 提供全局WebContext, GrpcContext
+- [x] 提供全局传递的WebContext, GrpcContext, Context
 - [x] 提供完全兼容的ginRoute和GrpcRoute
 - [x] 提供完善的日志功能(包含grpc和http的日志跟踪)
 - [x] http中间件与grpc拦截器完成日志和链路追踪

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/layasugar/laya/laya/tpl"
 	"github.com/layasugar/laya/laya/tpl/common"
+	"github.com/layasugar/laya/laya/version"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
@@ -14,6 +15,7 @@ import (
 var projectName = ""
 var goModName = ""
 var tagName = "`"
+var versionName = version.VERSION
 
 func GenHttpTemplates(ctx *cli.Context) error {
 	name := ctx.String("name")
@@ -121,6 +123,7 @@ func recursion(cp string, p common.P) {
 			"projectName": projectName,
 			"goModName":   goModName,
 			"tagName":     tagName,
+			"versionName": versionName,
 		}
 		_ = tt.Execute(file, v)
 		_ = file.Close()

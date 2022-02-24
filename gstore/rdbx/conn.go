@@ -10,12 +10,7 @@ const (
 	defaultRedisPoolMinIdle = 2 // 连接池空闲连接数量
 )
 
-// InitRdb 初始化redis
-func InitRdb(cfg redis.Options) *redis.Client {
-	return connRdb(cfg)
-}
-
-func connRdb(options redis.Options) *redis.Client {
+func connRdb(name string, options redis.Options) *redis.Client {
 	if options.MinIdleConns == 0 {
 		options.MinIdleConns = defaultRedisPoolMinIdle
 	}
@@ -27,7 +22,7 @@ func connRdb(options redis.Options) *redis.Client {
 		log.Printf("[app.rdbx] redis fail, err: %s", err)
 		panic(err)
 	} else {
-		log.Printf("[app.rdbx] redis success")
+		log.Printf("[app.rdbx] redis success,name: %s", name)
 	}
 	Rdb.AddHook(NewHook())
 	return Rdb
@@ -52,8 +47,14 @@ func InitConn(m []map[string]interface{}) {
 
 		if nameIf, ok := item["name"]; ok {
 			if nameStr, okInterface := nameIf.(string); okInterface {
-				name = nameStr
+				if nameStr == "" {
+					name = defaultRdbName
+				} else {
+					name = nameStr
+				}
 			}
+		} else {
+			name = defaultRdbName
 		}
 
 		if addr, ok := item["addr"]; ok {
@@ -78,14 +79,14 @@ func InitConn(m []map[string]interface{}) {
 			continue
 		}
 
-		setRDB(name, connRdb(cfg))
+		setRdb(name, connRdb(name, cfg))
 	}
 }
 
 func GetClient(name ...string) *redis.Client {
 	if len(name) > 0 {
-		return getRDB(name[0])
+		return getRdb(name[0])
 	} else {
-		return getRDB(defaultDbName)
+		return getRdb(defaultRdbName)
 	}
 }

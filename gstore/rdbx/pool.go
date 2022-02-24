@@ -8,24 +8,24 @@ import (
 )
 
 const (
-	defaultDbName = "default"
+	defaultRdbName = "default"
 )
 
-var dbPool map[string]*redis.Client
+var p map[string]*redis.Client
 
-func getRDB(name string) *redis.Client {
+func getRdb(name string) *redis.Client {
 	pool := getPool()
 	return pool[name]
 }
 
-func setRDB(databaseName string, db *redis.Client) {
+func setRdb(databaseName string, db *redis.Client) {
 	pool := getPool()
 	pool[databaseName] = db
 }
 
 func getPool() map[string]*redis.Client {
-	if dbPool == nil {
-		dbPool = make(map[string]*redis.Client)
+	if p == nil {
+		p = make(map[string]*redis.Client)
 	}
-	return dbPool
+	return p
 }

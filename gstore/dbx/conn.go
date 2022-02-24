@@ -137,8 +137,14 @@ func InitConn(m []map[string]interface{}) {
 
 		if name, ok := item["name"]; ok {
 			if nameStr, okInterface := name.(string); okInterface {
-				dbc.name = nameStr
+				if nameStr == "" {
+					dbc.name = defaultDbName
+				} else {
+					dbc.name = nameStr
+				}
 			}
+		} else {
+			dbc.name = defaultDbName
 		}
 
 		if dsn, ok := item["dsn"]; ok {

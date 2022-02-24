@@ -75,3 +75,18 @@ func LoadErrMsg(code uint32) string {
 	s := V.GetString(key)
 	return s
 }
+
+func GetConfigMap(key string) []map[string]interface{} {
+	var configMaps []map[string]interface{}
+	b := V.Get(key)
+	switch b.(type) {
+	case []interface{}:
+		si := b.([]interface{})
+		for _, item := range si {
+			if sim, ok := item.(map[string]interface{}); ok {
+				configMaps = append(configMaps, sim)
+			}
+		}
+	}
+	return configMaps
+}

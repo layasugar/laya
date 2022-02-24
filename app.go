@@ -12,6 +12,8 @@ import (
 	"github.com/layasugar/laya/gconf"
 	"github.com/layasugar/laya/genv"
 	"github.com/layasugar/laya/gstore/dbx"
+	"github.com/layasugar/laya/gstore/edbx"
+	"github.com/layasugar/laya/gstore/mdbx"
 	"github.com/layasugar/laya/gstore/rdbx"
 	"log"
 )
@@ -52,8 +54,11 @@ const (
 )
 
 const (
-	mysqlConfKey = "mysql"
-	redisConfKey = "redis"
+	mysqlConfKey    = "mysql"
+	redisConfKey    = "redis"
+	mongoConfKey    = "mongo"
+	esConfKey       = "es"
+	servicesConfKey = "services"
 )
 
 // DefaultApp 默认应用不带有web或者grpc, 可作为服务使用
@@ -191,19 +196,7 @@ func (app *App) registerEnv() {
 	genv.SetAlarmHost(gconf.V.GetString("app.alarm.addr"))
 
 	// 初始化调用gcal
-	var services []map[string]interface{}
-	s := gconf.V.Get("services")
-	switch s.(type) {
-	case []interface{}:
-		si := s.([]interface{})
-		for _, item := range si {
-			if sim, ok := item.(map[string]interface{}); ok {
-				services = append(services, sim)
-			}
-		}
-	default:
-		log.Printf("[app] init config nil: services config")
-	}
+	var services = gconf.GetConfigMap(servicesConfKey)
 	if len(services) > 0 {
 		err := gcal.LoadService(services)
 		if err != nil {
@@ -214,39 +207,19 @@ func (app *App) registerEnv() {
 
 // 初始化数据库连接和redis连接
 func (app *App) initDbConn() {
-	var dbs []map[string]interface{}
-	var rdbs []map[string]interface{}
-	sDb := gconf.V.Get(mysqlConfKey)
-	sRdb := gconf.V.Get(redisConfKey)
-
-	switch sDb.(type) {
-	case []interface{}:
-		si := sDb.([]interface{})
-		for _, item := range si {
-			if sim, ok := item.(map[string]interface{}); ok {
-				dbs = append(dbs, sim)
-			}
-		}
-	default:
-		log.Printf("[app] init config nil: mysql config")
-	}
-
-	switch sRdb.(type) {
-	case []interface{}:
-		si := sRdb.([]interface{})
-		for _, item := range si {
-			if sim, ok := item.(map[string]interface{}); ok {
-				rdbs = append(rdbs, sim)
-			}
-		}
-	default:
-		log.Printf("[app] init config nil: redis config")
-	}
+	var dbs = gconf.GetConfigMap(mysqlConfKey)
+	var rdbs = gconf.GetConfigMap(redisConfKey)
+	var mdbs = gconf.GetConfigMap(mongoConfKey)
+	var edbs = gconf.GetConfigMap(esConfKey)
 
 	// 解析dbs
 	dbx.InitConn(dbs)
 	// 解析rdbs
 	rdbx.InitConn(rdbs)
+	// 解析mongo
+	mdbx.InitConn(mdbs)
+	// 解析es
+	edbx.InitConn(edbs)
 }
 
 // SetNoLogParams 设置不需要打印的路由

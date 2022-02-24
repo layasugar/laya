@@ -4,12 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
 	"github.com/layasugar/laya/core/appx"
 	"github.com/layasugar/laya/core/grpcx"
 	"github.com/layasugar/laya/core/httpx"
 	"github.com/layasugar/laya/core/tracex"
-	"github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/ext"
 	"gorm.io/gorm"
 )
 

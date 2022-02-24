@@ -3,6 +3,7 @@
 package laya
 
 import (
+	"flag"
 	"fmt"
 	"github.com/layasugar/laya/core/appx"
 	"github.com/layasugar/laya/core/grpcx"
@@ -83,8 +84,13 @@ func GrpcApp() *App {
 func (app *App) initWithConfig(scene int) *App {
 	app.scene = scene
 
+	// 接收命令行参数
+	var f string
+	flag.StringVar(&f, "config", "", "set a config file")
+	flag.Parse()
+
 	// 初始化配置
-	err := gconf.InitConfig()
+	err := gconf.InitConfig(f)
 	if err != nil {
 		panic(err)
 	}

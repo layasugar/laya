@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
+	"os"
 	"time"
 )
 
 const (
-	cTimer            = 5 * time.Second     // 配置重载时间, 配置文件更新5s后重载配置
-	httpListenKey     = "app.http_listen"   // http_listen
-	pbRpcListenKey    = "app.pbrpc_liten"   // rpc_listen
-	defaultConfigFile = "./config/app.toml" // 固定配置文件
+	cTimer            = 5 * time.Second   // 配置重载时间, 配置文件更新5s后重载配置
+	httpListenKey     = "app.http_listen" // http_listen
+	pbRpcListenKey    = "app.pbrpc_liten" // rpc_listen
+	defaultConfigFile = "conf/app.toml"   // 固定配置文件
 )
 
 var V = viper.New()
@@ -19,9 +20,21 @@ var configChargeHandleFunc []func()
 var t *time.Timer
 
 // InitConfig 初始化配置信息
-func InitConfig() error {
-	V.SetConfigFile(defaultConfigFile)
-	err := V.ReadInConfig()
+func InitConfig(file string) error {
+	var f string
+	pwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	if file == "" {
+		f = pwd + "/" + defaultConfigFile
+	} else {
+		f = pwd + "/" + file
+	}
+
+	V.SetConfigFile(f)
+	err = V.ReadInConfig()
 	if err != nil {
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}

@@ -6,8 +6,6 @@ import (
 	"github.com/layasugar/laya/core/logx"
 	"github.com/layasugar/laya/core/metautils"
 	"github.com/layasugar/laya/core/tracex"
-	"github.com/layasugar/laya/gtools"
-	uuid "github.com/satori/go.uuid"
 	"time"
 )
 
@@ -23,17 +21,13 @@ type GrpcContext struct {
 
 // NewGrpcContext newCtx
 func NewGrpcContext(name string, md metautils.NiceMD) *GrpcContext {
-	logId := md.Get(gtools.RequestIdKey)
-	if logId == "" {
-		logId = gtools.Md5(uuid.NewV4().String())
-	}
+	traceCtx := tracex.NewTraceContext(name, md)
 
 	c := &GrpcContext{
-		LogContext:    logx.NewLogContext(logId),
-		TraceContext:  tracex.NewTraceContext(name, md),
+		LogContext:    logx.NewLogContext(traceCtx.TraceID),
+		TraceContext:  traceCtx,
 		MemoryContext: datax.NewMemoryContext(),
 	}
-	c.Set(gtools.RequestIdKey, logId)
 	return c
 }
 

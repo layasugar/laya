@@ -3,8 +3,8 @@ package grpcx
 import (
 	"context"
 	"github.com/layasugar/laya/core/metautils"
-	"github.com/layasugar/laya/genv"
-	"github.com/layasugar/laya/gtools"
+	"github.com/layasugar/laya/env"
+	"github.com/layasugar/laya/tools"
 	"google.golang.org/grpc"
 )
 
@@ -15,9 +15,9 @@ func serverInterceptor(ctx context.Context, req interface{}, info *grpc.UnarySer
 	newCtx := NewGrpcContext(info.FullMethod, md)
 
 	// 入参 header->meta
-	if genv.ParamLog() {
-		reqByte, _ := gtools.CJson.Marshal(req)
-		mdByte, _ := gtools.CJson.Marshal(md)
+	if env.ApiLog() {
+		reqByte, _ := tools.CJson.Marshal(req)
+		mdByte, _ := tools.CJson.Marshal(md)
 		newCtx.InfoF("%s", string(reqByte),
 			newCtx.Field("header", string(mdByte)),
 			newCtx.Field("path", info.FullMethod),
@@ -27,8 +27,8 @@ func serverInterceptor(ctx context.Context, req interface{}, info *grpc.UnarySer
 
 	resp, err := handler(newCtx, req)
 
-	if genv.ParamLog() {
-		respByte, _ := gtools.CJson.Marshal(resp)
+	if env.ApiLog() {
+		respByte, _ := tools.CJson.Marshal(resp)
 		newCtx.InfoF("%s", string(respByte), newCtx.Field("title", "出参"))
 	}
 	newCtx.SpanFinish(newCtx.TopSpan)

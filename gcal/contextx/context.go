@@ -3,8 +3,11 @@ package contextx
 
 import (
 	"fmt"
+	"github.com/layasugar/laya/core/httpx"
 	"github.com/layasugar/laya/core/metautils"
-	"github.com/layasugar/laya/gtools"
+	"github.com/layasugar/laya/tools"
+	"github.com/layasugar/laya/tools/timex"
+	"go.uber.org/zap"
 	"strconv"
 	"sync"
 	"time"
@@ -15,6 +18,9 @@ type RequestContext interface {
 	GetLogId() string
 	GetClientIP() string
 	SpanInject(md metautils.NiceMD)
+	InfoF(template string, args ...interface{})
+	WarnF(template string, args ...interface{})
+	ErrorF(template string, args ...interface{})
 }
 
 // Context 用作日志记录
@@ -43,7 +49,7 @@ type Context struct {
 func NewContext() (ctx *Context) {
 	return &Context{
 		PackStatis: &StatisItem{},
-		LogId:      gtools.GenerateLogId(),
+		LogId:      tools.GenerateLogId(),
 		lock:       new(sync.RWMutex),
 	}
 }
@@ -60,6 +66,31 @@ func (ctx *Context) CurRecord() *InvokeRecord {
 	}
 
 	return ctx.invokeRecords[ctx.curTryIndex]
+}
+
+func (ctx *Context) Log() {
+	for _, invokeRecord := range ctx.invokeRecords {
+		var datetime string
+		var rspBody string
+		if reqStartTime, ok := invokeRecord.timePoints["req_start_time"]; ok {
+			datetime = reqStartTime.Format(timex.TimeFormat)
+		}
+		begin := invokeRecord.timeStatis["cost"].StartPoint
+		end := invokeRecord.timeStatis["cost"].StopPoint
+		runtime := invokeRecord.timeStatis["cost"].GetSpan()
+		if rspLog, ok := invokeRecord.RspLog.([]byte); ok {
+			rspBody = string(rspLog)
+		}
+		ctx.ReqContext.InfoF("%s", "sdk_log",
+			zap.String("datetime", datetime),
+			zap.Any("message_type", "sdk"),
+			zap.Any("request", invokeRecord.ReqLog),
+			zap.Any("respon", rspBody),
+			zap.Any("start_time", float64(begin.UnixMicro())/1e6),
+			zap.Any("end_time", float64(end.UnixMicro())/1e6),
+			zap.String("runtime", runtime),
+		)
+	}
 }
 
 // NextRecord 将访问记录往后移一位
@@ -114,6 +145,10 @@ func (ctx *Context) TimeStatisStop(topic string) {
 
 // InvokeRecord 访问日志，因为重试可能有多条
 type InvokeRecord struct {
+	LogId  string
+	RspLog interface{}
+	ReqLog httpx.RequestLog
+
 	// RspCode 请求的响应码
 	// http 代表 http status code，200 为正常，700+是自定义的错误码，表示发送请求时发生了error
 	// nshead 等有自己的规则，不统一描述

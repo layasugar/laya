@@ -15,6 +15,9 @@ var serviceLock sync.RWMutex
 func GetService(name string) (Service, bool) {
 	serviceLock.RLock()
 	s, ok := servicePool[name]
+	if !ok {
+		return defaultService(), true
+	}
 	serviceLock.RUnlock()
 	return s, ok
 }
@@ -97,4 +100,22 @@ func LoadService(cfg []map[string]interface{}) error {
 	}
 
 	return nil
+}
+
+func defaultService() Service {
+	var conf = Config{
+		Name:         "default",
+		Addr:         "",
+		Retry:        0,
+		NSProvider:   "1",
+		Protocol:     "",
+		Reuse:        true,
+		Converter:    "json",
+		ConnTimeOut:  1500,
+		WriteTimeOut: 1500,
+		ReadTimeOut:  1500,
+		Headers:      make(map[string]string),
+	}
+
+	return NewService(&conf)
 }

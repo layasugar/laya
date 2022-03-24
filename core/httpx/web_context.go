@@ -5,8 +5,6 @@ import (
 	"github.com/layasugar/laya/core/alarmx"
 	"github.com/layasugar/laya/core/logx"
 	"github.com/layasugar/laya/core/tracex"
-	"github.com/layasugar/laya/gtools"
-	uuid "github.com/satori/go.uuid"
 )
 
 // WebHandlerFunc http请求的处理者
@@ -29,18 +27,12 @@ func NewWebContext(ginContext *gin.Context) *WebContext {
 	if existed {
 		return obj.(*WebContext)
 	}
-
-	logId := ginContext.GetHeader(gtools.RequestIdKey)
-	if logId == "" {
-		logId = gtools.Md5(uuid.NewV4().String())
-		ginContext.Request.Header.Set(gtools.RequestIdKey, logId)
-		ginContext.Set(gtools.RequestIdKey, logId)
-	}
+	traceCtx := tracex.NewTraceContext(ginContext.Request.RequestURI, ginContext.Request.Header)
 
 	tmp := &WebContext{
 		Context:      ginContext,
-		LogContext:   logx.NewLogContext(logId),
-		TraceContext: tracex.NewTraceContext(ginContext.Request.RequestURI, ginContext.Request.Header),
+		LogContext:   logx.NewLogContext(traceCtx.TraceID),
+		TraceContext: traceCtx,
 	}
 	ginContext.Set(ginFlag, tmp)
 

@@ -5,7 +5,9 @@
 package gcal
 
 import (
+	"errors"
 	"fmt"
+	"github.com/layasugar/laya/env"
 	"github.com/layasugar/laya/gcal/contextx"
 	"github.com/layasugar/laya/gcal/converter"
 	"github.com/layasugar/laya/gcal/protocol"
@@ -29,7 +31,7 @@ func Do(serviceName string, request interface{}, response interface{}, converter
 	ctx.Caller = "GCAL"
 	serv, _ := service.GetService(serviceName)
 	if serv == nil {
-		return err
+		return errors.New("not found service")
 	}
 
 	return calWithService(ctx, serv, request, response, converterType)
@@ -64,6 +66,7 @@ func calWithService(ctx *contextx.Context, serv service.Service, request interfa
 		ctx.CurRecord().RecordTimePoint("talk_start_time")
 
 		rsp, err = proto.Do(ctx, serv.GetAddr())
+		ctx.CurRecord().RspLog = rsp.Body
 		ctx.TimeStatisStop("cost")
 		if err == nil {
 			break
@@ -76,6 +79,9 @@ func calWithService(ctx *contextx.Context, serv service.Service, request interfa
 		return
 	}
 	err = valueRsp(ctx, rsp, converterType, response)
+	if env.SdkLog() {
+		ctx.Log()
+	}
 
 	return
 }

@@ -2,7 +2,7 @@ package logx
 
 import (
 	"github.com/layasugar/laya/core/alarmx"
-	"github.com/layasugar/laya/genv"
+	"github.com/layasugar/laya/env"
 )
 
 // LoggerContext 日志
@@ -52,7 +52,7 @@ var _ LoggerContext = &LogContext{}
 func NewLogContext(logId string) *LogContext {
 	ctx := &LogContext{
 		logId:    logId,
-		clientIP: genv.LocalIP(),
+		clientIP: env.LocalIP(),
 	}
 	return ctx
 }

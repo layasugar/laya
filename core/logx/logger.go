@@ -5,8 +5,8 @@ package logx
 import (
 	"fmt"
 	"github.com/layasugar/laya/core/logx/logger"
-	"github.com/layasugar/laya/genv"
-	"github.com/layasugar/laya/gtools"
+	"github.com/layasugar/laya/env"
+	"github.com/layasugar/laya/tools"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"io"
@@ -42,15 +42,15 @@ type Config struct {
 func GetSugar() *zap.Logger {
 	if sugar == nil {
 		cfg := Config{
-			appName:       genv.AppName(),
-			appMode:       genv.RunMode(),
-			logType:       genv.LogType(),
-			logPath:       genv.LogPath(),
+			appName:       env.AppName(),
+			appMode:       env.RunMode(),
+			logType:       env.LogType(),
+			logPath:       env.LogPath(),
 			childPath:     defaultChildPath,
 			RotationSize:  defaultRotationSize,
-			RotationCount: genv.LogMaxCount(),
+			RotationCount: env.LogMaxCount(),
 			RotationTime:  defaultRotationTime,
-			MaxAge:        genv.LogMaxAge(),
+			MaxAge:        env.LogMaxAge(),
 		}
 
 		sugar = InitSugar(&cfg)
@@ -129,7 +129,7 @@ func dealWithArgs(tmp string, args ...interface{}) (msg string, f []zap.Field) {
 }
 
 func writer(logId, level, msg string, fields ...zap.Field) {
-	fields = append(fields, zap.String(gtools.RequestIdKey, logId))
+	fields = append(fields, zap.String(tools.RequestIdKey, logId))
 
 	switch level {
 	case LevelInfo:

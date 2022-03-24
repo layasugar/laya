@@ -1,6 +1,6 @@
 package alarmx
 
-import "github.com/layasugar/laya/genv"
+import "github.com/layasugar/laya/env"
 
 // AlarmContext alarm
 type AlarmContext struct {
@@ -16,8 +16,8 @@ func Alarm(title string, content string, data map[string]interface{}) {
 	if nil == al {
 		return
 	}
-	data["project"] = genv.AppName()
-	data["env"] = genv.AppMode()
+	data["project"] = env.AppName()
+	data["env"] = env.AppMode()
 	switch al.alarmType {
 	case "dingding":
 		var d = AlarmData{
@@ -32,14 +32,27 @@ func Alarm(title string, content string, data map[string]interface{}) {
 
 func getAlarm() *AlarmContext {
 	if nil == alarm {
-		if genv.AlarmType() == "" {
+		if env.AlarmType() == "" {
 			return nil
 		}
 		alarm = &AlarmContext{
-			alarmType: genv.AlarmType(),
-			alarmHost: genv.AlarmHost(),
-			alarmKey:  genv.AlarmKey(),
+			alarmType: env.AlarmType(),
+			alarmHost: env.AlarmHost(),
+			alarmKey:  env.AlarmKey(),
 		}
 	}
 	return alarm
+}
+
+func ReloadAlarm() {
+	if nil == alarm {
+		if env.AlarmType() == "" {
+			return
+		}
+		alarm = &AlarmContext{
+			alarmType: env.AlarmType(),
+			alarmHost: env.AlarmHost(),
+			alarmKey:  env.AlarmKey(),
+		}
+	}
 }

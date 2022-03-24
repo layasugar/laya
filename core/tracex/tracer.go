@@ -3,7 +3,7 @@
 package tracex
 
 import (
-	"github.com/layasugar/laya/genv"
+	"github.com/layasugar/laya/env"
 	"github.com/opentracing/opentracing-go"
 	"log"
 )
@@ -17,26 +17,35 @@ const (
 var tracer opentracing.Tracer
 
 // InitTrace 初始化trace
-func getTracer() (opentracing.Tracer, error) {
-	if tracer == nil {
-		if genv.TraceMod() != 0 {
-			var err error
-			switch genv.TraceType() {
+func getTracer() opentracing.Tracer {
+	if nil == tracer {
+		if env.TraceMod() != 0 {
+			switch env.TraceType() {
 			case TraceTypeZipkin:
-				tracer = newZkTracer(genv.AppName(), genv.LocalIP(), genv.TraceAddr(), genv.TraceMod())
-				if err != nil {
-					return nil, err
-				}
+				tracer = newZkTracer(env.AppName(), env.LocalIP(), env.TraceAddr(), env.TraceMod())
 				log.Printf("[app] tracer success")
 			case TraceTypeJaeger:
-				tracer = newJTracer(genv.AppName(), genv.TraceAddr(), genv.TraceMod())
-				if err != nil {
-					return nil, err
-				}
+				tracer = newJTracer(env.AppName(), env.TraceAddr(), env.TraceMod())
 				log.Printf("[app] tracer success")
 			}
 		}
 	}
 
-	return tracer, nil
+	return tracer
+}
+
+// ReloadTracer 重载一下tracer
+func ReloadTracer() {
+	if nil != tracer {
+		if env.TraceMod() != 0 {
+			switch env.TraceType() {
+			case TraceTypeZipkin:
+				tracer = newZkTracer(env.AppName(), env.LocalIP(), env.TraceAddr(), env.TraceMod())
+				log.Printf("[app] tracer success")
+			case TraceTypeJaeger:
+				tracer = newJTracer(env.AppName(), env.TraceAddr(), env.TraceMod())
+				log.Printf("[app] tracer success")
+			}
+		}
+	}
 }

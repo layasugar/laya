@@ -1,13 +1,14 @@
 // When not on Windows use graceful restarts and shutdowns.
 //
+//go:build !windows
 // +build !windows
 
 package grace
 
 import (
-"net/http"
+	"net/http"
 
-"github.com/facebookgo/grace/gracehttp"
+	"github.com/facebookgo/grace/gracehttp"
 )
 
 // Serve is a wrapper around gracehttp.Serve. As opposed

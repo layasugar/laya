@@ -8,13 +8,13 @@ import (
 	"github.com/layasugar/laya/core/appx"
 	"github.com/layasugar/laya/core/grpcx"
 	"github.com/layasugar/laya/core/httpx"
+	"github.com/layasugar/laya/env"
 	"github.com/layasugar/laya/gcal"
-	"github.com/layasugar/laya/gconf"
-	"github.com/layasugar/laya/genv"
-	"github.com/layasugar/laya/gstore/dbx"
-	"github.com/layasugar/laya/gstore/edbx"
-	"github.com/layasugar/laya/gstore/mdbx"
-	"github.com/layasugar/laya/gstore/rdbx"
+	"github.com/layasugar/laya/gcf"
+	"github.com/layasugar/laya/store/dbx"
+	"github.com/layasugar/laya/store/edbx"
+	"github.com/layasugar/laya/store/mdbx"
+	"github.com/layasugar/laya/store/rdbx"
 	"log"
 )
 
@@ -95,40 +95,29 @@ func (app *App) initWithConfig(scene int) *App {
 	flag.Parse()
 
 	// 初始化配置
-	err := gconf.InitConfig(f)
+	err := gcf.InitConfig(f)
 	if err != nil {
 		panic(err)
 	}
 
 	// 注册env
-	app.registerEnv()
-
-	// db init and rdb init
-	app.initDbConn()
+	app.register()
 
 	switch scene {
 	case webApp:
-		if genv.HttpListen() == "" {
+		if env.HttpListen() == "" {
 			panic("app.http_listen is null")
 		}
-		app.webServer = httpx.NewWebServer(genv.RunMode())
+		app.webServer = httpx.NewWebServer(env.RunMode())
 		if len(httpx.DefaultWebServerMiddlewares) > 0 {
 			app.webServer.Use(httpx.DefaultWebServerMiddlewares...)
 		}
 	case grpcApp:
-		if genv.GrpcListen() == "" {
+		if env.GrpcListen() == "" {
 			panic("app.http_listen is null")
 		}
 		app.grpcServer = grpcx.NewGrpcServer()
 	}
-
-	// 注册pprof监听函数和params监听函数和重载env函数
-	gconf.RegisterConfigCharge(func() {
-		app.registerEnv()
-	})
-
-	// 启动配置回调
-	gconf.OnConfigCharge()
 
 	return app
 }
@@ -138,17 +127,17 @@ func (app *App) RunServer() {
 	switch app.scene {
 	case webApp:
 		// 启动web服务
-		log.Printf("[app] Listening and serving %s on %s\n", "HTTP", genv.HttpListen())
-		err := app.webServer.Run(genv.HttpListen())
+		log.Printf("[app] Listening and serving %s on %s\n", "HTTP", env.HttpListen())
+		err := app.webServer.Run(env.HttpListen())
 		if err != nil {
 			fmt.Printf("Can't RunWebServer: %s\n", err.Error())
 		}
 	case grpcApp:
 		// 启动grpc服务
-		log.Printf("[app] Listening and serving %s on %s\n", "GRPC", genv.GrpcListen())
-		err := app.grpcServer.Run(genv.GrpcListen())
+		log.Printf("[app] Listening and serving %s on %s\n", "GRPC", env.GrpcListen())
+		err := app.grpcServer.Run(env.GrpcListen())
 		if err != nil {
-			log.Fatalf("Can't RunGrpcServer, GrpcListen: %s, err: %s", genv.GrpcListen(), err.Error())
+			log.Fatalf("Can't RunGrpcServer, GrpcListen: %s, err: %s", env.GrpcListen(), err.Error())
 		}
 	case defaultApp:
 	}
@@ -161,56 +150,22 @@ func (app *App) Use(fc ...func()) {
 	}
 }
 
-// set env
-func (app *App) registerEnv() {
-	genv.SetAppUrl(gconf.V.GetString("app.url"))
-	genv.SetAppName(gconf.V.GetString("app.name"))
-	log.Printf("[app] app.name %s\n", genv.AppName())
-	genv.SetAppMode(gconf.V.GetString("app.mode"))
-	genv.SetRunMode(gconf.V.GetString("app.run_mode"))
-	log.Printf("[app] app.run_mode %s\n", genv.RunMode())
-	genv.SetHttpListen(gconf.V.GetString("app.http_listen"))
-	genv.SetGrpcListen(gconf.V.GetString("app.grpc_listen"))
-
-	if gconf.V.IsSet("app.params") {
-		genv.SetParamLog(gconf.V.GetBool("app.params"))
-	} else {
-		genv.SetParamLog(true)
-	}
-	genv.SetAppVersion(gconf.V.GetString("app.gversion"))
-
-	// 日志
-	genv.SetLogPath(gconf.V.GetString("app.logger.path"))
-	genv.SetLogType(gconf.V.GetString("app.logger.type"))
-	genv.SetLogMaxAge(gconf.V.GetInt("app.logger.max_age"))
-	genv.SetLogMaxCount(gconf.V.GetInt("app.logger.max_count"))
-
-	// tracex
-	genv.SetTraceType(gconf.V.GetString("app.trace.type"))
-	genv.SetTraceAddr(gconf.V.GetString("app.trace.addr"))
-	genv.SetTraceMod(gconf.V.GetFloat64("app.trace.mod"))
-
-	// alarmx
-	genv.SetAlarmType(gconf.V.GetString("app.alarm.type"))
-	genv.SetAlarmKey(gconf.V.GetString("app.alarm.key"))
-	genv.SetAlarmHost(gconf.V.GetString("app.alarm.addr"))
-
+// register cal db services
+func (app *App) register() {
 	// 初始化调用gcal
-	var services = gconf.GetConfigMap(servicesConfKey)
+	var services = gcf.GetConfigMap(servicesConfKey)
 	if len(services) > 0 {
 		err := gcal.LoadService(services)
 		if err != nil {
 			log.Printf("[app] init load services error: %s", err.Error())
 		}
 	}
-}
 
-// 初始化数据库连接和redis连接
-func (app *App) initDbConn() {
-	var dbs = gconf.GetConfigMap(mysqlConfKey)
-	var rdbs = gconf.GetConfigMap(redisConfKey)
-	var mdbs = gconf.GetConfigMap(mongoConfKey)
-	var edbs = gconf.GetConfigMap(esConfKey)
+	// 初始化数据库连接和redis连接
+	var dbs = gcf.GetConfigMap(mysqlConfKey)
+	var rdbs = gcf.GetConfigMap(redisConfKey)
+	var mdbs = gcf.GetConfigMap(mongoConfKey)
+	var edbs = gcf.GetConfigMap(esConfKey)
 
 	// 解析dbs
 	dbx.InitConn(dbs)
@@ -254,6 +209,6 @@ func (app *App) GrpcServer() *grpcx.GrpcServer {
 }
 
 // NewContext 基础服务提供一个NewContext
-func (app *App) NewContext(logId string, spanName string) *appx.Context {
-	return appx.NewDefaultContext(logId, spanName)
+func (app *App) NewContext(spanName string) *appx.Context {
+	return appx.NewDefaultContext(spanName)
 }

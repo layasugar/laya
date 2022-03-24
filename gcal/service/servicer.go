@@ -118,6 +118,11 @@ func (rc *Config) GetConf() *Config {
 	return rc
 }
 
+// SetTimeOut 重写timeOut
+func (rc *Config) SetTimeOut(t int64) {
+	rc.ConnTimeOut = time.Duration(t) * time.Millisecond
+}
+
 type Service interface {
 	GetConf() *Config
 	Clone() *Config
@@ -131,4 +136,6 @@ type Service interface {
 	GetProtocol() string
 	GetRetry() int
 	GetReuse() bool
+
+	SetTimeOut(t int64)
 }

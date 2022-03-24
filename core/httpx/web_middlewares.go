@@ -2,8 +2,8 @@ package httpx
 
 import (
 	"bytes"
-	"github.com/layasugar/laya/genv"
-	"github.com/layasugar/laya/gtools"
+	"github.com/layasugar/laya/env"
+	"github.com/layasugar/laya/tools"
 	"io/ioutil"
 	"strings"
 )
@@ -51,11 +51,11 @@ func CheckNoLogParams(origin string) bool {
 func ginInterceptor(ctx *WebContext) {
 	w := &responseBodyWriter{body: &bytes.Buffer{}, ResponseWriter: ctx.Writer}
 	ctx.Writer = w
-	if genv.ParamLog() && !CheckNoLogParams(ctx.Request.RequestURI) {
+	if env.ApiLog() && !CheckNoLogParams(ctx.Request.RequestURI) {
 		requestData, _ := ctx.GetRawData()
 		ctx.Request.Body = ioutil.NopCloser(bytes.NewBuffer(requestData))
 		ctx.InfoF("%s", string(requestData),
-			ctx.Field("header", gtools.GetString(ctx.Request.Header)),
+			ctx.Field("header", tools.GetString(ctx.Request.Header)),
 			ctx.Field("path", ctx.Request.RequestURI),
 			ctx.Field("protocol", protocol),
 			ctx.Field("title", "入参"))
@@ -63,7 +63,7 @@ func ginInterceptor(ctx *WebContext) {
 
 	ctx.Next()
 
-	if genv.ParamLog() && !CheckNoLogParams(ctx.Request.RequestURI) {
+	if env.ApiLog() && !CheckNoLogParams(ctx.Request.RequestURI) {
 		ctx.InfoF("%s", w.body.String(), ctx.Field("title", "出参"))
 	}
 	ctx.SpanFinish(ctx.TopSpan)

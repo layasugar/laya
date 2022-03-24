@@ -6,8 +6,8 @@ import (
 	"github.com/layasugar/laya/gcal/contextx"
 	"github.com/layasugar/laya/gcal/converter"
 	"github.com/layasugar/laya/gcal/service"
-	"github.com/layasugar/laya/genv"
-	"github.com/layasugar/laya/gtools"
+	"github.com/layasugar/laya/tools"
+	"github.com/layasugar/laya/version"
 	"io"
 	"io/ioutil"
 	"net"
@@ -19,12 +19,13 @@ import (
 	"time"
 )
 
-const UA = "GCAL/" + genv.VERSION + " (laya gcal http client)"
+const UA = "GCAL/" + version.VERSION + " (laya gcal http client)"
 const HttpClientAlive = 5 * time.Minute
 
 // HTTPRequest http request 对象
 type HTTPRequest struct {
-	CustomAddr string
+	CustomAddr    string // 设置连接地址
+	CustomTimeOut int64  // 设置超时时间
 
 	Header      map[string][]string
 	Method      string
@@ -73,7 +74,7 @@ func (hp *HTTPProtocol) initRequestId(ctx *contextx.Context) {
 	}
 
 	if requestId == "" {
-		requestId = gtools.GenerateLogId()
+		requestId = tools.GenerateLogId()
 	}
 
 	hp.requestId, ctx.LogId = requestId, requestId
@@ -93,6 +94,8 @@ func NewHTTPProtocol(ctx *contextx.Context, serv service.Service, req *HTTPReque
 	ctx.ReqContext = req.Ctx
 	hp.initRequestId(ctx)
 	ctx.Method = strings.ToLower(req.Method)
+	ctx.CurRecord().ReqLog.Method = strings.ToUpper(req.Method)
+	ctx.CurRecord().ReqLog.Body = req.Body
 
 	hp.RawReq = &http.Request{
 		Method:     strings.ToUpper(req.Method),
@@ -137,8 +140,9 @@ func NewHTTPProtocol(ctx *contextx.Context, serv service.Service, req *HTTPReque
 	ctx.ReqLen = hp.RawReq.ContentLength
 
 	// set logId and reject tracex
-	hp.RawReq.Header.Set(gtools.RequestIdKey, hp.requestId)
+	hp.RawReq.Header.Set(tools.RequestIdKey, hp.requestId)
 	req.Ctx.SpanInject(metautils.NiceMD(hp.RawReq.Header))
+	ctx.CurRecord().ReqLog.Headers = hp.RawReq.Header
 
 	// If the user doesn't set User-Agent, set the default User-Agent
 	if hp.RawReq.Header.Get("User-Agent") == "" {
@@ -151,11 +155,21 @@ func NewHTTPProtocol(ctx *contextx.Context, serv service.Service, req *HTTPReque
 // Do 发送请求
 func (hp *HTTPProtocol) Do(ctx *contextx.Context, addr string) (rsp *Response, err error) {
 	var host string
+
+	// 重置请求地址
 	if hp.originReq.CustomAddr != "" {
 		host = fmt.Sprintf("%s", hp.originReq.CustomAddr)
 	} else {
 		host = addr
 	}
+
+	// 重置请求超时时间
+	if hp.originReq.CustomTimeOut != 0 {
+		hp.serv.SetTimeOut(hp.originReq.CustomTimeOut)
+	}
+
+	ctx.CurRecord().ReqLog.IP = []string{host}
+	ctx.CurRecord().ReqLog.Query = hp.originReq.QueryParams
 	ctx.CurRecord().IPPort = host
 
 	path := hp.originReq.Path
@@ -175,6 +189,7 @@ func (hp *HTTPProtocol) Do(ctx *contextx.Context, addr string) (rsp *Response, e
 		return nil, err
 	}
 
+	ctx.CurRecord().ReqLog.Path = u.Path
 	ctx.CurRecord().Path = u.Path
 
 	hp.RawReq.URL = u
@@ -182,6 +197,7 @@ func (hp *HTTPProtocol) Do(ctx *contextx.Context, addr string) (rsp *Response, e
 		hp.RawReq.Host = u.Host
 	}
 
+	ctx.CurRecord().ReqLog.URL = hp.RawReq.Host
 	ctx.CurRecord().Host = hp.RawReq.Host
 
 	trace := &httptrace.ClientTrace{

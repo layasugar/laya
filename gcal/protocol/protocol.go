@@ -2,8 +2,9 @@
 package protocol
 
 import (
+	"errors"
 	"fmt"
-	"github.com/layasugar/laya/gcal/converter"
+	"strings"
 
 	"github.com/layasugar/laya/gcal/contextx"
 	"github.com/layasugar/laya/gcal/service"
@@ -22,16 +23,21 @@ var (
 
 // NewProtocol 创建协议
 func NewProtocol(ctx *contextx.Context, serv service.Service, req interface{}) (p Protocoler, err error) {
-	protocolName := serv.GetProtocol()
+	tmp, ok := req.(HTTPRequest)
+	if !ok {
+		return nil, fmt.Errorf("bad request type: %T", req)
+	}
 
+	protocolName := serv.GetProtocol()
+	if protocolName == "" {
+		as := strings.Split(tmp.CustomAddr, "://")
+		if len(as) == 2 {
+			protocolName = as[0]
+		} else {
+			return nil, errors.New("protocol is nil")
+		}
+	}
 	if protocolName == "http" || protocolName == "https" {
-		tmp, ok := req.(HTTPRequest)
-		if !ok {
-			return nil, fmt.Errorf("%s: bad request type: %T", protocolName, req)
-		}
-		if tmp.Converter == "" {
-			tmp.Converter = converter.JSON
-		}
 		return NewHTTPProtocol(ctx, serv, &tmp, protocolName == "https")
 	}
 

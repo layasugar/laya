@@ -5,8 +5,6 @@ import (
 	"github.com/layasugar/laya/core/datax"
 	"github.com/layasugar/laya/core/logx"
 	"github.com/layasugar/laya/core/tracex"
-	"github.com/layasugar/laya/gtools"
-	uuid "github.com/satori/go.uuid"
 	"time"
 )
 
@@ -19,14 +17,12 @@ type Context struct {
 }
 
 // NewDefaultContext 创建 app 默认的context, spanName
-func NewDefaultContext(logId string, spanName string) *Context {
-	if logId == "" {
-		logId = gtools.Md5(uuid.NewV4().String())
-	}
+func NewDefaultContext(spanName string) *Context {
+	traceCtx := tracex.NewTraceContext(spanName, make(map[string][]string))
 
 	tmp := &Context{
-		LogContext:    logx.NewLogContext(logId),
-		TraceContext:  tracex.NewTraceContext(spanName, make(map[string][]string)),
+		LogContext:    logx.NewLogContext(traceCtx.TraceID),
+		TraceContext:  traceCtx,
 		MemoryContext: datax.NewMemoryContext(),
 	}
 

@@ -2,8 +2,13 @@ package tracex
 
 import (
 	"github.com/layasugar/laya/core/metautils"
+	"github.com/layasugar/laya/env"
+	"github.com/layasugar/laya/tools"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
+	zipkinOt "github.com/openzipkin-contrib/zipkin-go-opentracing"
+	uuid "github.com/satori/go.uuid"
+	"github.com/uber/jaeger-client-go"
 	"log"
 )
 
@@ -16,38 +21,43 @@ type TracerContext interface {
 
 	// SpanInject 注入请求
 	SpanInject(md metautils.NiceMD)
+
+	// GetTraceID 获取traceID
+	GetTraceID() string
 }
 
 func (ctx *TraceContext) SpanFinish(span opentracing.Span) {
-	if span != nil {
+	if nil != span {
 		span.Finish()
 	}
 }
 
 func (ctx *TraceContext) SpanStart(name string) opentracing.Span {
-	if t, err := getTracer(); err == nil {
-		if t != nil {
-			return t.StartSpan(name, opentracing.FollowsFrom(ctx.TopSpan.Context()))
-		}
+	if t := getTracer(); t != nil {
+		return t.StartSpan(name, opentracing.FollowsFrom(ctx.TopSpan.Context()))
 	}
 	return nil
 }
 
 // SpanInject 将span注入到request
 func (ctx *TraceContext) SpanInject(md metautils.NiceMD) {
-	if t, err := getTracer(); err == nil {
-		if t != nil {
-			err = t.Inject(ctx.TopSpan.Context(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(md))
-			if err != nil {
-				log.Printf("SpanInject, err: %s", err.Error())
-			}
+	if t := getTracer(); t != nil {
+		err := t.Inject(ctx.TopSpan.Context(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(md))
+		if err != nil {
+			log.Printf("SpanInject, err: %s", err.Error())
 		}
 	}
+}
+
+// GetTraceID 获取traceID
+func (ctx *TraceContext) GetTraceID() string {
+	return ctx.TraceID
 }
 
 // TraceContext trace
 type TraceContext struct {
 	TopSpan opentracing.Span
+	TraceID string
 }
 
 var _ TracerContext = &TraceContext{}
@@ -56,8 +66,8 @@ var _ TracerContext = &TraceContext{}
 func NewTraceContext(name string, headers map[string][]string) *TraceContext {
 	ctx := &TraceContext{}
 
-	if t, err := getTracer(); err == nil {
-		if t != nil {
+	if env.ApiTrace() {
+		if t := getTracer(); t != nil {
 			if len(headers) == 0 {
 				ctx.TopSpan = t.StartSpan(name)
 			} else {
@@ -71,5 +81,20 @@ func NewTraceContext(name string, headers map[string][]string) *TraceContext {
 		}
 	}
 
+	if ctx.TopSpan != nil {
+		spanCtx := ctx.TopSpan.Context()
+		switch spanCtx.(type) {
+		case jaeger.SpanContext:
+			js := spanCtx.(jaeger.SpanContext)
+			ctx.TraceID = js.TraceID().String()
+		case zipkinOt.SpanContext:
+			zs := spanCtx.(zipkinOt.SpanContext)
+			ctx.TraceID = zs.TraceID.String()
+		}
+	}
+
+	if ctx.TraceID == "" {
+		ctx.TraceID = tools.Md5(uuid.NewV4().String())
+	}
 	return ctx
 }

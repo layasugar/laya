@@ -4,16 +4,7 @@ import (
 	"fmt"
 	"github.com/spf13/viper"
 	"os"
-	"time"
 )
-
-const (
-	cTimer            = 5 * time.Second // 配置重载时间, 配置文件更新5s后重载配置
-	defaultConfigFile = "conf/app.toml" // 固定配置文件
-)
-
-var configChargeHandleFunc []func()
-var t *time.Timer
 
 // InitConfig 初始化配置信息
 func InitConfig(file string) error {
@@ -35,5 +26,9 @@ func InitConfig(file string) error {
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
 	viper.WatchConfig()
+
+	// 加载环境变量
+	viper.AutomaticEnv()
+
 	return nil
 }

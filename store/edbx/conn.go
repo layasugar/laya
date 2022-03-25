@@ -1,8 +1,9 @@
 package edbx
 
 import (
-	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/olivere/elastic/v7"
 	"log"
+	"net/http"
 )
 
 // dbConfig Cluser Base Config
@@ -14,16 +15,20 @@ type dbConfig struct {
 }
 
 // Open 开启连接
-func (c *dbConfig) Open() *elasticsearch.Client {
-	cfg := elasticsearch.Config{
-		Addresses: []string{c.dsn},
-		Username:  c.user,
-		Password:  c.pwd,
-		Transport: NewTransport(),
+func (c *dbConfig) Open() *elastic.Client {
+	tr := NewTransport()
+	httpClient := &http.Client{
+		Transport: tr,
 	}
 
 	// Create a client
-	client, err := elasticsearch.NewClient(cfg)
+	client, err := elastic.NewClient(
+		elastic.SetURL(c.dsn),
+		elastic.SetBasicAuth(c.user, c.pwd),
+		elastic.SetHttpClient(httpClient),
+		elastic.SetHealthcheck(false),
+		elastic.SetSniff(false),
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -69,7 +74,7 @@ func InitConn(m []map[string]interface{}) {
 	}
 }
 
-func GetClient(name ...string) *elasticsearch.Client {
+func GetClient(name ...string) *elastic.Client {
 	if len(name) > 0 {
 		return getEdb(name[0])
 	} else {

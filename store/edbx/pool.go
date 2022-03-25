@@ -4,28 +4,28 @@
 package edbx
 
 import (
-	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/olivere/elastic/v7"
 )
 
 const (
 	defaultEdbName = "default"
 )
 
-var p map[string]*elasticsearch.Client
+var p map[string]*elastic.Client
 
-func getEdb(databaseName string) *elasticsearch.Client {
+func getEdb(databaseName string) *elastic.Client {
 	pool := getPool()
 	return pool[databaseName]
 }
 
-func setEdb(databaseName string, db *elasticsearch.Client) {
+func setEdb(databaseName string, db *elastic.Client) {
 	pool := getPool()
 	pool[databaseName] = db
 }
 
-func getPool() map[string]*elasticsearch.Client {
+func getPool() map[string]*elastic.Client {
 	if p == nil {
-		p = make(map[string]*elasticsearch.Client)
+		p = make(map[string]*elastic.Client)
 	}
 	return p
 }

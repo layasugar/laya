@@ -51,7 +51,7 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 	if env.EsTrace() {
 		span = cm.ParseSpanByCtx(req.Context(), tSpanName)
 		if nil != span {
-			ext.Component.Set(span, "github.com/olivere/elastic/v7")
+			ext.Component.Set(span, "go-elasticsearch/v7")
 			ext.HTTPUrl.Set(span, req.URL.String())
 			ext.HTTPMethod.Set(span, req.Method)
 			ext.PeerHostname.Set(span, req.URL.Hostname())

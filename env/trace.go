@@ -6,25 +6,29 @@ const (
 	defaultTraceType         = ""
 	defaultTraceAddr         = ""
 	defaultTraceMod  float64 = 0
+
+	_appTraceType = "app.trace.type"
+	_appTraceAddr = "app.trace.addr"
+	_appTraceMod  = "app.trace.mod"
 )
 
 func TraceType() string {
-	if gcf.IsSet("app.trace.type") {
-		return gcf.GetString("app.trace.type")
+	if gcf.IsSet(_appTraceType) {
+		return gcf.GetString(_appTraceType)
 	}
 	return defaultTraceType
 }
 
 func TraceAddr() string {
-	if gcf.IsSet("app.trace.addr") {
-		return gcf.GetString("app.trace.addr")
+	if gcf.IsSet(_appTraceAddr) {
+		return gcf.GetString(_appTraceAddr)
 	}
 	return defaultTraceAddr
 }
 
 func TraceMod() float64 {
-	if gcf.IsSet("app.trace.mod") {
-		return gcf.GetFloat64("app.trace.mod")
+	if gcf.IsSet(_appTraceMod) {
+		return gcf.GetFloat64(_appTraceMod)
 	}
 	return defaultTraceMod
 }

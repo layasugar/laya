@@ -21,9 +21,11 @@
 - [x] 基础app配置增加环境配置(有用环境做应用隔离的需求)
 - [x] 精准控制mysql,redis,mongo,es是否接入链路和日志
 - [x] gcal支持请求除内部服务外的其他http服务
+- [ ] 使用cmux实现多路复用[cmux-github](https://github.com/soheilhy/cmux), 使http与grpc监听同一个端口
 
 ## 工具
 
 - [x] 一键初始化目录结构到当前目录
 - [x] 一键生成db.model
+
 

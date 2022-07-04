@@ -63,7 +63,7 @@ func (res *HttpResp) Suc(ctx *laya.WebContext, data interface{}, msg ...string) 
 		}
 	}
 	rr.Data = data
-	rr.RequestID = ctx.GetLogId()
+	rr.RequestID = ctx.LogID()
 	ctx.JSON(http.StatusOK, &rr)
 }
 
@@ -76,7 +76,7 @@ func (res *HttpResp) Fail(ctx *laya.WebContext, err error) {
 		rr.StatusCode = 400
 		rr.Message = err.Error()
 	}
-	rr.RequestID = ctx.GetLogId()
+	rr.RequestID = ctx.LogID()
 	ctx.JSON(http.StatusOK, &rr)
 }
 

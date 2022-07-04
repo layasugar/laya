@@ -1,0 +1,5 @@
+package rotatelog
+
+func Strftime() {
+
+}

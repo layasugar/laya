@@ -1,11 +1,8 @@
-// surprise
-
 package laya
 
 import (
 	"flag"
 	"fmt"
-	"github.com/layasugar/laya/core/appx"
 	"github.com/layasugar/laya/core/grpcx"
 	"github.com/layasugar/laya/core/httpx"
 	"github.com/layasugar/laya/env"
@@ -19,8 +16,6 @@ import (
 )
 
 type (
-	Context = appx.Context
-
 	WebContext     = httpx.WebContext
 	WebServer      = httpx.WebServer
 	WebHandlerFunc = httpx.WebHandlerFunc
@@ -209,6 +204,6 @@ func (app *App) GrpcServer() *grpcx.GrpcServer {
 }
 
 // NewContext 基础服务提供一个NewContext
-func (app *App) NewContext(spanName string) *appx.Context {
-	return appx.NewDefaultContext(spanName)
+func (app *App) NewContext(spanName string) *Context {
+	return NewDefaultContext(spanName)
 }

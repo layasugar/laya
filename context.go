@@ -1,43 +1,47 @@
-package grpcx
+package laya
 
 import (
-	"github.com/layasugar/laya/core/metautils"
 	"time"
+
+	a "github.com/layasugar/laya/core/alarmer"
+	d "github.com/layasugar/laya/core/data"
+	l "github.com/layasugar/laya/core/logger"
+	t "github.com/layasugar/laya/core/tracer"
 )
 
-// GrpcContext grpc context
-type GrpcContext struct {
-	server *GrpcServer
-
-	*logger.LogContext
-	*datacontext.MemoryContext
-	*tracer.TraceContext
-	*alarmer.AlarmContext
+// Context is the carrier of request and response
+type Context struct {
+	*d.MemoryContext
+	*l.Context
+	*t.TraceContext
+	*a.AlarmContext
 }
 
-// NewGrpcContext newCtx
-func NewGrpcContext(name string, md metautils.NiceMD) *GrpcContext {
-	traceCtx := tracer.NewTraceContext(name, md)
+// NewDefaultContext 创建 app 默认的context, spanName
+func NewDefaultContext(spanName string) *Context {
+	traceCtx := t.NewTraceContext(spanName, make(map[string][]string))
 
-	c := &GrpcContext{
-		LogContext:    logger.NewLogContext(traceCtx.TraceID),
+	tmp := &Context{
+		Context:       l.NewContext(traceCtx.TraceID),
 		TraceContext:  traceCtx,
-		MemoryContext: datacontext.NewMemoryContext(),
+		MemoryContext: d.NewMemoryContext(),
 	}
-	return c
+
+	return tmp
 }
 
 // Deadline returns the time when work done on behalf of this contextx
 // should be canceled. Deadline returns ok==false when no deadline is
 // set. Successive calls to Deadline return the same results.
-func (c *GrpcContext) Deadline() (deadline time.Time, ok bool) {
+func (c *Context) Deadline() (deadline time.Time, ok bool) {
 	return
 }
 
 // Done returns a channel that's closed when work done on behalf of this
 // contextx should be canceled. Done may return nil if this contextx can
 // never be canceled. Successive calls to Done return the same value.
-func (c *GrpcContext) Done() <-chan struct{} {
+func (c *Context) Done() <-chan struct{} {
+	c.SpanFinish(c.TopSpan)
 	return nil
 }
 
@@ -47,14 +51,14 @@ func (c *GrpcContext) Done() <-chan struct{} {
 // If Done is closed, Err returns a non-nil error explaining why:
 // Canceled if the contextx was canceled
 // or DeadlineExceeded if the contextx's deadline passed.
-func (c *GrpcContext) Err() error {
+func (c *Context) Err() error {
 	return nil
 }
 
 // Value returns the value associated with this contextx for key, or nil
 // if no value is associated with key. Successive calls to Value with
 // the same key returns the same result.
-func (c *GrpcContext) Value(key interface{}) interface{} {
+func (c *Context) Value(key interface{}) interface{} {
 	if keyAsString, ok := key.(string); ok {
 		val, _ := c.Get(keyAsString)
 		return val

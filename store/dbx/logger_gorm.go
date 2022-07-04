@@ -3,7 +3,6 @@ package dbx
 import (
 	"context"
 	"fmt"
-	"github.com/layasugar/laya/core/logx"
 	"github.com/layasugar/laya/env"
 	"github.com/layasugar/laya/store/cm"
 	"github.com/layasugar/laya/tools"
@@ -60,7 +59,7 @@ func (l *gormLogger) LogMode(level logger.LogLevel) logger.Interface {
 func (l *gormLogger) Info(ctx context.Context, msg string, data ...interface{}) {
 	if l.LogLevel >= logger.Info {
 		errInfo := fmt.Sprintf(msg, data)
-		gormWriter(ctx, logx.LevelInfo, fmt.Sprintf(l.infoStr, utils.FileWithLineNum(), errInfo))
+		gormWriter(ctx, logger.LevelInfo, fmt.Sprintf(l.infoStr, utils.FileWithLineNum(), errInfo))
 	}
 }
 
@@ -68,7 +67,7 @@ func (l *gormLogger) Info(ctx context.Context, msg string, data ...interface{}) 
 func (l *gormLogger) Warn(ctx context.Context, msg string, data ...interface{}) {
 	if l.LogLevel >= logger.Warn {
 		errInfo := fmt.Sprintf(msg, data)
-		gormWriter(ctx, logx.LevelWarn, fmt.Sprintf(l.infoStr, utils.FileWithLineNum(), errInfo))
+		gormWriter(ctx, logger.LevelWarn, fmt.Sprintf(l.infoStr, utils.FileWithLineNum(), errInfo))
 	}
 }
 
@@ -76,7 +75,7 @@ func (l *gormLogger) Warn(ctx context.Context, msg string, data ...interface{}) 
 func (l *gormLogger) Error(ctx context.Context, msg string, data ...interface{}) {
 	if l.LogLevel >= logger.Error {
 		errInfo := fmt.Sprintf(msg, data)
-		gormWriter(ctx, logx.LevelError, fmt.Sprintf(l.infoStr, utils.FileWithLineNum(), errInfo))
+		gormWriter(ctx, logger.LevelError, fmt.Sprintf(l.infoStr, utils.FileWithLineNum(), errInfo))
 	}
 }
 
@@ -89,29 +88,29 @@ func (l *gormLogger) Trace(ctx context.Context, begin time.Time, fc func() (stri
 			sql, rows := fc()
 			if rows == -1 {
 				msg := fmt.Sprintf(l.traceErrStr, utils.FileWithLineNum(), err.Error(), float64(elapsed.Nanoseconds())/1e6, "-", sql)
-				gormWriter(ctx, logx.LevelError, msg)
+				gormWriter(ctx, logger.LevelError, msg)
 			} else {
 				msg := fmt.Sprintf(l.traceErrStr, utils.FileWithLineNum(), err, float64(elapsed.Nanoseconds())/1e6, "-", sql)
-				gormWriter(ctx, logx.LevelError, msg)
+				gormWriter(ctx, logger.LevelError, msg)
 			}
 		case elapsed > l.SlowThreshold && l.SlowThreshold != 0 && l.LogLevel >= logger.Warn:
 			sql, rows := fc()
 			slowLog := fmt.Sprintf("SLOW SQL >= %v", l.SlowThreshold)
 			if rows == -1 {
 				msg := fmt.Sprintf(l.traceWarnStr, utils.FileWithLineNum(), slowLog, float64(elapsed.Nanoseconds())/1e6, "-", sql)
-				gormWriter(ctx, logx.LevelWarn, msg)
+				gormWriter(ctx, logger.LevelWarn, msg)
 			} else {
 				msg := fmt.Sprintf(l.traceWarnStr, utils.FileWithLineNum(), slowLog, float64(elapsed.Nanoseconds())/1e6, rows, sql)
-				gormWriter(ctx, logx.LevelWarn, msg)
+				gormWriter(ctx, logger.LevelWarn, msg)
 			}
 		case l.LogLevel >= logger.Info:
 			sql, rows := fc()
 			if rows == -1 {
 				msg := fmt.Sprintf(l.traceStr, utils.FileWithLineNum(), float64(elapsed.Nanoseconds())/1e6, "-", sql)
-				gormWriter(ctx, logx.LevelInfo, msg)
+				gormWriter(ctx, logger.LevelInfo, msg)
 			} else {
 				msg := fmt.Sprintf(l.traceStr, utils.FileWithLineNum(), float64(elapsed.Nanoseconds())/1e6, rows, sql)
-				gormWriter(ctx, logx.LevelInfo, msg)
+				gormWriter(ctx, logger.LevelInfo, msg)
 			}
 		}
 	}
@@ -122,16 +121,16 @@ func gormWriter(ctx context.Context, level, msg string, fields ...zap.Field) {
 	fields = append(fields, zap.String(tools.RequestIdKey, requestId), zap.String("title", sqlTitle))
 
 	switch level {
-	case logx.LevelInfo:
+	case logger.LevelInfo:
 		if env.MysqlLog() {
-			logx.GetSugar().Info(msg, fields...)
+			logger.GetSugar().Info(msg, fields...)
 		}
-	case logx.LevelWarn:
+	case logger.LevelWarn:
 		if env.MysqlLog() {
-			logx.GetSugar().Warn(msg, fields...)
+			logger.GetSugar().Warn(msg, fields...)
 		}
-	case logx.LevelError:
-		logx.GetSugar().Error(msg, fields...)
+	case logger.LevelError:
+		logger.GetSugar().Error(msg, fields...)
 	}
 
 	return

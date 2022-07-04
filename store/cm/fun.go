@@ -5,13 +5,12 @@ import (
 	"github.com/layasugar/laya/core/appx"
 	"github.com/layasugar/laya/core/grpcx"
 	"github.com/layasugar/laya/core/httpx"
-	"github.com/layasugar/laya/core/tracex"
 	"github.com/opentracing/opentracing-go"
 )
 
 // ParseSpanByCtx 公共方法, 从ctx中获取
 func ParseSpanByCtx(ctx interface{}, spanName string) opentracing.Span {
-	var traceCtx *tracex.TraceContext
+	var traceCtx *tracer.TraceContext
 	switch ctx.(type) {
 	case *httpx.WebContext:
 		if webCtx, okInterface := ctx.(*httpx.WebContext); okInterface {
@@ -38,7 +37,7 @@ func ParseLogIdByCtx(ctx context.Context) string {
 	switch ctx.(type) {
 	case *httpx.WebContext:
 		if webCtx, okInterface := ctx.(*httpx.WebContext); okInterface {
-			requestId = webCtx.GetLogId()
+			requestId = webCtx.LogID()
 		}
 	case *grpcx.GrpcContext:
 		if grpcCtx, okInterface := ctx.(*grpcx.GrpcContext); okInterface {

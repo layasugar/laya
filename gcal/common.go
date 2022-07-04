@@ -82,7 +82,7 @@ func clientInterceptor(ctx context.Context, method string, req, reply interface{
 	var x = make(map[string][]string)
 	// 反射ctx, 判断是webContext, 还是grpcContext
 	if oldCtx, ok := ctx.(*httpx.WebContext); ok {
-		x[tools.RequestIdKey] = []string{oldCtx.GetLogId()}
+		x[tools.RequestIdKey] = []string{oldCtx.LogID()}
 		oldCtx.SpanInject(x)
 	}
 

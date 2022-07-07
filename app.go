@@ -7,7 +7,7 @@ import (
 	"github.com/layasugar/laya/core/httpx"
 	"github.com/layasugar/laya/env"
 	"github.com/layasugar/laya/gcal"
-	"github.com/layasugar/laya/gcf"
+	"github.com/layasugar/laya/gcnf"
 	"github.com/layasugar/laya/store/dbx"
 	"github.com/layasugar/laya/store/edbx"
 	"github.com/layasugar/laya/store/mdbx"
@@ -90,7 +90,7 @@ func (app *App) initWithConfig(scene int) *App {
 	flag.Parse()
 
 	// 初始化配置
-	err := gcf.InitConfig(f)
+	err := gcnf.InitConfig(f)
 	if err != nil {
 		panic(err)
 	}
@@ -148,7 +148,7 @@ func (app *App) Use(fc ...func()) {
 // register cal db services
 func (app *App) register() {
 	// 初始化调用gcal
-	var services = gcf.GetConfigMap(servicesConfKey)
+	var services = gcnf.GetConfigMap(servicesConfKey)
 	if len(services) > 0 {
 		err := gcal.LoadService(services)
 		if err != nil {
@@ -157,10 +157,10 @@ func (app *App) register() {
 	}
 
 	// 初始化数据库连接和redis连接
-	var dbs = gcf.GetConfigMap(mysqlConfKey)
-	var rdbs = gcf.GetConfigMap(redisConfKey)
-	var mdbs = gcf.GetConfigMap(mongoConfKey)
-	var edbs = gcf.GetConfigMap(esConfKey)
+	var dbs = gcnf.GetConfigMap(mysqlConfKey)
+	var rdbs = gcnf.GetConfigMap(redisConfKey)
+	var mdbs = gcnf.GetConfigMap(mongoConfKey)
+	var edbs = gcnf.GetConfigMap(esConfKey)
 
 	// 解析dbs
 	dbx.InitConn(dbs)

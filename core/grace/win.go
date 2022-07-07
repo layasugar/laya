@@ -1,7 +1,6 @@
 // When on Windows use standard ServerAndListen method.
 //
 //go:build windows
-// +build windows
 
 package grace
 

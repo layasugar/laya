@@ -1,6 +1,6 @@
 package env
 
-import "github.com/layasugar/laya/gcf"
+import "github.com/layasugar/laya/gcnf"
 
 const (
 	defaultAlarmType = ""
@@ -13,22 +13,22 @@ const (
 )
 
 func AlarmType() string {
-	if gcf.IsSet(_appAlarmType) {
-		return gcf.GetString(_appAlarmType)
+	if gcnf.IsSet(_appAlarmType) {
+		return gcnf.GetString(_appAlarmType)
 	}
 	return defaultAlarmType
 }
 
 func AlarmKey() string {
-	if gcf.IsSet(_appAlarmKey) {
-		return gcf.GetString(_appAlarmKey)
+	if gcnf.IsSet(_appAlarmKey) {
+		return gcnf.GetString(_appAlarmKey)
 	}
 	return defaultAlarmKey
 }
 
 func AlarmHost() string {
-	if gcf.IsSet(_appAlarmAddr) {
-		return gcf.GetString(_appAlarmAddr)
+	if gcnf.IsSet(_appAlarmAddr) {
+		return gcnf.GetString(_appAlarmAddr)
 	}
 	return defaultAlarmHost
 }

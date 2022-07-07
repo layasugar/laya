@@ -1,5 +1,0 @@
-package rotatelog
-
-func Strftime() {
-
-}

@@ -1,7 +1,5 @@
 package env
 
-import "github.com/layasugar/laya/gcf"
-
 const (
 	defaultAppName    = "default-app"
 	defaultAppMode    = "dev"
@@ -22,56 +20,56 @@ const (
 
 // AppName 返回当前app名称
 func AppName() string {
-	if gcf.IsSet(_appName) {
-		return gcf.GetString(_appName)
+	if gcnf.IsSet(_appName) {
+		return gcnf.GetString(_appName)
 	}
 	return defaultAppName
 }
 
 // AppMode 返回当前的环境
 func AppMode() string {
-	if gcf.IsSet(_appMode) {
-		return gcf.GetString(_appMode)
+	if gcnf.IsSet(_appMode) {
+		return gcnf.GetString(_appMode)
 	}
 	return defaultAppMode
 }
 
 // RunMode 返回当前的运行模式
 func RunMode() string {
-	if gcf.IsSet(_appRunMode) {
-		return gcf.GetString(_appRunMode)
+	if gcnf.IsSet(_appRunMode) {
+		return gcnf.GetString(_appRunMode)
 	}
 	return defaultRunMode
 }
 
 // AppVersion 返回app的版本号
 func AppVersion() string {
-	if gcf.IsSet(_appVersion) {
-		return gcf.GetString(_appVersion)
+	if gcnf.IsSet(_appVersion) {
+		return gcnf.GetString(_appVersion)
 	}
 	return defaultAppVersion
 }
 
 // HttpListen 获取http监听地址
 func HttpListen() string {
-	if gcf.IsSet(_appHttpListen) {
-		return gcf.GetString(_appHttpListen)
+	if gcnf.IsSet(_appHttpListen) {
+		return gcnf.GetString(_appHttpListen)
 	}
 	return defaultHttpListen
 }
 
 // GrpcListen 返回rpc监听地址
 func GrpcListen() string {
-	if gcf.IsSet(_appGrpcListen) {
-		return gcf.GetString(_appGrpcListen)
+	if gcnf.IsSet(_appGrpcListen) {
+		return gcnf.GetString(_appGrpcListen)
 	}
 	return defaultGrpcListen
 }
 
 // AppUrl 返回当前app_url
 func AppUrl() string {
-	if gcf.IsSet(_appUrl) {
-		return gcf.GetString(_appUrl)
+	if gcnf.IsSet(_appUrl) {
+		return gcnf.GetString(_appUrl)
 	}
 	return defaultAppUrl
 }

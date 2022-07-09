@@ -2,6 +2,7 @@ package logger
 
 // Logger 日志
 type Logger interface {
+	LogID() string
 	Info(template string, args ...interface{})
 	Warn(template string, args ...interface{})
 	Error(template string, args ...interface{})
@@ -28,17 +29,15 @@ func (ctx *Context) Field(key string, value interface{}) Field {
 
 // Context logger
 type Context struct {
-	logID    string
-	clientIP string
+	logID string
 }
 
 var _ Logger = &Context{}
 
 // NewContext new obj
-func NewContext(logID string, ip string) Logger {
+func NewContext(logID string) Logger {
 	ctx := &Context{
-		logID:    logID,
-		clientIP: ip,
+		logID: logID,
 	}
 	return ctx
 }
@@ -46,9 +45,4 @@ func NewContext(logID string, ip string) Logger {
 // LogID 得到LogId
 func (ctx *Context) LogID() string {
 	return ctx.logID
-}
-
-// ClientIP 得到clientIP
-func (ctx *Context) ClientIP() string {
-	return ctx.clientIP
 }

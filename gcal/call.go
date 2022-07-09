@@ -7,11 +7,11 @@ package gcal
 import (
 	"errors"
 	"fmt"
-	"github.com/layasugar/laya/env"
-	"github.com/layasugar/laya/gcal/contextx"
+	"github.com/layasugar/laya/gcal/context"
 	"github.com/layasugar/laya/gcal/converter"
 	"github.com/layasugar/laya/gcal/protocol"
 	"github.com/layasugar/laya/gcal/service"
+	"github.com/layasugar/laya/gcnf/env"
 	"reflect"
 	"strings"
 )
@@ -26,7 +26,7 @@ import (
 // 4 发送请求
 // 5 将返回数据对象化
 func Do(serviceName string, request interface{}, response interface{}, converterType ConverterType) (err error) {
-	ctx := contextx.NewContext()
+	ctx := context.NewContext()
 	ctx.ServiceName = serviceName
 	ctx.Caller = "GCAL"
 	serv, _ := service.GetService(serviceName)
@@ -38,7 +38,7 @@ func Do(serviceName string, request interface{}, response interface{}, converter
 }
 
 // calWithService 跳过service查找过程
-func calWithService(ctx *contextx.Context, serv service.Service, request interface{}, response interface{}, converterType ConverterType) (err error) {
+func calWithService(ctx *context.Context, serv service.Service, request interface{}, response interface{}, converterType ConverterType) (err error) {
 	ctx.TimeStatisStart("cost")
 	ctx.ServiceName = serv.GetName()
 
@@ -86,7 +86,7 @@ func calWithService(ctx *contextx.Context, serv service.Service, request interfa
 	return
 }
 
-func valueRsp(ctx *contextx.Context, calResult *protocol.Response, converterType converter.ConverterType, rsp interface{}) (err error) {
+func valueRsp(ctx *context.Context, calResult *protocol.Response, converterType converter.ConverterType, rsp interface{}) (err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("%v", e)

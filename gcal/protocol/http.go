@@ -3,10 +3,10 @@ package protocol
 import (
 	"fmt"
 	"github.com/layasugar/laya/core/metautils"
-	"github.com/layasugar/laya/gcal/contextx"
+	"github.com/layasugar/laya/core/util"
+	"github.com/layasugar/laya/gcal/context"
 	"github.com/layasugar/laya/gcal/converter"
 	"github.com/layasugar/laya/gcal/service"
-	"github.com/layasugar/laya/tools"
 	"github.com/layasugar/laya/version"
 	"io"
 	"io/ioutil"
@@ -35,7 +35,7 @@ type HTTPRequest struct {
 	RequestId   string
 
 	Converter converter.ConverterType
-	Ctx       contextx.RequestContext
+	Ctx       context.Request
 }
 
 // HTTPHead HTTPResponse, 兼容历史
@@ -64,7 +64,7 @@ func (hp *HTTPProtocol) Protocol() string {
 }
 
 // initRequestId 生成requestId
-func (hp *HTTPProtocol) initRequestId(ctx *contextx.Context) {
+func (hp *HTTPProtocol) initRequestId(ctx *context.Context) {
 	requestId := hp.originReq.RequestId
 
 	if requestId == "" {
@@ -74,14 +74,14 @@ func (hp *HTTPProtocol) initRequestId(ctx *contextx.Context) {
 	}
 
 	if requestId == "" {
-		requestId = tools.GenerateLogId()
+		requestId = util.GenerateLogId()
 	}
 
 	hp.requestId, ctx.LogId = requestId, requestId
 }
 
 // NewHTTPProtocol 创建一个 Http Protocol
-func NewHTTPProtocol(ctx *contextx.Context, serv service.Service, req *HTTPRequest, isHTTPS bool) (hp *HTTPProtocol, err error) {
+func NewHTTPProtocol(ctx *context.Context, serv service.Service, req *HTTPRequest, isHTTPS bool) (hp *HTTPProtocol, err error) {
 	hp = &HTTPProtocol{
 		serv:      serv,
 		originReq: req,
@@ -153,7 +153,7 @@ func NewHTTPProtocol(ctx *contextx.Context, serv service.Service, req *HTTPReque
 }
 
 // Do 发送请求
-func (hp *HTTPProtocol) Do(ctx *contextx.Context, addr string) (rsp *Response, err error) {
+func (hp *HTTPProtocol) Do(ctx *context.Context, addr string) (rsp *Response, err error) {
 	var host string
 
 	// 重置请求地址
@@ -281,7 +281,7 @@ func (hp *HTTPProtocol) tryReuseClient(cli *http.Client) {
 var service2httpClientMap sync.Map
 var lock sync.Mutex
 
-func (hp *HTTPProtocol) getClient(ctx *contextx.Context) (client *http.Client, err error) {
+func (hp *HTTPProtocol) getClient(ctx *context.Context) (client *http.Client, err error) {
 	if !hp.serv.GetReuse() {
 		return DefaultHTTPClientFactory(hp.serv)
 	}

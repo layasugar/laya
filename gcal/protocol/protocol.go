@@ -6,14 +6,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/layasugar/laya/gcal/contextx"
 	"github.com/layasugar/laya/gcal/service"
 )
 
 // Protocoler 协议的接口
 // 协议本身只完成数据请求
 type Protocoler interface {
-	Do(ctx *contextx.Context, addr string) (*Response, error)
+	Do(ctx *context.Context, addr string) (*Response, error)
 	Protocol() string
 }
 
@@ -22,7 +21,7 @@ var (
 )
 
 // NewProtocol 创建协议
-func NewProtocol(ctx *contextx.Context, serv service.Service, req interface{}) (p Protocoler, err error) {
+func NewProtocol(ctx *context.Context, serv service.Service, req interface{}) (p Protocoler, err error) {
 	tmp, ok := req.(HTTPRequest)
 	if !ok {
 		return nil, fmt.Errorf("bad request type: %T", req)

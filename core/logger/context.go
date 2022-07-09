@@ -35,7 +35,7 @@ type Context struct {
 var _ Logger = &Context{}
 
 // NewContext new obj
-func NewContext(logID string, ip string) *Context {
+func NewContext(logID string, ip string) Logger {
 	ctx := &Context{
 		logID:    logID,
 		clientIP: ip,

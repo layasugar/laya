@@ -37,7 +37,21 @@ type dingAlarmAt struct {
 	IsAtAll   bool     `json:"isAtAll"`
 }
 
-func DingAlarm(robotKey, robotHost string, ad AlarmData) {
+type DingContext struct {
+	robotKey  string
+	robotHost string
+}
+
+func (ctx *DingContext) Alarm(title string, content string, data map[string]interface{}) {
+	var d = Data{
+		Title:       title,
+		Description: content,
+		Content:     data,
+	}
+	go DingAlarm(ctx.robotKey, ctx.robotHost, d)
+}
+
+func DingAlarm(robotKey, robotHost string, ad Data) {
 	var s string
 	msg := bytes.Buffer{}
 	s += fmt.Sprintf("## %s\r\n#### %s\r\n", ad.Title, ad.Description)

@@ -2,10 +2,7 @@ package web
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/layasugar/laya/core/grace"
-	"github.com/layasugar/laya/core/pprofx"
 	"net/http"
-	"runtime"
 	"time"
 )
 
@@ -33,7 +30,7 @@ func NewWebServer(mode string) *WebServer {
 	server.WebRoute.RouterGroup = &server.Engine.RouterGroup
 
 	if mode == "debug" {
-		pprofx.Wrap(server.Engine)
+		pprof.Wrap(server.Engine)
 	}
 
 	return server
@@ -70,10 +67,7 @@ func (webServer *WebServer) RunGrace(addr string, timeouts ...time.Duration) err
 		WriteTimeout: writeTimeout,
 		Handler:      webServer.Engine,
 	}
-	if runtime.GOOS == "windows" {
-		return server.ListenAndServe()
-	}
-	return grace.Serve(server)
+	return server.ListenAndServe()
 }
 
 // Delims 设置模板的分解符

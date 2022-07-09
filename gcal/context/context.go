@@ -1,20 +1,17 @@
 // Package contextx 提供每次 RAL 请求的上下文对象，主要用来输出日志。
-package contextx
+package context
 
 import (
 	"fmt"
-	"github.com/layasugar/laya/core/httpx"
 	"github.com/layasugar/laya/core/metautils"
-	"github.com/layasugar/laya/tools"
-	"github.com/layasugar/laya/tools/timex"
 	"go.uber.org/zap"
 	"strconv"
 	"sync"
 	"time"
 )
 
-// RequestContext Web请求的上下文
-type RequestContext interface {
+// Request Web请求的上下文
+type Request interface {
 	GetLogId() string
 	GetClientIP() string
 	SpanInject(md metautils.NiceMD)
@@ -25,7 +22,7 @@ type RequestContext interface {
 
 // Context 用作日志记录
 type Context struct {
-	ReqContext RequestContext
+	ReqContext Request
 
 	Caller      string
 	ServiceName string

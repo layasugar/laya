@@ -3,11 +3,9 @@ package laya
 import (
 	"flag"
 	"fmt"
-	"github.com/layasugar/laya/core/grpcx"
-	"github.com/layasugar/laya/core/httpx"
-	"github.com/layasugar/laya/env"
 	"github.com/layasugar/laya/gcal"
 	"github.com/layasugar/laya/gcnf"
+	"github.com/layasugar/laya/gcnf/env"
 	"github.com/layasugar/laya/store/dbx"
 	"github.com/layasugar/laya/store/edbx"
 	"github.com/layasugar/laya/store/mdbx"

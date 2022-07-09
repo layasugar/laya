@@ -3,29 +3,32 @@ package laya
 import (
 	"time"
 
-	a "github.com/layasugar/laya/core/alarmer"
+	"github.com/gin-gonic/gin"
+
+	a "github.com/layasugar/laya/core/alarm"
 	d "github.com/layasugar/laya/core/data"
 	l "github.com/layasugar/laya/core/logger"
-	t "github.com/layasugar/laya/core/tracer"
+	t "github.com/layasugar/laya/core/trace"
 )
 
 // Context is the carrier of request and response
 type Context struct {
-	*d.MemoryContext
-	*l.Context
-	*t.TraceContext
-	*a.AlarmContext
+	d.Data
+	l.Logger
+	t.Trace
+	a.Alarm
 }
 
 // NewDefaultContext 创建 app 默认的context, spanName
 func NewDefaultContext(spanName string) *Context {
 	traceCtx := t.NewTraceContext(spanName, make(map[string][]string))
-
 	tmp := &Context{
-		Context:       l.NewContext(traceCtx.TraceID),
-		TraceContext:  traceCtx,
-		MemoryContext: d.NewMemoryContext(),
+		Logger: l.NewContext(traceCtx.TraceID),
+		Trace:  traceCtx,
+		Data:   d.NewMemoryContext(),
 	}
+
+	gin.Context{}
 
 	return tmp
 }
@@ -41,7 +44,6 @@ func (c *Context) Deadline() (deadline time.Time, ok bool) {
 // contextx should be canceled. Done may return nil if this contextx can
 // never be canceled. Successive calls to Done return the same value.
 func (c *Context) Done() <-chan struct{} {
-	c.SpanFinish(c.TopSpan)
 	return nil
 }
 

@@ -2,7 +2,7 @@ package pool
 
 import (
 	"errors"
-	gpool2 "github.com/layasugar/laya/core/poolx"
+	"github.com/layasugar/laya/core/pool"
 	"sync"
 	"time"
 )
@@ -60,13 +60,13 @@ func (p *Pool) Get(k Key) (interface{}, error) {
 		if ok {
 			// 已经存在，则当前的 poolx 要及时销毁
 			// 否则会出现连接泄露的情况
-			go nv.(gpool2.Pool).Release()
+			go nv.(pool.Pool).Release()
 		} else {
 			// 如果存储的是当前的，需要定时销毁
 			go p.destroy(k)
 		}
 	}
-	return v.(gpool2.Pool).Get()
+	return v.(pool.Pool).Get()
 }
 
 // Put will have a connection put into a poolx
@@ -76,7 +76,7 @@ func (p *Pool) Put(k Key, conn interface{}) error {
 	if !ok {
 		return errors.New("connection poolx not found")
 	}
-	return v.(gpool2.Pool).Put(conn)
+	return v.(pool.Pool).Put(conn)
 }
 
 func (p *Pool) destroy(k Key) {
@@ -86,7 +86,7 @@ func (p *Pool) destroy(k Key) {
 	}
 }
 
-func (p *Pool) newPool(k Key) (gpool2.Pool, error) {
+func (p *Pool) newPool(k Key) (pool.Pool, error) {
 	p.mu.Lock()
 	fm, ok := p.factoryMap.Load(k)
 	if !ok {
@@ -100,7 +100,7 @@ func (p *Pool) newPool(k Key) (gpool2.Pool, error) {
 	}
 	p.mu.Unlock()
 
-	config := &gpool2.Config{
+	config := &pool.Config{
 		InitialCap:  p.initCap(),
 		MaxCap:      p.maxCap(),
 		MaxTry:      p.maxTry(),
@@ -108,7 +108,7 @@ func (p *Pool) newPool(k Key) (gpool2.Pool, error) {
 		Close:       cm.(func(v interface{}) error),
 		IdleTimeout: p.idleTimeout(),
 	}
-	return gpool2.NewChannelPool(config)
+	return pool.NewChannelPool(config)
 }
 
 func (p *Pool) idleTimeout() time.Duration {

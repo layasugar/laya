@@ -102,7 +102,7 @@ func (ctrl *sayHello) GrpcTraceTest(ctx context.Context, in *pb.GrpcTraceTestReq
 	return &pb.HelloReply{Message: fmt.Sprintf("%d", in.Kind)}, nil
 }
 
-func NewJaeger(serverName string) (opentracing.Tracer, io.Closer, error) {
+func NewJaeger(serverName string) (opentracing.Trace, io.Closer, error) {
 	var cfg = jaegerCfg.Configuration{
 		ServiceName: serverName,
 

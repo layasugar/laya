@@ -1,4 +1,4 @@
-package tools
+package util
 
 import (
 	jsonIter "github.com/json-iterator/go"
@@ -8,7 +8,7 @@ const (
 	XForwardedFor = "X-Forwarded-For" // 获取真实ip
 	XRealIP       = "X-Real-IP"       // 获取真实ip
 	RequestIdKey  = "request_id"      // 日志key
-	
+
 )
 
 var (

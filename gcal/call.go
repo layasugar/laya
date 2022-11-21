@@ -11,7 +11,7 @@ import (
 	"github.com/layasugar/laya/gcal/converter"
 	"github.com/layasugar/laya/gcal/protocol"
 	"github.com/layasugar/laya/gcal/service"
-	"github.com/layasugar/laya/gcnf/env"
+	"github.com/layasugar/laya/gcnf"
 	"reflect"
 	"strings"
 )
@@ -79,7 +79,7 @@ func calWithService(ctx *context.Context, serv service.Service, request interfac
 		return
 	}
 	err = valueRsp(ctx, rsp, converterType, response)
-	if env.SdkLog() {
+	if gcnf.SdkLog() {
 		ctx.Log()
 	}
 

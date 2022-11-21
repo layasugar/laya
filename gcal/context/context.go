@@ -4,6 +4,7 @@ package context
 import (
 	"fmt"
 	"github.com/layasugar/laya/core/metautils"
+	"github.com/layasugar/laya/core/util"
 	"go.uber.org/zap"
 	"strconv"
 	"sync"
@@ -46,7 +47,7 @@ type Context struct {
 func NewContext() (ctx *Context) {
 	return &Context{
 		PackStatis: &StatisItem{},
-		LogId:      tools.GenerateLogId(),
+		LogId:      util.GenerateLogId(),
 		lock:       new(sync.RWMutex),
 	}
 }

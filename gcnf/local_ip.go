@@ -1,12 +1,8 @@
-package env
+package gcnf
 
 import (
 	"log"
 	"net"
-)
-
-var (
-	envLocalIP = "127.0.0.1"
 )
 
 func LocalIP() string {

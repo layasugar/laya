@@ -4,7 +4,7 @@ package logger
 
 import (
 	"fmt"
-	l "github.com/layasugar/laya/core/tools/rotatelog"
+	l "github.com/layasugar/laya/core/rotatelog"
 	"github.com/layasugar/laya/env"
 	"github.com/layasugar/laya/tools"
 	"go.uber.org/zap"
@@ -19,6 +19,7 @@ const (
 	defaultChildPath    = "logx/%Y-%m-%d.log" // 默认子目录
 	defaultRotationSize = 128 * 1024 * 1024   // 默认大小为128M
 	defaultRotationTime = 24 * time.Hour      // 默认每天轮转一次
+	defaultMaxAge       = 7 * 24 * time.Hour  //asd
 
 	LevelInfo  = "info"
 	LevelWarn  = "warn"

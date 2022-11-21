@@ -3,7 +3,7 @@ package trace
 import (
 	"github.com/layasugar/laya/core/metautils"
 	"github.com/layasugar/laya/core/util"
-	"github.com/layasugar/laya/gcnf/env"
+	"github.com/layasugar/laya/gcnf"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	zipkinOt "github.com/openzipkin-contrib/zipkin-go-opentracing"
@@ -64,7 +64,7 @@ type Context struct {
 func NewTraceContext(name string, headers map[string][]string) *Context {
 	ctx := &Context{}
 
-	if env.ApiTrace() {
+	if gcnf.ApiTrace() {
 		if t := getTracer(); t != nil {
 			if len(headers) == 0 {
 				ctx.TopSpan = t.StartSpan(name)

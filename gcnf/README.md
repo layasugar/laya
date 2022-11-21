@@ -23,7 +23,7 @@ has been provided.
 
 Example:
 ```go
-gcf.GetString("logfile") // case-insensitive Setting & Getting
+gcnf.GetString("logfile") // case-insensitive Setting & Getting
 if gcf.GetBool("verbose") {
 	fmt.Println("verbose enabled")
 }

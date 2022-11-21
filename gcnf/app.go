@@ -1,4 +1,4 @@
-package env
+package gcnf
 
 const (
 	defaultAppName    = "default-app"

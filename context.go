@@ -1,6 +1,7 @@
-package service
+package laya
 
 import (
+	"github.com/gin-gonic/gin"
 	"time"
 
 	a "github.com/layasugar/laya/core/alarm"
@@ -11,6 +12,7 @@ import (
 
 // Context is the carrier of request and response
 type Context struct {
+	Gin *gin.Context
 	d.Data
 	l.Logger
 	t.Trace

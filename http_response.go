@@ -1,8 +1,10 @@
-package service
+package laya
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/layasugar/laya/gcnf"
 )
 
 type HttpResp struct{}
@@ -15,11 +17,9 @@ type Response struct {
 }
 
 type Pagination struct {
-	Total       int64 `json:"total"`
-	Count       int64 `json:"count"`
-	PerPage     int64 `json:"per_page"`
-	CurrentPage int64 `json:"current_page"`
-	TotalPages  int64 `json:"total_pages"`
+	Total  int64 `json:"total"`
+	Offset int64 `json:"offset"`
+	Limit  int64 `json:"limit"`
 }
 
 // rspError 错误处理
@@ -41,7 +41,7 @@ func Err(code uint32) (err error) {
 
 // Render 渲染
 func (re *rspError) render() (uint32, string) {
-	msg := gcf.LoadErrMsg(re.Code)
+	msg := gcnf.LoadErrMsg(re.Code)
 	if msg == "" {
 		msg = "sorry, system err"
 	}

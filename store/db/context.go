@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"github.com/layasugar/laya/service"
+	"github.com/layasugar/laya"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"gorm.io/gorm"
@@ -16,7 +16,7 @@ const (
 	componentName = "gorm"
 )
 
-func Wrap(ctx service.Context, dbName ...string) *gorm.DB {
+func Wrap(ctx laya.Context, dbName ...string) *gorm.DB {
 	var db *gorm.DB
 	if len(dbName) > 0 {
 		db = getGormDB(dbName[0])
@@ -52,7 +52,7 @@ func registerCallbacks(db *gorm.DB) {
 func newBefore(name string) func(*gorm.DB) {
 	return func(db *gorm.DB) {
 		if v, ok := db.Get(contextKey); ok {
-			if ctx, ok := v.(*service.Context); ok {
+			if ctx, ok := v.(*laya.Context); ok {
 				span := ctx.SpanStart(tSpanName + name)
 				if nil != span {
 					newCtx := context.Background()

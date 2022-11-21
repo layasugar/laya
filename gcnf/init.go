@@ -2,8 +2,10 @@ package gcnf
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
 	"os"
+
+	"github.com/layasugar/laya/core/constants"
+	"github.com/spf13/viper"
 )
 
 // InitConfig 初始化配置信息
@@ -15,7 +17,7 @@ func InitConfig(file string) error {
 	}
 
 	if file == "" {
-		f = pwd + "/" + defaultConfigFile
+		f = pwd + "/" + constants.DefaultConfigFile
 	} else {
 		f = pwd + "/" + file
 	}

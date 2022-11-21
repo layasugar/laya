@@ -4,12 +4,9 @@ import (
 	"flag"
 	"log"
 
+	"github.com/layasugar/laya/core/constants"
 	"github.com/layasugar/laya/gcal"
 	"github.com/layasugar/laya/gcnf"
-)
-
-const (
-	servicesConfKey = "services"
 )
 
 func init() {
@@ -24,7 +21,7 @@ func init() {
 	}
 
 	// 初始化调用gcal
-	var services = gcnf.GetConfigMap(servicesConfKey)
+	var services = gcnf.GetConfigMap(constants.ServicesConfKey)
 	if len(services) > 0 {
 		err := gcal.LoadService(services)
 		if err != nil {

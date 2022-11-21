@@ -1,9 +1,10 @@
 package pprof
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http/pprof"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 // Wrap adds several routes from package `net/http/pprofx` to *gin.Engine object

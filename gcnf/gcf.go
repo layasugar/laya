@@ -2,9 +2,10 @@ package gcnf
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
-	"time"
 )
 
 func Get(key string) interface{} {

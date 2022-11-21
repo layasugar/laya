@@ -3,7 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
-	"github.com/layasugar/laya/gcnf/env"
+	"github.com/layasugar/laya/gcnf"
 	"github.com/layasugar/laya/store/cm"
 	"go.uber.org/zap"
 	"gorm.io/gorm/logger"
@@ -121,11 +121,11 @@ func gormWriter(ctx context.Context, level, msg string, fields ...zap.Field) {
 
 	switch level {
 	case logger.LevelInfo:
-		if env.MysqlLog() {
+		if gcnf.MysqlLog() {
 			logger.GetSugar().Info(msg, fields...)
 		}
 	case logger.LevelWarn:
-		if env.MysqlLog() {
+		if gcnf.MysqlLog() {
 			logger.GetSugar().Warn(msg, fields...)
 		}
 	case logger.LevelError:

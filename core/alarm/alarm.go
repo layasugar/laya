@@ -1,6 +1,8 @@
 package alarm
 
-import "github.com/layasugar/laya/gcnf/env"
+import (
+	"github.com/layasugar/laya/gcnf"
+)
 
 const (
 	DINGDING = "dingding"
@@ -19,15 +21,15 @@ var alarm Alarm
 
 func getAlarm() Alarm {
 	if nil == alarm {
-		if env.AlarmType() == "" {
+		if gcnf.AlarmType() == "" {
 			return &DefaultContext{}
 		}
 
-		switch env.AlarmType() {
+		switch gcnf.AlarmType() {
 		case DINGDING:
 			alarm = &DingContext{
-				robotKey:  env.AlarmKey(),
-				robotHost: env.AlarmHost(),
+				robotKey:  gcnf.AlarmKey(),
+				robotHost: gcnf.AlarmHost(),
 			}
 		default:
 			return &DefaultContext{}

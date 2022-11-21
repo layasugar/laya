@@ -1,4 +1,4 @@
-package service
+package laya
 
 type RequestLog struct {
 	URL     string              `json:"url"`
@@ -9,3 +9,7 @@ type RequestLog struct {
 	Query   interface{}         `json:"query"`
 	Body    interface{}         `json:"body"`
 }
+
+const (
+	protocol = "http"
+)

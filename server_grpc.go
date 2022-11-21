@@ -1,12 +1,13 @@
-package service
+package laya
 
 import (
 	"context"
+	"log"
+	"net"
+
 	"github.com/grpc-ecosystem/go-grpc-middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"log"
-	"net"
 )
 
 // GrpcServer struct
@@ -61,4 +62,31 @@ func (gs *GrpcServer) Run(addr string) (err error) {
 	// 该goroutine读取gRPC请求，然后调用已注册的处理程序来响应它们
 	err = gs.Server.Serve(lis)
 	return
+}
+
+// serverInterceptor 提供服务的拦截器, 重写context, 记录出入参, 记录链路追踪
+func serverInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	// 初始化context
+	md := metautils.ExtractIncoming(ctx)
+	newCtx := NewGrpcContext(info.FullMethod, md)
+
+	// 入参 header->meta
+	if env.ApiLog() {
+		reqByte, _ := tools.CJson.Marshal(req)
+		mdByte, _ := tools.CJson.Marshal(md)
+		newCtx.InfoF("%s", string(reqByte),
+			newCtx.Field("header", string(mdByte)),
+			newCtx.Field("path", info.FullMethod),
+			newCtx.Field("protocol", protocol),
+			newCtx.Field("title", "入参"))
+	}
+
+	resp, err := handler(newCtx, req)
+
+	if env.ApiLog() {
+		respByte, _ := tools.CJson.Marshal(resp)
+		newCtx.InfoF("%s", string(respByte), newCtx.Field("title", "出参"))
+	}
+	newCtx.SpanFinish(newCtx.TopSpan)
+	return resp, err
 }

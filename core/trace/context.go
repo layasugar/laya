@@ -1,15 +1,15 @@
 package trace
 
 import (
+	"log"
+
 	"github.com/layasugar/laya/core/metautils"
 	"github.com/layasugar/laya/core/util"
-	"github.com/layasugar/laya/gcnf"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	zipkinOt "github.com/openzipkin-contrib/zipkin-go-opentracing"
 	uuid "github.com/satori/go.uuid"
 	"github.com/uber/jaeger-client-go"
-	"log"
 )
 
 // Trace 链路
@@ -24,6 +24,9 @@ type Trace interface {
 
 	// TraceID 获取traceID
 	TraceID() string
+
+	// TopSpan 获取traceID
+	TopSpan() opentracing.Span
 }
 
 // Context trace
@@ -36,17 +39,15 @@ type Context struct {
 func NewTraceContext(name string, headers map[string][]string) *Context {
 	ctx := &Context{}
 
-	if gcnf.ApiTrace() {
-		if t := getTracer(); t != nil {
-			if len(headers) == 0 {
+	if t := getTracer(); t != nil {
+		if len(headers) == 0 {
+			ctx.topSpan = t.StartSpan(name)
+		} else {
+			spanCtx, errno := t.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(headers))
+			if errno != nil {
 				ctx.topSpan = t.StartSpan(name)
 			} else {
-				spanCtx, errno := t.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(headers))
-				if errno != nil {
-					ctx.topSpan = t.StartSpan(name)
-				} else {
-					ctx.topSpan = t.StartSpan(name, ext.RPCServerOption(spanCtx))
-				}
+				ctx.topSpan = t.StartSpan(name, ext.RPCServerOption(spanCtx))
 			}
 		}
 	}
@@ -90,6 +91,10 @@ func (ctx *Context) SpanInject(md metautils.NiceMD) {
 			log.Printf("SpanInject, err: %s", err.Error())
 		}
 	}
+}
+
+func (ctx *Context) TopSpan() opentracing.Span {
+	return ctx.topSpan
 }
 
 // TraceID 获取traceID

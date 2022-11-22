@@ -1,6 +1,10 @@
 package gcnf
 
-import "github.com/layasugar/laya/core/constants"
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/layasugar/laya/core/constants"
+	"strings"
+)
 
 // AppName 返回当前app名称
 func AppName() string {
@@ -16,6 +20,17 @@ func AppMode() string {
 		return GetString(constants.KEY_APPMODE)
 	}
 	return constants.DEFAULT_APPMODE
+}
+
+func GinRunMode() string {
+	if strings.Contains(AppMode(), string(constants.RUNMODEDEV)) {
+		return gin.DebugMode
+	}
+
+	if strings.Contains(AppMode(), string(constants.RUNMODETEST)) {
+		return gin.DebugMode
+	}
+	return gin.ReleaseMode
 }
 
 // AppVersion 返回app的版本号

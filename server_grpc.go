@@ -6,11 +6,12 @@ import (
 	"net"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
-
 	"github.com/layasugar/laya/core/constants"
 	"github.com/layasugar/laya/core/metautils"
+	"github.com/layasugar/laya/core/util"
+	"github.com/layasugar/laya/gcnf"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 // GrpcServer struct
@@ -20,8 +21,8 @@ type GrpcServer struct {
 	routes []func(server *GrpcServer)
 }
 
-// NewGrpcServer create new GrpcServer with default configuration
-func NewGrpcServer() *GrpcServer {
+// newGrpcServer create new GrpcServer with default configuration
+func newGrpcServer() *GrpcServer {
 	server := &GrpcServer{
 		opts: []grpc.UnaryServerInterceptor{
 			serverInterceptor,
@@ -69,27 +70,17 @@ func (gs *GrpcServer) Run(addr string) (err error) {
 
 // serverInterceptor 提供服务的拦截器, 重写context, 记录出入参, 记录链路追踪
 func serverInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-	// 初始化context
 	md := metautils.ExtractIncoming(ctx)
 	newCtx := NewContext(constants.SERVERGRPC, info.FullMethod, md, nil)
-
-	// 入参 header->meta
-	if env.ApiLog() {
-		reqByte, _ := tools.CJson.Marshal(req)
-		mdByte, _ := tools.CJson.Marshal(md)
-		newCtx.InfoF("%s", string(reqByte),
-			newCtx.Field("header", string(mdByte)),
-			newCtx.Field("path", info.FullMethod),
-			newCtx.Field("protocol", protocol),
-			newCtx.Field("title", "入参"))
-	}
-
+	reqByte, _ := util.CJson.Marshal(req)
+	mdByte, _ := util.CJson.Marshal(md)
 	resp, err := handler(newCtx, req)
-
-	if env.ApiLog() {
-		respByte, _ := tools.CJson.Marshal(resp)
-		newCtx.InfoF("%s", string(respByte), newCtx.Field("title", "出参"))
+	respByte, _ := util.CJson.Marshal(resp)
+	if gcnf.CheckLogParams(info.FullMethod) {
+		newCtx.Info("params_log", newCtx.Field("header", string(mdByte)),
+			newCtx.Field("path", info.FullMethod), newCtx.Field("protocol", constants.PROTOCOLGRPC),
+			newCtx.Field("inbound", string(reqByte)), newCtx.Field("outbound", string(respByte)))
 	}
-	newCtx.SpanFinish(newCtx.TopSpan)
+	newCtx.SpanFinish(newCtx.TopSpan())
 	return resp, err
 }

@@ -2,14 +2,16 @@ package laya
 
 import (
 	"bytes"
+	"io/ioutil"
+	"net/http"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/layasugar/laya/core/constants"
 	"github.com/layasugar/laya/core/metautils"
 	"github.com/layasugar/laya/core/pprof"
-	"io/ioutil"
-	"net/http"
-	"strings"
-	"time"
+	"github.com/layasugar/laya/core/util"
+	"github.com/layasugar/laya/gcnf"
 )
 
 // WebServer 基于http协议的服务
@@ -22,8 +24,8 @@ type WebServer struct {
 	*gin.Engine
 }
 
-// NewWebServer 创建WebServer
-func NewWebServer(mode string) *WebServer {
+// newWebServer 创建WebServer
+func newWebServer(mode string) *WebServer {
 	gin.SetMode(mode)
 
 	server := &WebServer{
@@ -278,65 +280,21 @@ func (wrc *WebRoute) returnObject() WebRouter {
 	return wrc
 }
 
-// 不需要打印入参和出参的路由
-// 不需要打印入参和出参的前缀
-// 不需要打印入参和出参的后缀
-type logParams struct {
-	NoLogParams       map[string]string
-	NoLogParamsPrefix []string
-	NoLogParamsSuffix []string
-}
-
-// NoLogParamsRules 不想打印的路由分组
-var NoLogParamsRules logParams
-
-// CheckNoLogParams 判断是否需要打印入参出参日志, 不需要打印返回true
-func CheckNoLogParams(origin string) bool {
-	if len(NoLogParamsRules.NoLogParams) > 0 {
-		if _, ok := NoLogParamsRules.NoLogParams[origin]; ok {
-			return true
-		}
-	}
-
-	if len(NoLogParamsRules.NoLogParamsPrefix) > 0 {
-		for _, v := range NoLogParamsRules.NoLogParamsPrefix {
-			if strings.HasPrefix(origin, v) {
-				return true
-			}
-		}
-	}
-
-	if len(NoLogParamsRules.NoLogParamsSuffix) > 0 {
-		for _, v := range NoLogParamsRules.NoLogParamsSuffix {
-			if strings.HasSuffix(origin, v) {
-				return true
-			}
-		}
-	}
-
-	return false
-}
-
 // 打印出入参数
-func webBoundLog(ctx *gin.Context) {
-	w := &responseBodyWriter{body: &bytes.Buffer{}, ResponseWriter: ctx.Writer}
-	ctx.Writer = w
-	if env.ApiLog() && !CheckNoLogParams(ctx.Request.RequestURI) {
-		requestData, _ := ctx.GetRawData()
-		ctx.Request.Body = ioutil.NopCloser(bytes.NewBuffer(requestData))
-		ctx.InfoF("%s", string(requestData),
-			ctx.Field("header", tools.GetString(ctx.Request.Header)),
-			ctx.Field("path", ctx.Request.RequestURI),
-			ctx.Field("protocol", protocol),
-			ctx.Field("title", "入参"))
+func webBoundLog(ctx *Context) {
+	defer func() {
+		ctx.SpanFinish(ctx.TopSpan())
+	}()
+	w := &responseBodyWriter{body: &bytes.Buffer{}, ResponseWriter: ctx.Gin().Writer}
+	ctx.Gin().Writer = w
+	ctx.Gin().Next()
+	if gcnf.CheckLogParams(ctx.Gin().Request.RequestURI) {
+		requestData, _ := ctx.Gin().GetRawData()
+		ctx.Gin().Request.Body = ioutil.NopCloser(bytes.NewBuffer(requestData))
+		ctx.Info("params_log", ctx.Field("header", util.GetString(ctx.Gin().Request.Header)),
+			ctx.Field("path", ctx.Gin().Request.RequestURI), ctx.Field("protocol", constants.PROTOCOLHTTP),
+			ctx.Field("inbound", string(requestData)), ctx.Field("outbound", w.body.String()))
 	}
-
-	ctx.Next()
-
-	if env.ApiLog() && !CheckNoLogParams(ctx.Request.RequestURI) {
-		ctx.InfoF("%s", w.body.String(), ctx.Field("title", "出参"))
-	}
-	ctx.SpanFinish(ctx.TopSpan)
 }
 
 type responseBodyWriter struct {
@@ -354,21 +312,22 @@ func (r responseBodyWriter) WriteString(s string) (n int, err error) {
 	return r.ResponseWriter.WriteString(s)
 }
 
-// DefaultWebServerMiddlewares 默认的Http Server中间件
+// defaultWebServerMiddlewares 默认的Http Server中间件
 // 其实应该保证TowerLogware 不panic，但是无法保证，多一个recovery来保证业务日志崩溃后依旧有访问日志
-var DefaultWebServerMiddlewares = []WebHandlerFunc{
+var defaultWebServerMiddlewares = []WebHandlerFunc{
 	webBoundLog,
 	ginWebHandler(gin.Recovery()),
+	recovery,
 }
 
 // 拦截到错误后处理span, 记录日志, 然后panic
 func recovery(ctx *Context) {
 	defer func() {
 		if err := recover(); err != nil {
-			ctx.SpanFinish(ctx.TopSpan)
-			ctx.ErrorF("系统错误, err: %v", err)
+			ctx.SpanFinish(ctx.TopSpan())
+			ctx.Error("系统错误, err: %v", err)
 			panic(err)
 		}
 	}()
-	ctx.Next()
+	ctx.Gin().Next()
 }

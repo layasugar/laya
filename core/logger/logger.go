@@ -1,122 +1,106 @@
 // Package logger
-// logger: this is extend package, use https://github.com/uber-go/zap
+// logger: this is extend package, use https://github.com/sirupsen/logrus
 package logger
 
 import (
 	"fmt"
-	l "github.com/layasugar/laya/core/rotatelog"
-	"github.com/layasugar/laya/env"
-	"github.com/layasugar/laya/tools"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"io"
 	"log"
-	"os"
 	"time"
+
+	"github.com/layasugar/laya/core/constants"
+	"github.com/layasugar/laya/core/rotatelog"
+	"github.com/sirupsen/logrus"
 )
 
-const (
-	defaultChildPath    = "logx/%Y-%m-%d.log" // 默认子目录
-	defaultRotationSize = 128 * 1024 * 1024   // 默认大小为128M
-	defaultRotationTime = 24 * time.Hour      // 默认每天轮转一次
-	defaultMaxAge       = 7 * 24 * time.Hour  //asd
+var sugar *logrus.Logger
 
-	LevelInfo  = "info"
-	LevelWarn  = "warn"
-	LevelError = "error"
-)
-
-var sugar *zap.Logger
+var defaultConfig = &Config{
+	appName:       "normal",
+	appMode:       "debug",
+	LogType:       "file",
+	LogPath:       "/home/logs/app",
+	childPath:     "%Y-%m-%d.log",
+	RotationSize:  128 * 1024 * 1024,
+	RotationCount: 30,
+	RotationTime:  24 * time.Hour,
+	MaxAge:        7 * 24 * time.Hour,
+}
 
 type Config struct {
 	appName       string        // 应用名
 	appMode       string        // 应用环境
-	logType       string        // 日志类型
-	logPath       string        // 日志主路径
 	childPath     string        // 日志子路径+文件名
+	LogType       string        // 日志类型
+	LogPath       string        // 日志主路径
+	LogLevel      string        // 日志等级
 	RotationSize  int64         // 单个文件大小
 	RotationCount uint          // 可以保留的文件个数
 	RotationTime  time.Duration // 日志分割的时间
 	MaxAge        time.Duration // 日志最大保留的天数
 }
 
-func GetSugar() *zap.Logger {
+func GetSugar() *logrus.Logger {
 	if sugar == nil {
-		cfg := Config{
-			appName:       env.AppName(),
-			appMode:       env.RunMode(),
-			logType:       env.LogType(),
-			logPath:       env.LogPath(),
-			childPath:     defaultChildPath,
-			RotationSize:  defaultRotationSize,
-			RotationCount: env.LogMaxCount(),
-			RotationTime:  defaultRotationTime,
-			MaxAge:        env.LogMaxAge(),
-		}
-
-		sugar = InitSugar(&cfg)
+		sugar = InitSugar(defaultConfig)
 	}
-
 	return sugar
 }
 
-func InitSugar(lc *Config) *zap.Logger {
-	loglevel := zapcore.InfoLevel
-	defaultLogLevel := zap.NewAtomicLevel()
-	defaultLogLevel.SetLevel(loglevel)
-
-	logPath := fmt.Sprintf("%s/%s/%s", lc.logPath, lc.appName, lc.childPath)
-
-	var core zapcore.Core
-	// 打印至文件中
-	if lc.logType == "file" {
-		configs := zap.NewProductionEncoderConfig()
-		configs.FunctionKey = "func"
-		configs.EncodeTime = timeEncoder
-
-		w := zapcore.AddSync(GetWriter(logPath, lc))
-
-		core = zapcore.NewCore(
-			zapcore.NewJSONEncoder(configs),
-			w,
-			defaultLogLevel,
-		)
-		log.Printf("[app] logger success")
-	} else {
-		// 打印在控制台
-		consoleEncoder := zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig())
-		core = zapcore.NewCore(consoleEncoder, zapcore.Lock(os.Stdout), defaultLogLevel)
-		log.Printf("[app] logger success")
+func InitSugar(lc *Config) *logrus.Logger {
+	level, err := logrus.ParseLevel(lc.LogLevel)
+	if err != nil {
+		level = logrus.InfoLevel
 	}
+	logrus.SetLevel(level)
+	logPath := fmt.Sprintf("%s/%s/%s", lc.LogPath, lc.appName, lc.childPath)
+	if lc.LogType == "file" {
+		logrus.SetFormatter(&logrus.JSONFormatter{})
+		logrus.SetOutput(GetWriter(logPath, lc))
+	} else {
+		logrus.SetFormatter(&logrus.TextFormatter{
+			DisableColors: true,
+			FullTimestamp: true,
+		})
+	}
+	log.Printf("[app] logger success")
+	return logrus.WithField("app_name", lc.appName).WithField("app_mode", lc.appMode).Logger
+}
 
-	filed := zap.Fields(zap.String("app_name", lc.appName), zap.String("app_mode", lc.appMode))
-	return zap.New(core, filed, zap.AddCaller(), zap.AddCallerSkip(3))
+func Debug(logId, template string, args ...interface{}) {
+	entry := GetSugar().WithField(constants.X_REQUESTID, logId)
+	msg, entry := dealWithArgs(entry, template, args...)
+	entry.Debug(msg)
 }
 
 func Info(logId, template string, args ...interface{}) {
-	msg, fields := dealWithArgs(template, args...)
-	writer(logId, LevelInfo, msg, fields...)
+	entry := GetSugar().WithField(constants.X_REQUESTID, logId)
+	msg, entry := dealWithArgs(entry, template, args...)
+	entry.Info(msg)
 }
 
 func Warn(logId, template string, args ...interface{}) {
-	msg, fields := dealWithArgs(template, args...)
-	writer(logId, LevelWarn, msg, fields...)
+	entry := GetSugar().WithField(constants.X_REQUESTID, logId)
+	msg, entry := dealWithArgs(entry, template, args...)
+	entry.Warn(msg)
 }
 
 func Error(logId, template string, args ...interface{}) {
-	msg, fields := dealWithArgs(template, args...)
-	writer(logId, LevelError, msg, fields...)
+	entry := GetSugar().WithField(constants.X_REQUESTID, logId)
+	msg, entry := dealWithArgs(entry, template, args...)
+	entry.Error(msg)
 }
 
-func dealWithArgs(tmp string, args ...interface{}) (msg string, f []zap.Field) {
+func dealWithArgs(entry *logrus.Entry, tmp string, args ...interface{}) (msg string, l *logrus.Entry) {
+	l = entry
 	if len(args) > 0 {
 		var tmpArgs []interface{}
 		for _, item := range args {
 			if nil == item {
 				continue
 			}
-			if zapField, ok := item.(zap.Field); ok {
-				f = append(f, zapField)
+			if fields, ok := item.(logrus.Fields); ok {
+				l = l.WithFields(fields)
 			} else {
 				tmpArgs = append(tmpArgs, item)
 			}
@@ -127,34 +111,6 @@ func dealWithArgs(tmp string, args ...interface{}) (msg string, f []zap.Field) {
 	}
 	msg = tmp
 	return
-}
-
-func writer(logId, level, msg string, fields ...zap.Field) {
-	fields = append(fields, zap.String(tools.RequestIdKey, logId))
-
-	switch level {
-	case LevelInfo:
-		GetSugar().Info(msg, fields...)
-	case LevelWarn:
-		GetSugar().Warn(msg, fields...)
-	case LevelError:
-		GetSugar().Error(msg, fields...)
-	}
-	return
-}
-
-func timeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
-	var layout = "2006-01-02 15:04:05"
-	type appendTimeEncoder interface {
-		AppendTimeLayout(time.Time, string)
-	}
-
-	if enc, ok := enc.(appendTimeEncoder); ok {
-		enc.AppendTimeLayout(t, layout)
-		return
-	}
-
-	enc.AppendString(t.Format(layout))
 }
 
 // GetWriter 按天切割按大小切割
@@ -168,14 +124,14 @@ func GetWriter(filename string, lc *Config) io.Writer {
 	// 生成rotatelogs的Logger 实际生成的文件名 stream-2021-5-20.logger
 	// demo.log是指向最新日志的连接
 	// 保存7天内的日志，每1小时(整点)分割一第二天志
-	var options []l.Option
+	var options []rotatelog.Option
 	options = append(options,
-		l.WithRotationSize(lc.RotationSize),
-		l.WithRotationCount(lc.RotationCount),
-		l.WithRotationTime(lc.RotationTime),
-		l.WithMaxAge(lc.MaxAge))
+		rotatelog.WithRotationSize(lc.RotationSize),
+		rotatelog.WithRotationCount(lc.RotationCount),
+		rotatelog.WithRotationTime(lc.RotationTime),
+		rotatelog.WithMaxAge(lc.MaxAge))
 
-	hook, err := l.New(
+	hook, err := rotatelog.New(
 		filename,
 		options...,
 	)
@@ -184,11 +140,4 @@ func GetWriter(filename string, lc *Config) io.Writer {
 		panic(err)
 	}
 	return hook
-}
-
-type Field = zap.Field
-
-func String(key string, value interface{}) zap.Field {
-	v := fmt.Sprintf("%v", value)
-	return zap.String(key, v)
 }

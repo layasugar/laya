@@ -17,7 +17,7 @@ func InitConfig(file string) error {
 	}
 
 	if file == "" {
-		f = pwd + "/" + constants.DefaultConfigFile
+		f = pwd + "/" + constants.DEFAULT_CONFIGFILE
 	} else {
 		f = pwd + "/" + file
 	}
@@ -27,10 +27,8 @@ func InitConfig(file string) error {
 	if err != nil {
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
-	viper.WatchConfig()
-
 	// 加载环境变量
 	viper.AutomaticEnv()
-
+	loadLogParams()
 	return nil
 }

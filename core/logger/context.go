@@ -1,12 +1,22 @@
 package logger
 
+import (
+	"fmt"
+	"github.com/sirupsen/logrus"
+)
+
 // Logger 日志
 type Logger interface {
 	LogID() string
+	Debug(template string, args ...interface{})
 	Info(template string, args ...interface{})
 	Warn(template string, args ...interface{})
 	Error(template string, args ...interface{})
-	Field(key string, value interface{}) Field
+	Field(key string, value interface{}) logrus.Fields
+}
+
+func (ctx *Context) Debug(template string, args ...interface{}) {
+	Debug(ctx.logID, template, args...)
 }
 
 func (ctx *Context) Info(template string, args ...interface{}) {
@@ -19,12 +29,12 @@ func (ctx *Context) Warn(template string, args ...interface{}) {
 
 // ErrorF 打印程序错误日志
 func (ctx *Context) Error(template string, args ...interface{}) {
-	//msg, _ := dealWithArgs(template, args)
 	Error(ctx.logID, template, args...)
 }
 
-func (ctx *Context) Field(key string, value interface{}) Field {
-	return String(key, value)
+func (ctx *Context) Field(key string, value interface{}) logrus.Fields {
+	v := fmt.Sprintf("%v", value)
+	return map[string]interface{}{key: v}
 }
 
 // Context logger

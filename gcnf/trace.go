@@ -1,22 +1,24 @@
 package gcnf
 
+import "github.com/layasugar/laya/core/constants"
+
 func TraceType() string {
-	if IsSet(_appTraceType) {
-		return GetString(_appTraceType)
+	if IsSet(constants.KEY_APPTRACETYPE) {
+		return GetString(constants.KEY_APPTRACETYPE)
 	}
-	return defaultTraceType
+	return constants.DEFAULT_TRACETYPE
 }
 
 func TraceAddr() string {
-	if IsSet(_appTraceAddr) {
-		return GetString(_appTraceAddr)
+	if IsSet(constants.KEY_APPTRACEADDR) {
+		return GetString(constants.KEY_APPTRACEADDR)
 	}
-	return defaultTraceAddr
+	return constants.DEFAULT_TRACEADDR
 }
 
 func TraceMod() float64 {
-	if IsSet(_appTraceMod) {
-		return GetFloat64(_appTraceMod)
+	if IsSet(constants.KEY_APPTRACEMOD) {
+		return GetFloat64(constants.KEY_APPTRACEMOD)
 	}
-	return defaultTraceMod
+	return constants.DEFAULT_TRACEMOD
 }

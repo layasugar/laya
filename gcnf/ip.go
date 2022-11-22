@@ -3,19 +3,23 @@ package gcnf
 import (
 	"log"
 	"net"
+
+	"github.com/layasugar/laya/core/constants"
 )
 
+var ip = ""
+
 func LocalIP() string {
-	if envLocalIP == "" {
+	if ip == "" {
 		ips := getLocalIPs()
 		if len(ips) > 0 {
-			envLocalIP = ips[0] + ":80"
+			ip = ips[0] + ":80"
 		} else {
-			envLocalIP = defaultHttpListen
+			ip = constants.DEFAULT_LISTEN
 		}
 	}
 
-	return envLocalIP
+	return ip
 }
 
 func getLocalIPs() (ips []string) {

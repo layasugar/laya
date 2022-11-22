@@ -15,8 +15,8 @@ type Context struct {
 	data map[string]interface{}
 }
 
-// NewMemoryContext new one
-func NewMemoryContext() *Context {
+// NewContext new one
+func NewContext() *Context {
 	return &Context{
 		data: map[string]interface{}{},
 	}

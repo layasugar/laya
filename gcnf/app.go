@@ -1,75 +1,35 @@
 package gcnf
 
-const (
-	defaultAppName    = "default-app"
-	defaultAppMode    = "dev"
-	defaultRunMode    = "debug"
-	defaultAppVersion = "1.0.0"
-	defaultHttpListen = "0.0.0.0:80"
-	defaultGrpcListen = "0.0.0.0:10082"
-	defaultAppUrl     = "http://127.0.0.1:80"
-
-	_appName       = "app.name"
-	_appMode       = "app.mode"
-	_appRunMode    = "app.run_mode"
-	_appVersion    = "app.version"
-	_appHttpListen = "app.http_listen"
-	_appGrpcListen = "app.grpc_listen"
-	_appUrl        = "app.url"
-)
+import "github.com/layasugar/laya/core/constants"
 
 // AppName 返回当前app名称
 func AppName() string {
-	if gcnf.IsSet(_appName) {
-		return gcnf.GetString(_appName)
+	if IsSet(constants.KEY_APPNAME) {
+		return GetString(constants.KEY_APPNAME)
 	}
-	return defaultAppName
+	return constants.DEFAULT_APPNAME
 }
 
 // AppMode 返回当前的环境
 func AppMode() string {
-	if gcnf.IsSet(_appMode) {
-		return gcnf.GetString(_appMode)
+	if IsSet(constants.KEY_APPMODE) {
+		return GetString(constants.KEY_APPMODE)
 	}
-	return defaultAppMode
-}
-
-// RunMode 返回当前的运行模式
-func RunMode() string {
-	if gcnf.IsSet(_appRunMode) {
-		return gcnf.GetString(_appRunMode)
-	}
-	return defaultRunMode
+	return constants.DEFAULT_APPMODE
 }
 
 // AppVersion 返回app的版本号
 func AppVersion() string {
-	if gcnf.IsSet(_appVersion) {
-		return gcnf.GetString(_appVersion)
+	if IsSet(constants.KEY_APPVERSION) {
+		return GetString(constants.KEY_APPVERSION)
 	}
-	return defaultAppVersion
+	return constants.DEFAULT_APPVERSION
 }
 
-// HttpListen 获取http监听地址
-func HttpListen() string {
-	if gcnf.IsSet(_appHttpListen) {
-		return gcnf.GetString(_appHttpListen)
+// Listen 监听地址
+func Listen() string {
+	if IsSet(constants.KEY_APPLISTEN) {
+		return GetString(constants.KEY_APPLISTEN)
 	}
-	return defaultHttpListen
-}
-
-// GrpcListen 返回rpc监听地址
-func GrpcListen() string {
-	if gcnf.IsSet(_appGrpcListen) {
-		return gcnf.GetString(_appGrpcListen)
-	}
-	return defaultGrpcListen
-}
-
-// AppUrl 返回当前app_url
-func AppUrl() string {
-	if gcnf.IsSet(_appUrl) {
-		return gcnf.GetString(_appUrl)
-	}
-	return defaultAppUrl
+	return constants.DEFAULT_LISTEN
 }

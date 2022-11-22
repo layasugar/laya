@@ -3,6 +3,8 @@ package laya
 import (
 	"bytes"
 	"github.com/gin-gonic/gin"
+	"github.com/layasugar/laya/core/constants"
+	"github.com/layasugar/laya/core/metautils"
 	"github.com/layasugar/laya/core/pprof"
 	"io/ioutil"
 	"net/http"
@@ -42,6 +44,7 @@ func NewWebServer(mode string) *WebServer {
 
 // RouterRegister 路由注册者
 type RouterRegister func(*WebServer)
+type WebHandlerFunc func(ctx *Context)
 
 // type RouterRegister func(WebRouter)
 
@@ -91,8 +94,8 @@ func (webServer *WebServer) SecureJsonPrefix(prefix string) *WebServer {
 // HandleContext re-enter a contextx that has been rewritten.
 // This can be done by setting c.Request.URL.Path to your new target.
 // Disclaimer: You can loop yourself to death with this, use wisely.
-func (webServer *WebServer) HandleContext(wc *WebContext) {
-	webServer.Engine.HandleContext(wc.Context)
+func (webServer *WebServer) HandleContext(wc *Context) {
+	webServer.Engine.HandleContext(wc.Gin())
 }
 
 // NoRoute adds handlers for NoRoute. It return a 404 code by default.
@@ -115,14 +118,16 @@ func (webServer *WebServer) Use(middleware ...WebHandlerFunc) WebRouter {
 // toGinHandlerFunc 转换为Gin的HandlerFunc
 func (hdlr WebHandlerFunc) toGinHandlerFunc() gin.HandlerFunc {
 	return func(ginCtx *gin.Context) {
-		ctx := NewWebContext(ginCtx)
+		name := ginCtx.Request.RequestURI
+		md := metautils.NiceMD(ginCtx.Request.Header)
+		ctx := NewContext(constants.SERVERGIN, name, md, ginCtx)
 		hdlr(ctx)
 	}
 }
 
 func ginWebHandler(ginHandler gin.HandlerFunc) WebHandlerFunc {
-	return func(ctx *WebContext) {
-		ginHandler(ctx.Context)
+	return func(ctx *Context) {
+		ginHandler(ctx.Gin())
 	}
 }
 
@@ -357,7 +362,7 @@ var DefaultWebServerMiddlewares = []WebHandlerFunc{
 }
 
 // 拦截到错误后处理span, 记录日志, 然后panic
-func recovery(ctx *WebContext) {
+func recovery(ctx *Context) {
 	defer func() {
 		if err := recover(); err != nil {
 			ctx.SpanFinish(ctx.TopSpan)

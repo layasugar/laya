@@ -2,8 +2,8 @@ package gcnf
 
 // ApiLog 返回api是否打印入参和出参
 func ApiLog() bool {
-	if gcf.IsSet(_appConsoleApiLog) {
-		return gcf.GetBool(_appConsoleApiLog)
+	if IsSet(_appConsoleApiLog) {
+		return GetBool(_appConsoleApiLog)
 	}
 	return true
 }

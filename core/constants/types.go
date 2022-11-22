@@ -1,4 +1,7 @@
-package laya
+package constants
+
+// SERVERTYPE 服务类型
+type SERVERTYPE int
 
 type RequestLog struct {
 	URL     string              `json:"url"`
@@ -9,7 +12,3 @@ type RequestLog struct {
 	Query   interface{}         `json:"query"`
 	Body    interface{}         `json:"body"`
 }
-
-const (
-	protocol = "http"
-)

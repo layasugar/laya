@@ -1,32 +1,24 @@
 package gcnf
 
-const (
-	defaultAlarmType = ""
-	defaultAlarmKey  = ""
-	defaultAlarmHost = ""
-
-	_appAlarmType = "app.alarm.type"
-	_appAlarmKey  = "app.alarm.key"
-	_appAlarmAddr = "app.alarm.addr"
-)
+import "github.com/layasugar/laya/core/constants"
 
 func AlarmType() string {
-	if gcf.IsSet(_appAlarmType) {
-		return gcf.GetString(_appAlarmType)
+	if IsSet(constants.KEY_APPALARMTYPE) {
+		return GetString(constants.KEY_APPALARMTYPE)
 	}
-	return defaultAlarmType
+	return defaultNullString
 }
 
 func AlarmKey() string {
-	if gcf.IsSet(_appAlarmKey) {
-		return gcf.GetString(_appAlarmKey)
+	if IsSet(constants.KEY_APPALARMKEY) {
+		return GetString(constants.KEY_APPALARMKEY)
 	}
-	return defaultAlarmKey
+	return defaultNullString
 }
 
 func AlarmHost() string {
-	if gcf.IsSet(_appAlarmAddr) {
-		return gcf.GetString(_appAlarmAddr)
+	if IsSet(constants.KEY_APPALARMADDR) {
+		return GetString(constants.KEY_APPALARMADDR)
 	}
-	return defaultAlarmHost
+	return defaultNullString
 }

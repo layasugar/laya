@@ -21,7 +21,7 @@ func init() {
 	}
 
 	// 初始化调用gcal
-	var services = gcnf.GetConfigMap(constants.ServicesConfKey)
+	var services = gcnf.GetConfigMap(constants.KEY_SERVICES)
 	if len(services) > 0 {
 		err := gcal.LoadService(services)
 		if err != nil {

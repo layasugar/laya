@@ -25,6 +25,6 @@ Example:
 ```go
 gcnf.GetString("logfile") // case-insensitive Setting & Getting
 if gcf.GetBool("verbose") {
-	fmt.Println("verbose enabled")
+    fmt.Println("verbose enabled")
 }
 ```

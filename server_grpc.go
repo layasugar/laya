@@ -8,6 +8,9 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+
+	"github.com/layasugar/laya/core/constants"
+	"github.com/layasugar/laya/core/metautils"
 )
 
 // GrpcServer struct
@@ -68,7 +71,7 @@ func (gs *GrpcServer) Run(addr string) (err error) {
 func serverInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 	// 初始化context
 	md := metautils.ExtractIncoming(ctx)
-	newCtx := NewGrpcContext(info.FullMethod, md)
+	newCtx := NewContext(constants.SERVERGRPC, info.FullMethod, md, nil)
 
 	// 入参 header->meta
 	if env.ApiLog() {

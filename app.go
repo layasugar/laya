@@ -5,23 +5,20 @@ package laya
 import (
 	"flag"
 	"fmt"
+	"github.com/layasugar/laya/core/constants"
 	"log"
 
 	"github.com/layasugar/laya/gcal"
+	"github.com/layasugar/laya/gcnf"
 )
 
 type (
-	GrpcContext = grpcx.GrpcContext
-
 	App struct {
 		// webServer 目前web引擎使用gin
-		webServer *httpx.WebServer
+		webServer *WebServer
 
 		// grpcServer
-		grpcServer *grpcx.GrpcServer
-
-		// scene 是web还是grpc
-		scene int
+		grpcServer *GrpcServer
 	}
 
 	AppConfig struct {
@@ -32,17 +29,11 @@ type (
 	}
 )
 
-const (
-	webApp = iota
-	grpcApp
-	defaultApp
-)
-
-// DefaultApp 默认应用不带有web或者grpc, 可作为服务使用
-func DefaultApp() *App {
+// NormalApp 默认应用不带有web或者grpc, 可作为服务使用
+func NormalApp() *App {
 	app := new(App)
 
-	app.initWithConfig(-1)
+	app.initWithConfig(constants.SERVERNORMAL)
 	return app
 }
 
@@ -50,7 +41,7 @@ func DefaultApp() *App {
 func WebApp() *App {
 	app := new(App)
 
-	app.initWithConfig(webApp)
+	app.initWithConfig(constants.SERVERGIN)
 	return app
 }
 
@@ -58,21 +49,19 @@ func WebApp() *App {
 func GrpcApp() *App {
 	app := new(App)
 
-	app.initWithConfig(grpcApp)
+	app.initWithConfig(constants.SERVERGRPC)
 	return app
 }
 
 // 初始化app
-func (app *App) initWithConfig(scene int) *App {
-	app.scene = scene
-
+func (app *App) initWithConfig(t constants.SERVERTYPE) *App {
 	// 接收命令行参数
 	var f string
 	flag.StringVar(&f, "config", "", "set a config file")
 	flag.Parse()
 
 	// 初始化配置
-	err := gcf.InitConfig(f)
+	err := gcnf.InitConfig(f)
 	if err != nil {
 		panic(err)
 	}
@@ -83,18 +72,18 @@ func (app *App) initWithConfig(scene int) *App {
 	// db init and rdb init
 	app.initDbConn()
 
-	switch scene {
-	case webApp:
+	switch t {
+	case constants.SERVERGIN:
 		if genv.HttpListen() == "" {
-			panic("app.http_listen is null")
+			panic("[app] http_listen is null")
 		}
 		app.webServer = httpx.NewWebServer(genv.RunMode())
 		if len(httpx.DefaultWebServerMiddlewares) > 0 {
 			app.webServer.Use(httpx.DefaultWebServerMiddlewares...)
 		}
-	case grpcApp:
+	case constants.SERVERGRPC:
 		if genv.GrpcListen() == "" {
-			panic("app.http_listen is null")
+			panic("[app] http_listen is null")
 		}
 		app.grpcServer = grpcx.NewGrpcServer()
 	}
@@ -221,16 +210,11 @@ func (app *App) SetNoLogParamsSuffix(path ...string) {
 }
 
 // WebServer 获取WebServer的指针
-func (app *App) WebServer() *httpx.WebServer {
+func (app *App) WebServer() *WebServer {
 	return app.webServer
 }
 
 // GrpcServer 获取PbRPCServer的指针
-func (app *App) GrpcServer() *grpcx.GrpcServer {
+func (app *App) GrpcServer() *GrpcServer {
 	return app.grpcServer
-}
-
-// NewContext 基础服务提供一个NewContext
-func (app *App) NewContext(logId string, spanName string) *appx.Context {
-	return appx.NewDefaultContext(logId, spanName)
 }

@@ -2,7 +2,9 @@ package gcnf
 
 import "time"
 
-const ()
+const (
+	defaultNullString = ""
+)
 
 var configChargeHandleFunc []func()
 var t *time.Timer

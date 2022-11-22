@@ -1,18 +1,22 @@
 package laya
 
 import (
-	"github.com/gin-gonic/gin"
 	"time"
 
+	"github.com/gin-gonic/gin"
+
 	a "github.com/layasugar/laya/core/alarm"
+	"github.com/layasugar/laya/core/constants"
 	d "github.com/layasugar/laya/core/data"
 	l "github.com/layasugar/laya/core/logger"
+	"github.com/layasugar/laya/core/metautils"
 	t "github.com/layasugar/laya/core/trace"
+	"github.com/layasugar/laya/core/util"
 )
 
 // Context is the carrier of request and response
 type Context struct {
-	Gin *gin.Context
+	gin *gin.Context
 	d.Data
 	l.Logger
 	t.Trace
@@ -52,4 +56,32 @@ func (c *Context) Value(key interface{}) interface{} {
 		return val
 	}
 	return nil
+}
+
+func (c *Context) Gin() *gin.Context {
+	return c.gin
+}
+
+// NewContext 初始化上下文
+// name uri或者spanName
+// md header参数
+func NewContext(st constants.SERVERTYPE, name string, md metautils.NiceMD, gin *gin.Context) *Context {
+	var ctx = &Context{
+		Data:  d.NewContext(),
+		Alarm: a.NewContext(),
+	}
+	xRequestId := md.Get(constants.X_REQUESTID)
+	if xRequestId == "" {
+		xRequestId = util.GenerateLogId()
+		md.Set(constants.X_REQUESTID, xRequestId)
+	}
+	ctx.Set(constants.X_REQUESTID, xRequestId)
+	ctx.Logger = l.NewContext(xRequestId)
+	ctx.Trace = t.NewTraceContext(name, md)
+
+	if st == constants.SERVERGIN {
+		ctx.gin = gin
+	}
+
+	return ctx
 }

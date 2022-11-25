@@ -1,20 +1,15 @@
 package db
 
 import (
-	"context"
-	"database/sql"
-	"errors"
-
 	"github.com/layasugar/laya"
 	"github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/ext"
 	"gorm.io/gorm"
 )
 
 const (
-	contextKey    = "otgorm:context"
-	tSpanName     = "mysql:"
-	componentName = "gorm"
+	contextKey = "gorm:context"
+	spanKey    = "span:key"
+	tSpanName  = "mysql:"
 )
 
 func Wrap(ctx *laya.Context, dbName ...string) *gorm.DB {
@@ -53,13 +48,10 @@ func registerCallbacks(db *gorm.DB) {
 func newBefore(name string) func(*gorm.DB) {
 	return func(db *gorm.DB) {
 		if v, ok := db.Get(contextKey); ok {
-			if ctx, ok := v.(*laya.Context); ok {
+			if ctx, okctx := v.(*laya.Context); okctx {
 				span := ctx.SpanStart(tSpanName + name)
 				if nil != span {
-					newCtx := context.Background()
-					keepScene(db, newCtx)
-					ext.Component.Set(span, componentName)
-					setSpan(db, newCtx, span)
+					db.Set(spanKey, span)
 				}
 			}
 		}
@@ -68,43 +60,12 @@ func newBefore(name string) func(*gorm.DB) {
 
 func newAfter() func(*gorm.DB) {
 	return func(db *gorm.DB) {
-		span, _ := getSpan(db)
-		if nil != span {
-			defer func() {
-				span.Finish()
-				restoreScene(db)
-			}()
-			ext.DBStatement.Set(span, db.Statement.SQL.String())
-			if db.Error != nil {
-				if !errors.Is(db.Error, gorm.ErrRecordNotFound) && !errors.Is(db.Error, sql.ErrNoRows) {
-					ext.LogError(span, db.Error)
+		if spanx, ok := db.Get(spanKey); ok {
+			if span, okspan := spanx.(opentracing.Span); okspan {
+				if nil != span {
+					span.Finish()
 				}
 			}
 		}
-	}
-}
-
-func setSpan(db *gorm.DB, ctx context.Context, span opentracing.Span) {
-	db.Set(contextKey, opentracing.ContextWithSpan(ctx, span))
-}
-
-func getSpan(db *gorm.DB) (opentracing.Span, context.Context) {
-	if v, ok := db.Get(contextKey); ok {
-		if ctx, ok := v.(context.Context); ok {
-			return opentracing.SpanFromContext(ctx), ctx
-		}
-	}
-	return nil, nil
-}
-
-const contextSceneKey = "otgorm:context:scene:" + "v1.0.0"
-
-func keepScene(db *gorm.DB, ctx context.Context) {
-	db.Set(contextSceneKey, ctx)
-}
-
-func restoreScene(db *gorm.DB) {
-	if v, ok := db.Get(contextSceneKey); ok {
-		db.Set(contextKey, v)
 	}
 }

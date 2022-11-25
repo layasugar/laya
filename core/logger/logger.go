@@ -93,8 +93,8 @@ func Error(logId, template string, args ...interface{}) {
 
 func dealWithArgs(entry *logrus.Entry, tmp string, args ...interface{}) (msg string, l *logrus.Entry) {
 	l = entry
+	var tmpArgs []interface{}
 	if len(args) > 0 {
-		var tmpArgs []interface{}
 		for _, item := range args {
 			if nil == item {
 				continue
@@ -105,12 +105,8 @@ func dealWithArgs(entry *logrus.Entry, tmp string, args ...interface{}) (msg str
 				tmpArgs = append(tmpArgs, item)
 			}
 		}
-		if len(tmpArgs) > 0 {
-			msg = fmt.Sprintf(tmp, tmpArgs...)
-		}
 	}
-	msg = tmp
-	return
+	return fmt.Sprintf(tmp, tmpArgs...), l
 }
 
 // GetWriter 按天切割按大小切割

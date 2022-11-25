@@ -2,9 +2,7 @@ package protocol
 
 import (
 	"fmt"
-	"github.com/layasugar/laya/core/constants"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httptrace"
@@ -13,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/layasugar/laya/core/constants"
 	"github.com/layasugar/laya/core/metautils"
 	"github.com/layasugar/laya/core/util"
 	"github.com/layasugar/laya/gcal/context"
@@ -131,11 +130,11 @@ func NewHTTPProtocol(ctx *context.Context, serv service.Service, req *HTTPReques
 	if len(bb) > 0 {
 		body := strings.NewReader(string(bb))
 		hp.RawReq.ContentLength = int64(body.Len())
-		hp.RawReq.Body = ioutil.NopCloser(body)
+		hp.RawReq.Body = io.NopCloser(body)
 		snapshot := *body
 		hp.RawReq.GetBody = func() (io.ReadCloser, error) {
 			r := snapshot
-			return ioutil.NopCloser(&r), nil
+			return io.NopCloser(&r), nil
 		}
 	}
 
@@ -160,7 +159,7 @@ func (hp *HTTPProtocol) Do(ctx *context.Context, addr string) (rsp *Response, er
 
 	// 重置请求地址
 	if hp.originReq.CustomAddr != "" {
-		host = fmt.Sprintf("%s", hp.originReq.CustomAddr)
+		host = hp.originReq.CustomAddr
 	} else {
 		host = addr
 	}
@@ -253,7 +252,7 @@ func (hp *HTTPProtocol) Do(ctx *context.Context, addr string) (rsp *Response, er
 	ctx.CurRecord().RspCode = originRsp.StatusCode
 
 	ctx.TimeStatisStart("read")
-	raw, err := ioutil.ReadAll(originRsp.Body)
+	raw, err := io.ReadAll(originRsp.Body)
 	ctx.TimeStatisStop("read")
 	if err != nil {
 		return nil, err
@@ -296,10 +295,8 @@ func (hp *HTTPProtocol) getClient(ctx *context.Context) (client *http.Client, er
 			service2httpClientMap.Store(hp.serv.GetName(), client)
 			lock.Unlock()
 			go func(name string) {
-				select {
-				case <-time.After(HttpClientAlive):
-					service2httpClientMap.Delete(name)
-				}
+				<-time.After(HttpClientAlive)
+				service2httpClientMap.Delete(name)
 			}(hp.serv.GetName())
 			return
 		}

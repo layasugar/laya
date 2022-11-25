@@ -2,7 +2,7 @@ package laya
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -83,13 +83,6 @@ func (webServer *WebServer) RunGrace(addr string, timeouts ...time.Duration) err
 // 重写gin方法
 func (webServer *WebServer) Delims(left, right string) *WebServer {
 	webServer.Engine.Delims(left, right)
-	return webServer
-}
-
-// SecureJsonPrefix sets the secureJsonPrefix used in Context.SecureJSON.
-// 重写gin方法
-func (webServer *WebServer) SecureJsonPrefix(prefix string) *WebServer {
-	webServer.SecureJsonPrefix(prefix)
 	return webServer
 }
 
@@ -290,7 +283,7 @@ func webBoundLog(ctx *Context) {
 	ctx.Gin().Next()
 	if gcnf.CheckLogParams(ctx.Gin().Request.RequestURI) {
 		requestData, _ := ctx.Gin().GetRawData()
-		ctx.Gin().Request.Body = ioutil.NopCloser(bytes.NewBuffer(requestData))
+		ctx.Gin().Request.Body = io.NopCloser(bytes.NewBuffer(requestData))
 		ctx.Info("params_log", ctx.Field("header", util.GetString(ctx.Gin().Request.Header)),
 			ctx.Field("path", ctx.Gin().Request.RequestURI), ctx.Field("protocol", constants.PROTOCOLHTTP),
 			ctx.Field("inbound", string(requestData)), ctx.Field("outbound", w.body.String()))

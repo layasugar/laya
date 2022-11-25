@@ -2,13 +2,14 @@ package mdb
 
 import (
 	"context"
+	"log"
+	"runtime"
+	"time"
+
 	"go.mongodb.org/mongo-driver/event"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"log"
-	"runtime"
-	"time"
 )
 
 var defaultPoolMaxOpen = uint64(runtime.NumCPU()*2 + 5) // 连接池最大连接数量4c*2+4只读副本+1主实例

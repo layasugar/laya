@@ -2,12 +2,13 @@ package logger
 
 import (
 	"fmt"
+
 	"github.com/sirupsen/logrus"
 )
 
 // Logger 日志
 type Logger interface {
-	LogID() string
+	LogId() string
 	Debug(template string, args ...interface{})
 	Info(template string, args ...interface{})
 	Warn(template string, args ...interface{})
@@ -52,7 +53,7 @@ func NewContext(logID string) Logger {
 	return ctx
 }
 
-// LogID 得到LogId
-func (ctx *Context) LogID() string {
+// LogId 得到LogId
+func (ctx *Context) LogId() string {
 	return ctx.logID
 }

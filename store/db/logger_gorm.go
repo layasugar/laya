@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/layasugar/laya/gcnf"
-	"github.com/layasugar/laya/store/cm"
-	"go.uber.org/zap"
+	"github.com/layasugar/laya"
+	"github.com/layasugar/laya/core/constants"
+	l "github.com/layasugar/laya/core/logger"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/utils"
 )
@@ -58,24 +58,24 @@ func (l *gormLogger) LogMode(level logger.LogLevel) logger.Interface {
 // Info print info
 func (l *gormLogger) Info(ctx context.Context, msg string, data ...interface{}) {
 	if l.LogLevel >= logger.Info {
-		errInfo := fmt.Sprintf(msg, data)
-		gormWriter(ctx, LevelInfo, fmt.Sprintf(l.infoStr, utils.FileWithLineNum(), errInfo))
+		errInfo := fmt.Sprintf(msg, data...)
+		gormWriter(ctx, levelInfo, fmt.Sprintf(l.infoStr, utils.FileWithLineNum(), errInfo))
 	}
 }
 
 // Warn print warn messages
 func (l *gormLogger) Warn(ctx context.Context, msg string, data ...interface{}) {
 	if l.LogLevel >= logger.Warn {
-		errInfo := fmt.Sprintf(msg, data)
-		gormWriter(ctx, LevelWarn, fmt.Sprintf(l.infoStr, utils.FileWithLineNum(), errInfo))
+		errInfo := fmt.Sprintf(msg, data...)
+		gormWriter(ctx, levelWarn, fmt.Sprintf(l.infoStr, utils.FileWithLineNum(), errInfo))
 	}
 }
 
 // Error print error messages
 func (l *gormLogger) Error(ctx context.Context, msg string, data ...interface{}) {
 	if l.LogLevel >= logger.Error {
-		errInfo := fmt.Sprintf(msg, data)
-		gormWriter(ctx, LevelError, fmt.Sprintf(l.infoStr, utils.FileWithLineNum(), errInfo))
+		errInfo := fmt.Sprintf(msg, data...)
+		gormWriter(ctx, levelError, fmt.Sprintf(l.infoStr, utils.FileWithLineNum(), errInfo))
 	}
 }
 
@@ -88,50 +88,51 @@ func (l *gormLogger) Trace(ctx context.Context, begin time.Time, fc func() (stri
 			sql, rows := fc()
 			if rows == -1 {
 				msg := fmt.Sprintf(l.traceErrStr, utils.FileWithLineNum(), err.Error(), float64(elapsed.Nanoseconds())/1e6, "-", sql)
-				gormWriter(ctx, LevelError, msg)
+				gormWriter(ctx, levelError, msg)
 			} else {
 				msg := fmt.Sprintf(l.traceErrStr, utils.FileWithLineNum(), err, float64(elapsed.Nanoseconds())/1e6, "-", sql)
-				gormWriter(ctx, LevelError, msg)
+				gormWriter(ctx, levelError, msg)
 			}
 		case elapsed > l.SlowThreshold && l.SlowThreshold != 0 && l.LogLevel >= logger.Warn:
 			sql, rows := fc()
 			slowLog := fmt.Sprintf("SLOW SQL >= %v", l.SlowThreshold)
 			if rows == -1 {
 				msg := fmt.Sprintf(l.traceWarnStr, utils.FileWithLineNum(), slowLog, float64(elapsed.Nanoseconds())/1e6, "-", sql)
-				gormWriter(ctx, LevelWarn, msg)
+				gormWriter(ctx, levelWarn, msg)
 			} else {
 				msg := fmt.Sprintf(l.traceWarnStr, utils.FileWithLineNum(), slowLog, float64(elapsed.Nanoseconds())/1e6, rows, sql)
-				gormWriter(ctx, LevelWarn, msg)
+				gormWriter(ctx, levelWarn, msg)
 			}
 		case l.LogLevel >= logger.Info:
 			sql, rows := fc()
 			if rows == -1 {
 				msg := fmt.Sprintf(l.traceStr, utils.FileWithLineNum(), float64(elapsed.Nanoseconds())/1e6, "-", sql)
-				gormWriter(ctx, LevelInfo, msg)
+				gormWriter(ctx, levelInfo, msg)
 			} else {
 				msg := fmt.Sprintf(l.traceStr, utils.FileWithLineNum(), float64(elapsed.Nanoseconds())/1e6, rows, sql)
-				gormWriter(ctx, LevelInfo, msg)
+				gormWriter(ctx, levelInfo, msg)
 			}
 		}
 	}
 }
 
-func gormWriter(ctx context.Context, level, msg string, fields ...zap.Field) {
-	requestId := cm.ParseLogIdByCtx(ctx)
-	fields = append(fields, zap.String(tools.RequestIdKey, requestId), zap.String("title", sqlTitle))
-
-	switch level {
-	case logger.LevelInfo:
-		if gcnf.MysqlLog() {
-			logger.GetSugar().Info(msg, fields...)
-		}
-	case logger.LevelWarn:
-		if gcnf.MysqlLog() {
-			logger.GetSugar().Warn(msg, fields...)
-		}
-	case logger.LevelError:
-		logger.GetSugar().Error(msg, fields...)
+func gormWriter(ctx context.Context, level, msg string) {
+	var logId string
+	if webCtx, okInterface := ctx.(*laya.Context); okInterface {
+		logId = webCtx.LogId()
 	}
 
-	return
+	var fields = map[string]interface{}{
+		constants.X_REQUESTID: logId,
+		constants.LOGGERTITLE: sqlTitle,
+	}
+
+	switch level {
+	case levelInfo:
+		l.GetSugar().WithFields(fields).Info(msg)
+	case levelWarn:
+		l.GetSugar().WithFields(fields).Warn(msg)
+	case levelError:
+		l.GetSugar().WithFields(fields).Error(msg)
+	}
 }

@@ -3,9 +3,9 @@
 package trace
 
 import (
-	"github.com/layasugar/laya/core/constants"
 	"log"
 
+	"github.com/layasugar/laya/core/constants"
 	"github.com/layasugar/laya/gcnf"
 	"github.com/opentracing/opentracing-go"
 )

@@ -54,13 +54,11 @@ func NewTraceContext(name string, headers map[string][]string) *Context {
 
 	if ctx.topSpan != nil {
 		spanCtx := ctx.topSpan.Context()
-		switch spanCtx.(type) {
+		switch t := spanCtx.(type) {
 		case jaeger.SpanContext:
-			js := spanCtx.(jaeger.SpanContext)
-			ctx.traceID = js.TraceID().String()
+			ctx.traceID = t.TraceID().String()
 		case zipkinOt.SpanContext:
-			zs := spanCtx.(zipkinOt.SpanContext)
-			ctx.traceID = zs.TraceID.String()
+			ctx.traceID = t.TraceID.String()
 		}
 	}
 

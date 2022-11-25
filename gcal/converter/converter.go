@@ -21,9 +21,9 @@ const FORM ConverterType = "form"
 const RAW ConverterType = "raw"
 
 var converterPool = map[ConverterType]Converter{
-	FORM:    &FormConverter{},
-	JSON:    &JSONConverter{},
-	RAW:     &RawConverter{},
+	FORM: &FormConverter{},
+	JSON: &JSONConverter{},
+	RAW:  &RawConverter{},
 }
 
 // GetConverter 获取Converter

@@ -9,19 +9,11 @@ type RawConverter struct{}
 
 // Pack the data package
 func (*RawConverter) Pack(data interface{}) ([]byte, error) {
-	switch data.(type) {
+	switch t := data.(type) {
 	case string:
-		res, ok := data.(string)
-		if !ok {
-			return nil, errors.New("raw pack error: pack body to string")
-		}
-		return []byte(res), nil
+		return []byte(t), nil
 	case []byte:
-		res, ok := data.([]byte)
-		if !ok {
-			return nil, errors.New("raw pack error: pack body to []byte")
-		}
-		return res, nil
+		return t, nil
 	default:
 		return nil, errors.New("raw pack error: unknown raw data type")
 	}

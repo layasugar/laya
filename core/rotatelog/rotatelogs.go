@@ -7,7 +7,6 @@ package rotatelog
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -83,7 +82,7 @@ func New(p string, options ...Option) (*RotateLogs, error) {
 	fileNameExt := filepath.Base(baseFn)
 	fileNameRegexp := regexp.MustCompile(fileNameExt[:len(fileNameExt)-4] + `.(\d+).logger`)
 	filePath := filepath.Dir(p)
-	files, _ := ioutil.ReadDir(filePath)
+	files, _ := os.ReadDir(filePath)
 	for _, item := range files {
 		regexRes := fileNameRegexp.FindStringSubmatch(item.Name())
 		if len(regexRes) == 2 {
@@ -200,7 +199,6 @@ func (rl *RotateLogs) getWriterNolock(bailOnRotateFail, useGenerationalNames boo
 	}
 
 	if err = rl.rotateNolock(filename); err != nil {
-		err = err
 		if bailOnRotateFail {
 			// Failure to rotate is a problem, but it's really not a great
 			// idea to stop your application just because you couldn't rename
@@ -402,14 +400,7 @@ func (rl *RotateLogs) Close() error {
 		return nil
 	}
 
-	rl.outFh.Close()
+	_ = rl.outFh.Close()
 
 	return nil
-}
-
-func (rl *RotateLogs) tickerSync() {
-	rl.mutex.Lock()
-	defer rl.mutex.Unlock()
-
-	_ = rl.outFh.SyncFile()
 }

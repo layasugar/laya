@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/layasugar/laya/store/cm"
-	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 )
 
@@ -46,8 +45,7 @@ func NewTransport(opts ...Option) *Transport {
 // RoundTrip captures the request and starts an OpenTracing span
 // for Elastic PerformRequest operation.
 func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
-	var span opentracing.Span
-	span = cm.ParseSpanByCtx(req.Context(), tSpanName)
+	span := cm.ParseSpanByCtx(req.Context(), tSpanName)
 	if nil != span {
 		ext.Component.Set(span, "go-elasticsearch/v7")
 		ext.HTTPUrl.Set(span, req.URL.String())

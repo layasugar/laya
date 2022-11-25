@@ -25,7 +25,7 @@ type Config struct {
 	IdleTimeout time.Duration
 }
 
-//channelPool 存放连接信息
+// channelPool 存放连接信息
 type channelPool struct {
 	mu          sync.Mutex
 	conns       chan *idleConn
@@ -41,7 +41,7 @@ type idleConn struct {
 	t    time.Time
 }
 
-//NewChannelPool 初始化连接
+// NewChannelPool 初始化连接
 func NewChannelPool(config *Config) (Pool, error) {
 	if config.InitialCap < 0 || config.MaxCap <= 0 || config.InitialCap > config.MaxCap {
 		return nil, errors.New("invalid capacity settings")
@@ -80,7 +80,7 @@ func NewChannelPool(config *Config) (Pool, error) {
 	return c, nil
 }
 
-//getConns 获取所有连接
+// getConns 获取所有连接
 func (c *channelPool) getConns() chan *idleConn {
 	c.mu.Lock()
 	conns := c.conns
@@ -149,7 +149,7 @@ func (c *channelPool) newConn() (interface{}, error) {
 	return conn, nil
 }
 
-//Put 将连接放回pool中
+// Put 将连接放回pool中
 func (c *channelPool) Put(conn interface{}) error {
 	if conn == nil {
 		return errors.New("connection is nil. rejecting")
@@ -173,7 +173,7 @@ func (c *channelPool) Put(conn interface{}) error {
 	}
 }
 
-//Close 关闭单条连接
+// Close 关闭单条连接
 func (c *channelPool) Close(conn interface{}) error {
 	if conn == nil {
 		return errors.New("connection is nil. rejecting")
@@ -186,7 +186,7 @@ func (c *channelPool) Close(conn interface{}) error {
 	return c.close(conn)
 }
 
-//Ping 检查单条连接是否有效
+// Ping 检查单条连接是否有效
 func (c *channelPool) Ping(conn interface{}) error {
 	if conn == nil {
 		return errors.New("connection is nil. rejecting")
@@ -194,7 +194,7 @@ func (c *channelPool) Ping(conn interface{}) error {
 	return c.ping(conn)
 }
 
-//Release 释放连接池中所有连接
+// Release 释放连接池中所有连接
 func (c *channelPool) Release() {
 	c.mu.Lock()
 	conns := c.conns
@@ -210,11 +210,11 @@ func (c *channelPool) Release() {
 
 	close(conns)
 	for wrapConn := range conns {
-		closeFun(wrapConn.conn)
+		_ = closeFun(wrapConn.conn)
 	}
 }
 
-//Len 连接池中已有的连接
+// Len 连接池中已有的连接
 func (c *channelPool) Len() int {
 	return len(c.getConns())
 }

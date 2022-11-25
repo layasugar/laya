@@ -17,8 +17,8 @@ const (
 	defaultConnMaxLifeTime = time.Second * time.Duration(7200) // MySQL默认长连接时间为8个小时,可根据高并发业务持续时间合理设置该值
 	defaultConnMaxIdleTime = time.Second * time.Duration(60)   // 设置连接10分钟没有用到就断开连接(内存要求较高可降低该值)
 	levelInfo              = "info"
-	LevelWarn              = "warn"
-	LevelError             = "error"
+	levelWarn              = "warn"
+	levelError             = "error"
 )
 
 type dbPoolCfg struct {
@@ -44,9 +44,9 @@ func initDB(cfg dbConfig) *gorm.DB {
 	switch cfg.logLevel {
 	case levelInfo:
 		level = logger.Info
-	case LevelWarn:
+	case levelWarn:
 		level = logger.Warn
-	case LevelError:
+	case levelError:
 		level = logger.Error
 	default:
 		level = logger.Info

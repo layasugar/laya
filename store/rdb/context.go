@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
+
 	"github.com/go-redis/redis/v8"
+	"github.com/layasugar/laya"
+	"github.com/layasugar/laya/core/rdbstmt"
 	"github.com/layasugar/laya/store/cm"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
-	"strings"
-
-	"github.com/layasugar/laya/core/rdbstmt"
 )
 
 const (
@@ -24,7 +25,11 @@ func NewHook() *Hook {
 type Hook struct{}
 
 func (h *Hook) BeforeProcess(ctx context.Context, cmd redis.Cmder) (context.Context, error) {
-	span := cm.ParseSpanByCtx(ctx, cmdToSpanName(cmd))
+	var span opentracing.Span
+	layaCtx, ok := ctx.(*laya.Context)
+	if ok {
+		span = layaCtx.SpanStart(cmdToSpanName(cmd))
+	}
 
 	if nil != span {
 		ext.Component.Set(span, componentName)

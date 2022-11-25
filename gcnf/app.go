@@ -1,9 +1,10 @@
 package gcnf
 
 import (
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/layasugar/laya/core/constants"
-	"strings"
 )
 
 // AppName 返回当前app名称

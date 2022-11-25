@@ -19,3 +19,7 @@
 
 # mac file
 .DS_Store
+
+# go work
+go.work
+go.work.sum

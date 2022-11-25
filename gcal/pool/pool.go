@@ -2,9 +2,10 @@ package pool
 
 import (
 	"errors"
-	"github.com/layasugar/laya/core/pool"
 	"sync"
 	"time"
+
+	"github.com/layasugar/laya/core/pool"
 )
 
 // Pool is a struct contains connection poolx
@@ -60,7 +61,7 @@ func (p *Pool) Get(k Key) (interface{}, error) {
 		if ok {
 			// 已经存在，则当前的 poolx 要及时销毁
 			// 否则会出现连接泄露的情况
-			go nv.(pool.Pool).Release()
+			go nv.Release()
 		} else {
 			// 如果存储的是当前的，需要定时销毁
 			go p.destroy(k)
@@ -80,10 +81,8 @@ func (p *Pool) Put(k Key, conn interface{}) error {
 }
 
 func (p *Pool) destroy(k Key) {
-	select {
-	case <-time.After(p.alive()):
-		p.mapPool.Delete(k)
-	}
+	<-time.After(p.alive())
+	p.mapPool.Delete(k)
 }
 
 func (p *Pool) newPool(k Key) (pool.Pool, error) {

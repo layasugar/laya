@@ -68,7 +68,9 @@ func GetRpcConn(serverName string) *grpc.ClientConn {
 		//	},
 		//}
 		//pbTc.SetFunc(curConnKey, c)
-		defer pbTc.Put(curConnKey, conn)
+		defer func() {
+			_ = pbTc.Put(curConnKey, conn)
+		}()
 		return conn
 	}
 	conn := tcConn.(*grpc.ClientConn)
@@ -81,7 +83,7 @@ func clientInterceptor(ctx context.Context, method string, req, reply interface{
 	var x = make(map[string][]string)
 	// 反射ctx, 判断是webContext, 还是grpcContext
 	if oldCtx, ok := ctx.(*laya.Context); ok {
-		x[constants.X_REQUESTID] = []string{oldCtx.LogID()}
+		x[constants.X_REQUESTID] = []string{oldCtx.LogId()}
 		oldCtx.SpanInject(x)
 	}
 

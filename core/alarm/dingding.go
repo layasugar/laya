@@ -7,7 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -98,7 +98,7 @@ func sendToDingTalk(robotKey, robotHost, msg string) error {
 	if err != nil {
 		return err
 	}
-	responseData, _ := ioutil.ReadAll(resp.Body)
+	responseData, _ := io.ReadAll(resp.Body)
 	log.Printf("钉钉通知请求结果：%s", string(responseData))
 	return nil
 }

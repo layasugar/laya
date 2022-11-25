@@ -70,7 +70,7 @@ func (hp *HTTPProtocol) initRequestId(ctx *context.Context) {
 
 	if requestId == "" {
 		if ctx.ReqContext != nil {
-			requestId = ctx.ReqContext.GetLogId()
+			requestId = ctx.ReqContext.LogId()
 		}
 	}
 

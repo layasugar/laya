@@ -12,8 +12,8 @@ import (
 	"github.com/uber/jaeger-client-go"
 )
 
-// Trace 链路
-type Trace interface {
+// Tracer 链路
+type Tracer interface {
 	SpanFinish(span opentracing.Span)
 
 	// SpanStart 开启子span

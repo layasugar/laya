@@ -13,7 +13,7 @@ type HttpResp struct{}
 type Response struct {
 	StatusCode uint32      {{.tagName}}json:"status_code"{{.tagName}}
 	Message    string      {{.tagName}}json:"message"{{.tagName}}
-	Data       interface{} {{.tagName}}json:"data"{{.tagName}}
+	Storage       interface{} {{.tagName}}json:"data"{{.tagName}}
 	RequestID  string      {{.tagName}}json:"request_id"{{.tagName}}
 }
 
@@ -62,7 +62,7 @@ func (res *HttpResp) Suc(ctx *laya.WebContext, data interface{}, msg ...string) 
 			rr.Message += "," + v
 		}
 	}
-	rr.Data = data
+	rr.Storage = data
 	rr.RequestID = ctx.LogID()
 	ctx.JSON(http.StatusOK, &rr)
 }

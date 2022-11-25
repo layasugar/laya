@@ -3,7 +3,7 @@ package alarm
 import "fmt"
 
 type Alarm interface {
-	Alarm(title string, content string, data map[string]interface{})
+	Push(title string, content string, data map[string]interface{})
 }
 
 func NewContext() Alarm {
@@ -12,6 +12,6 @@ func NewContext() Alarm {
 
 type DefaultContext struct{}
 
-func (ctx *DefaultContext) Alarm(title string, content string, data map[string]interface{}) {
+func (ctx *DefaultContext) Push(title string, content string, data map[string]interface{}) {
 	fmt.Printf("Alarm info, title: %s\r\ncontext: %s\r\ndata: %v\r\n", title, content, data)
 }

@@ -15,12 +15,11 @@ import (
 
 // Request Web请求的上下文
 type Request interface {
-	GetLogId() string
-	GetClientIP() string
+	LogId() string
 	SpanInject(md metautils.NiceMD)
-	InfoF(template string, args ...interface{})
-	WarnF(template string, args ...interface{})
-	ErrorF(template string, args ...interface{})
+	Info(template string, args ...interface{})
+	Warn(template string, args ...interface{})
+	Error(template string, args ...interface{})
 }
 
 // Context 用作日志记录
@@ -81,7 +80,7 @@ func (ctx *Context) Log() {
 		if rspLog, ok := invokeRecord.RspLog.([]byte); ok {
 			rspBody = string(rspLog)
 		}
-		ctx.ReqContext.InfoF("%s", "sdk_log",
+		ctx.ReqContext.Info("%s", "sdk_log",
 			zap.String("datetime", datetime),
 			zap.Any("message_type", "sdk"),
 			zap.Any("request", invokeRecord.ReqLog),

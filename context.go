@@ -16,9 +16,9 @@ import (
 // Context is the carrier of request and response
 type Context struct {
 	gin *gin.Context
-	d.Data
+	d.Storage
 	l.Logger
-	t.Trace
+	t.Tracer
 	a.Alarm
 }
 
@@ -66,8 +66,8 @@ func (c *Context) Gin() *gin.Context {
 // md header参数
 func NewContext(st constants.SERVERTYPE, name string, md metautils.NiceMD, gin *gin.Context) *Context {
 	var ctx = &Context{
-		Data:  d.NewContext(),
-		Alarm: a.NewContext(),
+		Storage: d.NewContext(),
+		Alarm:   a.NewContext(),
 	}
 	xRequestId := md.Get(constants.X_REQUESTID)
 	if xRequestId == "" {
@@ -76,7 +76,7 @@ func NewContext(st constants.SERVERTYPE, name string, md metautils.NiceMD, gin *
 	}
 	ctx.Set(constants.X_REQUESTID, xRequestId)
 	ctx.Logger = l.NewContext(xRequestId)
-	ctx.Trace = t.NewTraceContext(name, md)
+	ctx.Tracer = t.NewTraceContext(name, md)
 
 	if st == constants.SERVERGIN {
 		ctx.gin = gin

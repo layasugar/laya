@@ -42,7 +42,7 @@ type DingContext struct {
 	robotHost string
 }
 
-func (ctx *DingContext) Alarm(title string, content string, data map[string]interface{}) {
+func (ctx *DingContext) Push(title string, content string, data map[string]interface{}) {
 	var d = Data{
 		Title:       title,
 		Description: content,

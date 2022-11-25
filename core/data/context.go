@@ -1,7 +1,7 @@
 package data
 
-// Data interface the extend of contextx.Context.Value(key string) (value interface{})
-type Data interface {
+// Storage interface the extend of contextx.Context.Value(key string) (value interface{}) Storage
+type Storage interface {
 	Set(key string, value interface{})
 	Get(key string) (value interface{}, exists bool)
 	GetString(key string) string

@@ -9,6 +9,7 @@ const (
 	KEY_APPVERSION               = "app.version"
 	KEY_APPLISTEN                = "app.listen"
 	KEY_APPLOGGERPATH            = "app.logger.path"
+	KEY_APPLOGGERCHILDPATH       = "app.logger.child_path"
 	KEY_APPLOGGERLEVEL           = "app.logger.level"
 	KEY_APPLOGGERTYPE            = "app.logger.type"
 	KEY_APPLOGGERMAXAGE          = "app.logger.max_age"
@@ -35,23 +36,24 @@ const (
 
 // 默认参数
 const (
-	DEFAULT_CONFIGFILE          = "conf/app.toml"
-	DEFAULT_LOGPATH             = "/home/logs/app"
-	DEFAULT_LOGLEVEL            = "info"
-	DEFAULT_LOGTYPE             = "file"
-	DEFAULT_LOGMAXAGE           = 7 * 24 * time.Hour
-	DEFAULT_LOGMAXTIME          = 24 * time.Hour
-	DEFAULT_LOGMAXCOUNT uint    = 30
-	DEFAULT_LOGMAXSIZE  int64   = 134217728
-	DEFAULT_TRACETYPE           = ""
-	DEFAULT_TRACEADDR           = ""
-	DEFAULT_TRACEMOD    float64 = 0
-	DEFAULT_APPNAME             = "normal"
-	DEFAULT_APPMODE             = "dev"
-	DEFAULT_APPVERSION          = "1.0.0"
-	DEFAULT_LISTEN              = "0.0.0.0:10080"
-	DEFAULT_NULLSTRING          = ""
-	DEFAULT_BOOLTRUE            = true
+	DEFAULT_CONFIGFILE           = "config/app.toml"
+	DEFAULT_LOGPATH              = "/home/logs/app"
+	DEFAULT_LOGCHILDPATH         = "%Y-%m-%d.log"
+	DEFAULT_LOGLEVEL             = "info"
+	DEFAULT_LOGTYPE              = "file"
+	DEFAULT_LOGMAXAGE            = 7 * 24 * time.Hour
+	DEFAULT_LOGMAXTIME           = 24 * time.Hour
+	DEFAULT_LOGMAXCOUNT  uint    = 30
+	DEFAULT_LOGMAXSIZE   int64   = 134217728
+	DEFAULT_TRACETYPE            = ""
+	DEFAULT_TRACEADDR            = ""
+	DEFAULT_TRACEMOD     float64 = 0
+	DEFAULT_APPNAME              = "normal"
+	DEFAULT_APPMODE              = "dev"
+	DEFAULT_APPVERSION           = "1.0.0"
+	DEFAULT_LISTEN               = "0.0.0.0:10080"
+	DEFAULT_NULLSTRING           = ""
+	DEFAULT_BOOLTRUE             = true
 )
 
 const (

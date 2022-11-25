@@ -16,21 +16,21 @@ import (
 var sugar *logrus.Logger
 
 var defaultConfig = &Config{
-	appName:       "normal",
-	appMode:       "debug",
-	LogType:       "file",
-	LogPath:       "/home/logs/app",
-	childPath:     "%Y-%m-%d.log",
-	RotationSize:  128 * 1024 * 1024,
-	RotationCount: 30,
-	RotationTime:  24 * time.Hour,
-	MaxAge:        7 * 24 * time.Hour,
+	AppName:       constants.DEFAULT_APPNAME,
+	AppMode:       constants.DEFAULT_APPMODE,
+	LogType:       constants.DEFAULT_LOGTYPE,
+	LogPath:       constants.DEFAULT_LOGPATH,
+	ChildPath:     constants.DEFAULT_LOGCHILDPATH,
+	RotationSize:  constants.DEFAULT_LOGMAXSIZE,
+	RotationCount: constants.DEFAULT_LOGMAXCOUNT,
+	RotationTime:  constants.DEFAULT_LOGMAXTIME,
+	MaxAge:        constants.DEFAULT_LOGMAXAGE,
 }
 
 type Config struct {
-	appName       string        // 应用名
-	appMode       string        // 应用环境
-	childPath     string        // 日志子路径+文件名
+	AppName       string        // 应用名
+	AppMode       string        // 应用环境
+	ChildPath     string        // 日志子路径+文件名
 	LogType       string        // 日志类型
 	LogPath       string        // 日志主路径
 	LogLevel      string        // 日志等级
@@ -53,8 +53,8 @@ func InitSugar(lc *Config) *logrus.Logger {
 		level = logrus.InfoLevel
 	}
 	logrus.SetLevel(level)
-	logPath := fmt.Sprintf("%s/%s/%s", lc.LogPath, lc.appName, lc.childPath)
-	if lc.LogType == "file" {
+	logPath := fmt.Sprintf("%s/%s/%s", lc.LogPath, lc.AppName, lc.ChildPath)
+	if lc.LogType == constants.DEFAULT_LOGTYPE {
 		logrus.SetFormatter(&logrus.JSONFormatter{})
 		logrus.SetOutput(GetWriter(logPath, lc))
 	} else {
@@ -64,7 +64,7 @@ func InitSugar(lc *Config) *logrus.Logger {
 		})
 	}
 	log.Printf("[app] logger success")
-	return logrus.WithField("app_name", lc.appName).WithField("app_mode", lc.appMode).Logger
+	return logrus.WithField("app_name", lc.AppName).WithField("app_mode", lc.AppMode).Logger
 }
 
 func Debug(logId, template string, args ...interface{}) {

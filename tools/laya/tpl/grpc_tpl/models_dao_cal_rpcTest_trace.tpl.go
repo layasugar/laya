@@ -22,11 +22,11 @@ type (
 	Body struct {
 		StatusCode uint32 {{.tagName}}json:"status_code"{{.tagName}}
 		Message    string {{.tagName}}json:"message"{{.tagName}}
-		Data       Data   {{.tagName}}json:"data"{{.tagName}}
+		Storage       Storage   {{.tagName}}json:"data"{{.tagName}}
 		RequestID  string {{.tagName}}json:"request_id"{{.tagName}}
 	}
 
-	Data struct {
+	Storage struct {
 		Code string {{.tagName}}json:"code"{{.tagName}}
 	}
 
@@ -40,7 +40,7 @@ var serviceName1 = "http_test"
 var serviceName2 = "grpc_test"
 
 // HttpTraceTest Http测试, body是interface可以发送任何类型的数据
-func HttpTraceTest(ctx *laya.GrpcContext) (*Data, error) {
+func HttpTraceTest(ctx *laya.GrpcContext) (*Storage, error) {
 	ctx.InfoF("开始请求了, %s", "aaaa")
 	req := gcal.HTTPRequest{
 		Method: "POST",
@@ -58,10 +58,10 @@ func HttpTraceTest(ctx *laya.GrpcContext) (*Data, error) {
 
 	// 状态码非 200
 	if response.Head.StatusCode != http.StatusOK {
-		return &response.Body.Data, errors.New("NETWORK_ERROR")
+		return &response.Body.Storage, errors.New("NETWORK_ERROR")
 	}
 	ctx.InfoF("结束请求了, %s", "bbbb")
-	return &response.Body.Data, err
+	return &response.Body.Storage, err
 }
 
 // RpcTraceTest rpc测试

@@ -35,6 +35,14 @@ func LogPath() string {
 	return constants.DEFAULT_LOGPATH
 }
 
+// LogChildPath 返回日志子路径
+func LogChildPath() string {
+	if IsSet(constants.KEY_APPLOGGERCHILDPATH) {
+		return GetString(constants.KEY_APPLOGGERCHILDPATH)
+	}
+	return constants.DEFAULT_LOGCHILDPATH
+}
+
 // LogType 返回日志类型
 func LogType() string {
 	if IsSet(constants.KEY_APPLOGGERTYPE) {

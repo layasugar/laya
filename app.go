@@ -57,6 +57,9 @@ func (app *App) initWithConfig() *App {
 
 	// 初始化日志
 	logger.InitSugar(&logger.Config{
+		AppName:       gcnf.AppName(),
+		AppMode:       gcnf.AppMode(),
+		ChildPath:     gcnf.LogChildPath(),
 		LogPath:       gcnf.LogPath(),
 		LogType:       gcnf.LogType(),
 		LogLevel:      gcnf.LogLevel(),

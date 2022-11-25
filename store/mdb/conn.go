@@ -106,7 +106,7 @@ func (c *dbConfig) Open() *mongo.Client {
 	if err != nil {
 		panic(err)
 	}
-	log.Printf("[app.mdbx] mongo success, name: %s", c.name)
+	log.Printf("[app.mdb] mongo success, name: %s", c.name)
 	return con
 }
 

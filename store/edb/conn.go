@@ -1,9 +1,10 @@
 package edb
 
 import (
-	"github.com/olivere/elastic/v7"
 	"log"
 	"net/http"
+
+	"github.com/olivere/elastic/v7"
 )
 
 // dbConfig Cluser Base Config
@@ -32,7 +33,7 @@ func (c *dbConfig) Open() *elastic.Client {
 	if err != nil {
 		panic(err)
 	}
-	log.Printf("[app.edbx] es success, name: %s", c.name)
+	log.Printf("[app.edb] es success, name: %s", c.name)
 	return client
 }
 

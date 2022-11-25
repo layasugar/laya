@@ -2,12 +2,13 @@ package cm
 
 import (
 	"context"
+
 	"github.com/layasugar/laya"
 	"github.com/opentracing/opentracing-go"
 )
 
 // ParseSpanByCtx 公共方法, 从ctx中获取
-func ParseSpanByCtx(ctx laya.Context, spanName string) opentracing.Span {
+func ParseSpanByCtx(ctx context.Context, spanName string) opentracing.Span {
 	return ctx.SpanStart(spanName)
 }
 

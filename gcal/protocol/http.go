@@ -2,12 +2,7 @@ package protocol
 
 import (
 	"fmt"
-	"github.com/layasugar/laya/core/metautils"
-	"github.com/layasugar/laya/core/util"
-	"github.com/layasugar/laya/gcal/context"
-	"github.com/layasugar/laya/gcal/converter"
-	"github.com/layasugar/laya/gcal/service"
-	"github.com/layasugar/laya/version"
+	"github.com/layasugar/laya/core/constants"
 	"io"
 	"io/ioutil"
 	"net"
@@ -17,6 +12,13 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/layasugar/laya/core/metautils"
+	"github.com/layasugar/laya/core/util"
+	"github.com/layasugar/laya/gcal/context"
+	"github.com/layasugar/laya/gcal/converter"
+	"github.com/layasugar/laya/gcal/service"
+	"github.com/layasugar/laya/version"
 )
 
 const UA = "GCAL/" + version.VERSION + " (laya gcal http client)"
@@ -140,7 +142,7 @@ func NewHTTPProtocol(ctx *context.Context, serv service.Service, req *HTTPReques
 	ctx.ReqLen = hp.RawReq.ContentLength
 
 	// set logId and reject tracex
-	hp.RawReq.Header.Set(tools.RequestIdKey, hp.requestId)
+	hp.RawReq.Header.Set(constants.X_REQUESTID, hp.requestId)
 	req.Ctx.SpanInject(metautils.NiceMD(hp.RawReq.Header))
 	ctx.CurRecord().ReqLog.Headers = hp.RawReq.Header
 

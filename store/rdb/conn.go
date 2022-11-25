@@ -2,8 +2,9 @@ package rdb
 
 import (
 	"context"
-	"github.com/go-redis/redis/v8"
 	"log"
+
+	"github.com/go-redis/redis/v8"
 )
 
 const (
@@ -17,12 +18,12 @@ func connRdb(name string, options redis.Options) *redis.Client {
 	Rdb := redis.NewClient(&options)
 	_, err := Rdb.Ping(context.Background()).Result()
 	if err == redis.Nil {
-		log.Printf("[app.rdbx] Nil reply returned by Rdb when key does not exist.")
+		log.Printf("[app.rdb] Nil reply returned by Rdb when key does not exist.")
 	} else if err != nil {
-		log.Printf("[app.rdbx] redis fail, err: %s", err)
+		log.Printf("[app.rdb] redis fail, err: %s", err)
 		panic(err)
 	} else {
-		log.Printf("[app.rdbx] redis success, name: %s", name)
+		log.Printf("[app.rdb] redis success, name: %s", name)
 	}
 	Rdb.AddHook(NewHook())
 	return Rdb

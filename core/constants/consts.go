@@ -15,6 +15,7 @@ const (
 	KEY_APPLOGGERMAXCOUNT        = "app.logger.max_count"
 	KEY_APPLOGGERMAXSIZE         = "app.logger.max_size"
 	KEY_APPLOGGERMAXTIME         = "app.logger.max_time"
+	KEY_APPLOGPARAMSSDK          = "app.logger.params.sdk"
 	KEY_APPLOGPARAMSLOGURI       = "app.logger.params.log_uri"
 	KEY_APPLOGPARAMSLOGPREFIXURI = "app.logger.params.log_prefix_uri"
 	KEY_APPLOGPARAMSLOGSUFFIXURI = "app.logger.params.log_suffix_uri"
@@ -50,6 +51,7 @@ const (
 	DEFAULT_APPVERSION          = "1.0.0"
 	DEFAULT_LISTEN              = "0.0.0.0:10080"
 	DEFAULT_NULLSTRING          = ""
+	DEFAULT_BOOLTRUE            = true
 )
 
 const (
@@ -60,6 +62,7 @@ const (
 	PROTOCOLGRPC    = "GRPC"
 	TRACETYPEJAEGER = "jaeger"
 	TRACETYPEZIPKIN = "zipkin"
+	TIMEFORMAT      = "2006-01-02 15:04:05"
 )
 
 const (

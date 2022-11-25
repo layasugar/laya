@@ -2,9 +2,10 @@ package gcal
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/layasugar/laya/gcal/context"
 	"github.com/layasugar/laya/gcal/service"
-	"time"
 )
 
 type client struct {

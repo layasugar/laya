@@ -1,12 +1,13 @@
 package db
 
 import (
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 	"log"
 	"runtime"
 	"time"
+
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var defaultPoolMaxOpen = runtime.NumCPU()*2 + 5 // 连接池最大连接数量4c*2+4只读副本+1主实例
@@ -21,10 +22,10 @@ const (
 )
 
 type dbPoolCfg struct {
-	maxIdleConn int64 //空闲连接数
-	maxOpenConn int64 //最大连接数
-	maxLifeTime int64 //连接可重用的最大时间
-	maxIdleTime int64 //在关闭连接之前, 连接可能处于空闲状态的最大时间
+	maxIdleConn int64 // 空闲连接数
+	maxOpenConn int64 // 最大连接数
+	maxLifeTime int64 // 连接可重用的最大时间
+	maxIdleTime int64 // 在关闭连接之前, 连接可能处于空闲状态的最大时间
 }
 
 type dbConfig struct {
@@ -57,7 +58,7 @@ func initDB(cfg dbConfig) *gorm.DB {
 
 	Db, err := gorm.Open(mysql.Open(cfg.dsn), cfg.gormCfg)
 	if err != nil {
-		log.Printf("[app.dbx] mysql open fail, err:%s", err)
+		log.Printf("[app.db] mysql open fail, err:%s", err)
 		panic(err)
 	}
 
@@ -67,11 +68,11 @@ func initDB(cfg dbConfig) *gorm.DB {
 
 	err = DbSurvive(Db)
 	if err != nil {
-		log.Printf("[app.dbx] mysql survive fail, err:%s", err)
+		log.Printf("[app.db] mysql survive fail, err:%s", err)
 		panic(err)
 	}
 
-	log.Printf("[app.dbx] mysql success, name: %s", cfg.name)
+	log.Printf("[app.db] mysql success, name: %s", cfg.name)
 	return Db
 }
 

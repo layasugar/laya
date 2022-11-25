@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+
 	"github.com/layasugar/laya"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
@@ -16,7 +17,7 @@ const (
 	componentName = "gorm"
 )
 
-func Wrap(ctx laya.Context, dbName ...string) *gorm.DB {
+func Wrap(ctx *laya.Context, dbName ...string) *gorm.DB {
 	var db *gorm.DB
 	if len(dbName) > 0 {
 		db = getGormDB(dbName[0])
@@ -30,23 +31,23 @@ func Wrap(ctx laya.Context, dbName ...string) *gorm.DB {
 func registerCallbacks(db *gorm.DB) {
 	prefix := db.Dialector.Name() + ":"
 
-	db.Callback().Create().Before("gorm:begin_transaction").Register("aotgorm_before_create", newBefore(prefix+"create"))
-	db.Callback().Create().After("gorm:commit_or_rollback_transaction").Register("otgorm_after_create", newAfter())
+	_ = db.Callback().Create().Before("gorm:begin_transaction").Register("aotgorm_before_create", newBefore(prefix+"create"))
+	_ = db.Callback().Create().After("gorm:commit_or_rollback_transaction").Register("otgorm_after_create", newAfter())
 
-	db.Callback().Update().Before("gorm:begin_transaction").Register("otgorm_before_update", newBefore(prefix+"update"))
-	db.Callback().Update().After("gorm:commit_or_rollback_transaction").Register("otgorm_after_update", newAfter())
+	_ = db.Callback().Update().Before("gorm:begin_transaction").Register("otgorm_before_update", newBefore(prefix+"update"))
+	_ = db.Callback().Update().After("gorm:commit_or_rollback_transaction").Register("otgorm_after_update", newAfter())
 
-	db.Callback().Query().Before("gorm:query").Register("otgorm_before_query", newBefore(prefix+"query"))
-	db.Callback().Query().After("gorm:after_query").Register("otgorm_after_query", newAfter())
+	_ = db.Callback().Query().Before("gorm:query").Register("otgorm_before_query", newBefore(prefix+"query"))
+	_ = db.Callback().Query().After("gorm:after_query").Register("otgorm_after_query", newAfter())
 
-	db.Callback().Delete().Before("gorm:begin_transaction").Register("otgorm_before_delete", newBefore(prefix+"delete"))
-	db.Callback().Delete().After("gorm:commit_or_rollback_transaction").Register("otgorm_after_delete", newAfter())
+	_ = db.Callback().Delete().Before("gorm:begin_transaction").Register("otgorm_before_delete", newBefore(prefix+"delete"))
+	_ = db.Callback().Delete().After("gorm:commit_or_rollback_transaction").Register("otgorm_after_delete", newAfter())
 
-	db.Callback().Row().Before("gorm:row").Register("otgorm_before_row", newBefore(prefix+"row"))
-	db.Callback().Row().After("gorm:row").Register("otgorm_after_row", newAfter())
+	_ = db.Callback().Row().Before("gorm:row").Register("otgorm_before_row", newBefore(prefix+"row"))
+	_ = db.Callback().Row().After("gorm:row").Register("otgorm_after_row", newAfter())
 
-	db.Callback().Raw().Before("gorm:raw").Register("otgorm_before_raw", newBefore(prefix+"raw"))
-	db.Callback().Raw().After("gorm:raw").Register("otgorm_after_raw", newAfter())
+	_ = db.Callback().Raw().Before("gorm:raw").Register("otgorm_before_raw", newBefore(prefix+"raw"))
+	_ = db.Callback().Raw().After("gorm:raw").Register("otgorm_after_raw", newAfter())
 }
 
 func newBefore(name string) func(*gorm.DB) {

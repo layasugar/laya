@@ -39,6 +39,7 @@ func (d *BuffIO) SyncFile() error {
 	if d.file == nil {
 		return errors.New("file no open")
 	}
+
 	return d.file.Sync()
 }
 

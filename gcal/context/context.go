@@ -3,12 +3,14 @@ package context
 
 import (
 	"fmt"
-	"github.com/layasugar/laya/core/metautils"
-	"github.com/layasugar/laya/core/util"
-	"go.uber.org/zap"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/layasugar/laya/core/constants"
+	"github.com/layasugar/laya/core/metautils"
+	"github.com/layasugar/laya/core/util"
+	"go.uber.org/zap"
 )
 
 // Request Web请求的上下文
@@ -71,7 +73,7 @@ func (ctx *Context) Log() {
 		var datetime string
 		var rspBody string
 		if reqStartTime, ok := invokeRecord.timePoints["req_start_time"]; ok {
-			datetime = reqStartTime.Format(timex.TimeFormat)
+			datetime = reqStartTime.Format(constants.TIMEFORMAT)
 		}
 		begin := invokeRecord.timeStatis["cost"].StartPoint
 		end := invokeRecord.timeStatis["cost"].StopPoint
@@ -145,7 +147,7 @@ func (ctx *Context) TimeStatisStop(topic string) {
 type InvokeRecord struct {
 	LogId  string
 	RspLog interface{}
-	ReqLog httpx.RequestLog
+	ReqLog constants.RequestLog
 
 	// RspCode 请求的响应码
 	// http 代表 http status code，200 为正常，700+是自定义的错误码，表示发送请求时发生了error

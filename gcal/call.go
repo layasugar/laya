@@ -7,13 +7,14 @@ package gcal
 import (
 	"errors"
 	"fmt"
+	"reflect"
+	"strings"
+
 	"github.com/layasugar/laya/gcal/context"
 	"github.com/layasugar/laya/gcal/converter"
 	"github.com/layasugar/laya/gcal/protocol"
 	"github.com/layasugar/laya/gcal/service"
 	"github.com/layasugar/laya/gcnf"
-	"reflect"
-	"strings"
 )
 
 // Do 发送网络请求，并对象化返回数据

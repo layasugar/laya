@@ -59,6 +59,14 @@ func LogMaxTime() time.Duration {
 	return constants.DEFAULT_LOGMAXTIME
 }
 
+// SdkLog 返回日志切割的时间
+func SdkLog() bool {
+	if IsSet(constants.KEY_APPLOGPARAMSSDK) {
+		return GetBool(constants.KEY_APPLOGPARAMSSDK)
+	}
+	return constants.DEFAULT_BOOLTRUE
+}
+
 // LogMaxCount 返回日志默认限制为30个
 func LogMaxCount() uint {
 	if IsSet(constants.KEY_APPLOGGERMAXCOUNT) {

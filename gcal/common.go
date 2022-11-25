@@ -2,18 +2,17 @@ package gcal
 
 import (
 	"context"
-	"github.com/layasugar/laya/core/appx"
-	"github.com/layasugar/laya/core/grpcx"
-	"github.com/layasugar/laya/core/httpx"
+	"strings"
+
+	"github.com/layasugar/laya"
+	"github.com/layasugar/laya/core/constants"
 	"github.com/layasugar/laya/core/metautils"
 	"github.com/layasugar/laya/gcal/converter"
 	"github.com/layasugar/laya/gcal/pool"
 	"github.com/layasugar/laya/gcal/protocol"
 	"github.com/layasugar/laya/gcal/service"
-	"github.com/layasugar/laya/tools"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"strings"
 )
 
 var pbTc = &pool.Pool{}
@@ -81,18 +80,8 @@ func clientInterceptor(ctx context.Context, method string, req, reply interface{
 	cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	var x = make(map[string][]string)
 	// 反射ctx, 判断是webContext, 还是grpcContext
-	if oldCtx, ok := ctx.(*httpx.WebContext); ok {
-		x[tools.RequestIdKey] = []string{oldCtx.LogID()}
-		oldCtx.SpanInject(x)
-	}
-
-	if oldCtx, ok := ctx.(*grpcx.GrpcContext); ok {
-		x[tools.RequestIdKey] = []string{oldCtx.GetLogId()}
-		oldCtx.SpanInject(x)
-	}
-
-	if oldCtx, ok := ctx.(*appx.Context); ok {
-		x[tools.RequestIdKey] = []string{oldCtx.GetLogId()}
+	if oldCtx, ok := ctx.(*laya.Context); ok {
+		x[constants.X_REQUESTID] = []string{oldCtx.LogID()}
 		oldCtx.SpanInject(x)
 	}
 

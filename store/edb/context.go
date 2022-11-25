@@ -5,11 +5,10 @@
 package edb
 
 import (
-	"github.com/layasugar/laya/env"
-	"github.com/layasugar/laya/store/cm"
-	"github.com/opentracing/opentracing-go"
 	"net/http"
 
+	"github.com/layasugar/laya/store/cm"
+	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 )
 
@@ -48,16 +47,14 @@ func NewTransport(opts ...Option) *Transport {
 // for Elastic PerformRequest operation.
 func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 	var span opentracing.Span
-	if env.EsTrace() {
-		span = cm.ParseSpanByCtx(req.Context(), tSpanName)
-		if nil != span {
-			ext.Component.Set(span, "go-elasticsearch/v7")
-			ext.HTTPUrl.Set(span, req.URL.String())
-			ext.HTTPMethod.Set(span, req.Method)
-			ext.PeerHostname.Set(span, req.URL.Hostname())
-			ext.PeerPort.Set(span, atouint16(req.URL.Port()))
-			defer span.Finish()
-		}
+	span = cm.ParseSpanByCtx(req.Context(), tSpanName)
+	if nil != span {
+		ext.Component.Set(span, "go-elasticsearch/v7")
+		ext.HTTPUrl.Set(span, req.URL.String())
+		ext.HTTPMethod.Set(span, req.Method)
+		ext.PeerHostname.Set(span, req.URL.Hostname())
+		ext.PeerPort.Set(span, atouint16(req.URL.Port()))
+		defer span.Finish()
 	}
 	var (
 		resp *http.Response

@@ -1,29 +1,33 @@
 package trace
 
 import (
-	"github.com/opentracing/opentracing-go"
-	"github.com/uber/jaeger-client-go"
-	jaegerCfg "github.com/uber/jaeger-client-go/config"
-	jaegerLog "github.com/uber/jaeger-client-go/log"
+	"github.com/layasugar/laya/core/logger"
+	"github.com/layasugar/laya/core/trace/jaegerpropagetor"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/jaeger"
+	"go.opentelemetry.io/otel/sdk/resource"
+	tracesdk "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 )
 
-func newJTracer(serviceName, addr string, mod float64) opentracing.Tracer {
-	var cfg = jaegerCfg.Configuration{
-		ServiceName: serviceName,
-		Sampler: &jaegerCfg.SamplerConfig{
-			Type:  jaeger.SamplerTypeProbabilistic,
-			Param: mod,
-		},
-		Reporter: &jaegerCfg.ReporterConfig{
-			LogSpans:           true,
-			LocalAgentHostPort: addr,
-		},
+func newJTracer(service, addr, appMod string, mod float64) {
+	exp, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(addr)))
+	if err != nil {
+		logger.Error("app", "jaeger初始化失败，err: %v", err)
+		return
 	}
-
-	jLogger := jaegerLog.StdLogger
-	t, _, _ := cfg.NewTracer(
-		jaegerCfg.Logger(jLogger),
+	tp := tracesdk.NewTracerProvider(
+		tracesdk.WithSampler(tracesdk.TraceIDRatioBased(mod)),
+		tracesdk.WithBatcher(exp),
+		tracesdk.WithResource(resource.NewWithAttributes(
+			semconv.SchemaURL,
+			semconv.ServiceNameKey.String(service),
+			attribute.String("environment", appMod),
+		)),
 	)
-
-	return t
+	otel.SetTracerProvider(tp)
+	p := jaegerpropagetor.Jaeger{}
+	otel.SetTextMapPropagator(p)
+	logger.Debug("app", "tracer success")
 }

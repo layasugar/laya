@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/layasugar/laya/store/cm"
-	"github.com/opentracing/opentracing-go/ext"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 const (
@@ -45,14 +45,14 @@ func NewTransport(opts ...Option) *Transport {
 // RoundTrip captures the request and starts an OpenTracing span
 // for Elastic PerformRequest operation.
 func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
-	span := cm.ParseSpanByCtx(req.Context(), tSpanName)
+	_, span := cm.ParseSpanByCtx(req.Context(), tSpanName)
 	if nil != span {
-		ext.Component.Set(span, "go-elasticsearch/v7")
-		ext.HTTPUrl.Set(span, req.URL.String())
-		ext.HTTPMethod.Set(span, req.Method)
-		ext.PeerHostname.Set(span, req.URL.Hostname())
-		ext.PeerPort.Set(span, atouint16(req.URL.Port()))
-		defer span.Finish()
+		span.SetAttributes(attribute.String("component", "go-elasticsearch/v7"))
+		span.SetAttributes(attribute.String("http.url", req.URL.String()))
+		span.SetAttributes(attribute.String("http.method", req.Method))
+		span.SetAttributes(attribute.String("peer.hostname", req.URL.Hostname()))
+		span.SetAttributes(attribute.String("peer.port", req.URL.Port()))
+		defer span.End()
 	}
 	var (
 		resp *http.Response
@@ -65,12 +65,12 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 	if err != nil {
 		if nil != span {
-			ext.Error.Set(span, true)
+			span.RecordError(err)
 		}
 	}
 	if resp != nil {
 		if nil != span {
-			ext.HTTPStatusCode.Set(span, uint16(resp.StatusCode))
+			span.SetAttributes(attribute.String("http.status_code", resp.Status))
 		}
 	}
 

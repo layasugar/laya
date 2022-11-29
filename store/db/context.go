@@ -1,8 +1,10 @@
 package db
 
 import (
+	"context"
+
 	"github.com/layasugar/laya"
-	"github.com/opentracing/opentracing-go"
+	"go.opentelemetry.io/otel/trace"
 	"gorm.io/gorm"
 )
 
@@ -48,8 +50,9 @@ func registerCallbacks(db *gorm.DB) {
 func newBefore(name string) func(*gorm.DB) {
 	return func(db *gorm.DB) {
 		if v, ok := db.Get(contextKey); ok {
-			if ctx, okctx := v.(*laya.Context); okctx {
-				span := ctx.SpanStart(tSpanName + name)
+			switch ctx := v.(type) {
+			case *laya.Context:
+				_, span := ctx.Start(context.TODO(), tSpanName+name)
 				if nil != span {
 					db.Set(spanKey, span)
 				}
@@ -61,10 +64,9 @@ func newBefore(name string) func(*gorm.DB) {
 func newAfter() func(*gorm.DB) {
 	return func(db *gorm.DB) {
 		if spanx, ok := db.Get(spanKey); ok {
-			if span, okspan := spanx.(opentracing.Span); okspan {
-				if nil != span {
-					span.Finish()
-				}
+			switch span := spanx.(type) {
+			case trace.Span:
+				span.End()
 			}
 		}
 	}

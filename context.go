@@ -10,7 +10,6 @@ import (
 	l "github.com/layasugar/laya/core/logger"
 	"github.com/layasugar/laya/core/metautils"
 	t "github.com/layasugar/laya/core/trace"
-	"github.com/layasugar/laya/core/util"
 )
 
 // Context is the carrier of request and response
@@ -61,25 +60,30 @@ func (c *Context) Gin() *gin.Context {
 	return c.gin
 }
 
+const ginFlag = "__gin__gin"
+
 // NewContext 初始化上下文
 // name uri或者spanName
 // md header参数
 func NewContext(st constants.SERVERTYPE, name string, md metautils.NiceMD, gin *gin.Context) *Context {
+	if st == constants.SERVERGIN {
+		obj, existed := gin.Get(ginFlag)
+		if existed {
+			return obj.(*Context)
+		}
+	}
 	var ctx = &Context{
 		Storage: d.NewContext(),
 		Alarm:   a.NewContext(),
+		Tracer:  t.NewTraceContext(name, md),
 	}
-	xRequestId := md.Get(constants.X_REQUESTID)
-	if xRequestId == "" {
-		xRequestId = util.GenerateLogId()
-		md.Set(constants.X_REQUESTID, xRequestId)
-	}
-	ctx.Set(constants.X_REQUESTID, xRequestId)
-	ctx.Logger = l.NewContext(xRequestId)
-	ctx.Tracer = t.NewTraceContext(name, md)
 
+	md.Set(constants.X_REQUESTID, ctx.TraceId())
+	ctx.Set(constants.X_REQUESTID, ctx.TraceId())
+	ctx.Logger = l.NewContext(ctx.TraceId())
 	if st == constants.SERVERGIN {
 		ctx.gin = gin
+		gin.Set(ginFlag, ctx)
 	}
 
 	return ctx

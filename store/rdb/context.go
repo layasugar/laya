@@ -12,6 +12,8 @@ import (
 	"github.com/layasugar/laya/store/cm"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const (
@@ -24,19 +26,19 @@ func NewHook() *Hook {
 
 type Hook struct{}
 
-func (h *Hook) BeforeProcess(ctx context.Context, cmd redis.Cmder) (context.Context, error) {
-	var span opentracing.Span
+func (h *Hook) BeforeProcess(ctx context.Context, cmd redis.Cmder) (spanctx context.Context, err error) {
+	var span trace.Span
 	layaCtx, ok := ctx.(*laya.Context)
 	if ok {
-		span = layaCtx.SpanStart(cmdToSpanName(cmd))
+		spanctx, span = layaCtx.Start(context.TODO(), cmdToSpanName(cmd))
 	}
 
 	if nil != span {
-		ext.Component.Set(span, componentName)
 		stmt := rdbstmt.NewStatement(cmd.Args())
-		ext.DBStatement.Set(span, stmt.ShortString())
-		newCtx := context.Background()
-		return opentracing.ContextWithSpan(newCtx, span), nil
+		span.SetAttributes(attribute.String("component", componentName))
+		span.SetAttributes(attribute.String("db.type", stmt.ShortString()))
+		span.SetAttributes(attribute.String("db.statement", "mongo"))
+		return spanctx, nil
 	}
 	return ctx, nil
 }
@@ -60,16 +62,14 @@ func (h *Hook) AfterProcess(ctx context.Context, cmd redis.Cmder) error {
 }
 
 func (h *Hook) BeforeProcessPipeline(ctx context.Context, cmds []redis.Cmder) (context.Context, error) {
-	span := cm.ParseSpanByCtx(ctx, spanName("pipeline"))
+	ctx, span := cm.ParseSpanByCtx(ctx, spanName("pipeline"))
 	if nil != span {
-		ext.Component.Set(span, componentName)
+		span.SetAttributes(attribute.String("component", componentName))
 		var stmt rdbstmt.Statement
 		for i := 0; i < len(cmds); i++ {
 			stmt = rdbstmt.NewStatement(cmds[i].Args())
-			span.SetTag(fmt.Sprintf("cmd:%d", i), stmt.ShortString())
+			span.SetAttributes(attribute.String(fmt.Sprintf("cmd:%d", i), stmt.ShortString()))
 		}
-		newCtx := context.Background()
-		return opentracing.ContextWithSpan(newCtx, span), nil
 	}
 	return ctx, nil
 }

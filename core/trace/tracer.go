@@ -3,30 +3,28 @@
 package trace
 
 import (
-	"log"
-
 	"github.com/layasugar/laya/core/constants"
 	"github.com/layasugar/laya/gcnf"
-	"github.com/opentracing/opentracing-go"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
-// tracer 全局单例变量
-var tracer opentracing.Tracer
+// trace 全局单例变量
+var tracer trace.Tracer
 
-// InitTrace 初始化trace
-func getTracer() opentracing.Tracer {
+// getTracer 获取全局的tracer
+func getTracer() trace.Tracer {
 	if nil == tracer {
 		if gcnf.TraceMod() != 0 {
 			switch gcnf.TraceType() {
 			case constants.TRACETYPEZIPKIN:
-				tracer = newZkTracer(gcnf.AppName(), gcnf.LocalIP(), gcnf.TraceAddr(), gcnf.TraceMod())
-				log.Printf("[app] tracer success")
+				newZkTracer(gcnf.AppName(), gcnf.TraceAddr(), gcnf.AppMode(), gcnf.TraceMod())
 			case constants.TRACETYPEJAEGER:
-				tracer = newJTracer(gcnf.AppName(), gcnf.TraceAddr(), gcnf.TraceMod())
-				log.Printf("[app] tracer success")
+				newJTracer(gcnf.AppName(), gcnf.TraceAddr(), gcnf.AppMode(), gcnf.TraceMod())
 			}
 		}
 	}
 
+	tracer = otel.Tracer(gcnf.AppName())
 	return tracer
 }

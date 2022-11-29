@@ -275,19 +275,17 @@ func (wrc *WebRoute) returnObject() WebRouter {
 
 // 打印出入参数
 func webBoundLog(ctx *Context) {
-	defer func() {
-		ctx.SpanFinish(ctx.TopSpan())
-	}()
 	w := &responseBodyWriter{body: &bytes.Buffer{}, ResponseWriter: ctx.Gin().Writer}
 	ctx.Gin().Writer = w
+	requestData, _ := ctx.Gin().GetRawData()
+	ctx.Gin().Request.Body = io.NopCloser(bytes.NewBuffer(requestData))
 	ctx.Gin().Next()
 	if gcnf.CheckLogParams(ctx.Gin().Request.RequestURI) {
-		requestData, _ := ctx.Gin().GetRawData()
-		ctx.Gin().Request.Body = io.NopCloser(bytes.NewBuffer(requestData))
 		ctx.Info("params_log", ctx.Field("header", util.GetString(ctx.Gin().Request.Header)),
 			ctx.Field("path", ctx.Gin().Request.RequestURI), ctx.Field("protocol", constants.PROTOCOLHTTP),
 			ctx.Field("inbound", string(requestData)), ctx.Field("outbound", w.body.String()))
 	}
+	ctx.End(ctx.TopSpan())
 }
 
 type responseBodyWriter struct {
@@ -317,7 +315,7 @@ var defaultWebServerMiddlewares = []WebHandlerFunc{
 func recovery(ctx *Context) {
 	defer func() {
 		if err := recover(); err != nil {
-			ctx.SpanFinish(ctx.TopSpan())
+			ctx.End(ctx.TopSpan())
 			ctx.Error("系统错误, err: %v", err)
 			panic(err)
 		}

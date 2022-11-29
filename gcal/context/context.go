@@ -2,6 +2,7 @@
 package context
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"sync"
@@ -16,7 +17,7 @@ import (
 // Request Web请求的上下文
 type Request interface {
 	LogId() string
-	SpanInject(md metautils.NiceMD)
+	Inject(c context.Context, md metautils.NiceMD)
 	Info(template string, args ...interface{})
 	Warn(template string, args ...interface{})
 	Error(template string, args ...interface{})

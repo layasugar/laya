@@ -120,7 +120,7 @@ func loadLogParams() *logParams {
 func CheckLogParams(origin string) bool {
 	if len(logParamsRules.logParams) > 0 {
 		for _, v := range logParamsRules.logParams {
-			if v == origin {
+			if v == origin || v == constants.DEFAULT_ALLOWALLURI {
 				return true
 			}
 		}

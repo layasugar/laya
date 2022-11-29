@@ -37,7 +37,7 @@ const (
 // 默认参数
 const (
 	DEFAULT_CONFIGFILE           = "config/app.toml"
-	DEFAULT_LOGPATH              = "/home/logs/app"
+	DEFAULT_LOGPATH              = "/home/logs"
 	DEFAULT_LOGCHILDPATH         = "%Y-%m-%d.log"
 	DEFAULT_LOGLEVEL             = "info"
 	DEFAULT_LOGTYPE              = "file"
@@ -54,6 +54,7 @@ const (
 	DEFAULT_LISTEN               = "0.0.0.0:10080"
 	DEFAULT_NULLSTRING           = ""
 	DEFAULT_BOOLTRUE             = true
+	DEFAULT_ALLOWALLURI          = "*"
 )
 
 const (

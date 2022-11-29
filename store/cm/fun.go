@@ -4,17 +4,17 @@ import (
 	"context"
 
 	"github.com/layasugar/laya"
-	"github.com/opentracing/opentracing-go"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // ParseSpanByCtx 公共方法, 从ctx中获取
-func ParseSpanByCtx(ctx context.Context, spanName string) opentracing.Span {
+func ParseSpanByCtx(ctx context.Context, spanName string) (context.Context, trace.Span) {
 	layaCtx, ok := ctx.(*laya.Context)
 	if ok {
-		return layaCtx.SpanStart(spanName)
+		return layaCtx.Start(ctx, spanName)
 	}
 
-	return nil
+	return nil, nil
 }
 
 // ParseLogIdByCtx 从context中解析出logId

@@ -64,7 +64,8 @@ func InitSugar(lc *Config) *logrus.Logger {
 		})
 	}
 	log.Printf("[app] logger success")
-	return logrus.WithField("app_name", lc.AppName).WithField("app_mode", lc.AppMode).Logger
+	sugar = logrus.WithField("app_name", lc.AppName).WithField("app_mode", lc.AppMode).Logger
+	return sugar
 }
 
 func Debug(logId, template string, args ...interface{}) {

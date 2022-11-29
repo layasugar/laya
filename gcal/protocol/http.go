@@ -1,6 +1,7 @@
 package protocol
 
 import (
+	contextx "context"
 	"fmt"
 	"io"
 	"net"
@@ -142,7 +143,7 @@ func NewHTTPProtocol(ctx *context.Context, serv service.Service, req *HTTPReques
 
 	// set logId and reject tracex
 	hp.RawReq.Header.Set(constants.X_REQUESTID, hp.requestId)
-	req.Ctx.SpanInject(metautils.NiceMD(hp.RawReq.Header))
+	req.Ctx.Inject(contextx.TODO(), metautils.NiceMD(hp.RawReq.Header))
 	ctx.CurRecord().ReqLog.Headers = hp.RawReq.Header
 
 	// If the user doesn't set User-Agent, set the default User-Agent

@@ -2,6 +2,7 @@ package mdb
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/layasugar/laya/store/cm"
@@ -9,6 +10,8 @@ import (
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/opentracing/opentracing-go/log"
 	"go.mongodb.org/mongo-driver/event"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const (
@@ -29,15 +32,15 @@ func (t *tracer) HandleStartedEvent(ctx context.Context, evt *event.CommandStart
 	if evt == nil {
 		return
 	}
-	span := cm.ParseSpanByCtx(ctx, tSpanName)
+	_, span := cm.ParseSpanByCtx(ctx, tSpanName)
 
 	if nil != span {
-		ext.DBType.Set(span, "mongo")
-		ext.DBInstance.Set(span, evt.DatabaseName)
-		ext.DBStatement.Set(span, evt.Command.String())
-		span.SetTag("db.host", evt.ConnectionID)
-		ext.SpanKind.Set(span, ext.SpanKindRPCClientEnum)
-		ext.Component.Set(span, "golang-mongo")
+		span.SetAttributes(attribute.String("db.type", "mongo"))
+		span.SetAttributes(attribute.String("db.instance", evt.DatabaseName))
+		span.SetAttributes(attribute.String("db.statement", evt.Command.String()))
+		span.SetAttributes(attribute.String("db.host", evt.ConnectionID))
+		span.SetAttributes(attribute.String("span.kind", fmt.Sprintf("%d", trace.SpanKindClient)))
+		span.SetAttributes(attribute.String("component", "golang-mongo"))
 	}
 	t.spans.Store(evt.RequestID, span)
 }

@@ -81,6 +81,6 @@ func serverInterceptor(ctx context.Context, req interface{}, info *grpc.UnarySer
 			newCtx.Field("path", info.FullMethod), newCtx.Field("protocol", constants.PROTOCOLGRPC),
 			newCtx.Field("inbound", string(reqByte)), newCtx.Field("outbound", string(respByte)))
 	}
-	newCtx.SpanFinish(newCtx.TopSpan())
+	newCtx.End(newCtx.TopSpan())
 	return resp, err
 }

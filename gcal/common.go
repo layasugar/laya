@@ -84,7 +84,7 @@ func clientInterceptor(ctx context.Context, method string, req, reply interface{
 	// 反射ctx, 判断是webContext, 还是grpcContext
 	if oldCtx, ok := ctx.(*laya.Context); ok {
 		x[constants.X_REQUESTID] = []string{oldCtx.LogId()}
-		oldCtx.SpanInject(x)
+		oldCtx.Inject(context.TODO(), x)
 	}
 
 	// 转换key为小写不然rst
